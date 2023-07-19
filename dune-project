@@ -16,6 +16,5 @@
 (package
  (name coqfmt)
  (synopsis "Coq code formatter")
- (description
-  "This program formats the given Coq source code in a uniform style.")
+ (description "coqfmt formats the given Coq source code in a uniform style.")
  (depends ocaml dune))
