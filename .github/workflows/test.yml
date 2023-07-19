@@ -8,11 +8,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Update opam
-      run: opam update
-
-    - name: Upgrade opam packages
-      run: opam upgrade --yes
+    - uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: "4.14.1"
 
     - name: Build
       run: dune build
