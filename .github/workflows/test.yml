@@ -28,10 +28,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-          cache: "npm"
-
       - name: Run Prettier
         run: npx --yes prettier --check .
