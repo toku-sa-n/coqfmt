@@ -1,2 +1,3 @@
 # coqfmt
+
 Coq code formatter
