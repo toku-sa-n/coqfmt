@@ -1,0 +1,23 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: "4.14.1"
+        dune-cache: true
+
+    # Without `opam exec -- `, these commands will fail due to "dune not found"
+    # error.
+    - name: Build
+      run: opam exec -- dune build
+
+    - name: Run tests
+      run: opam exec -- dune test
