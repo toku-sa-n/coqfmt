@@ -11,6 +11,7 @@ jobs:
     - uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: "4.14.1"
+        dune-cache: true
 
     - name: Build
       run: dune build
