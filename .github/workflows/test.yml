@@ -21,3 +21,12 @@ jobs:
 
       - name: Run tests
         run: opam exec -- dune test
+
+  prettier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Prettier
+        run: npx --yes prettier --check .
