@@ -4,7 +4,7 @@ synopsis: "Coq code formatter"
 description: "Coqfmt formats the given Coq source code in a uniform style."
 maintainer: ["Hiroki Tokunaga <tokusan441@gmail.com>"]
 authors: ["Hiroki Tokunaga <tokusan441@gmail.com>"]
-license: "LICENSE"
+license: "AGPL-3.0-or-later"
 homepage: "https://github.com/toku-sa-n/coqfmt"
 bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
