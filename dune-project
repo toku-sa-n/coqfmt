@@ -11,7 +11,7 @@
 
 (maintainers "Hiroki Tokunaga <tokusan441@gmail.com>")
 
-(license LICENSE)
+(license AGPL-3.0-or-later)
 
 (package
  (name coqfmt)
