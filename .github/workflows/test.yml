@@ -14,6 +14,9 @@ jobs:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
+      - name: Install dependencies
+        run: opam install --deps-only .
+
       # Without `opam exec -- `, these commands will fail due to "dune not found"
       # error.
       - name: Build
