@@ -16,9 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
       - uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: "4.14.1"
+          opam-repositories: |
+            opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
+            default: https://github.com/ocaml/opam-repository.git
           dune-cache: true
 
       - name: Install dependencies
