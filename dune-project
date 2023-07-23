@@ -17,4 +17,4 @@
  (name coqfmt)
  (synopsis "Coq code formatter")
  (description "Coqfmt formats the given Coq source code in a uniform style.")
- (depends ocaml alcotest coq-core.plugins.ltac dune))
+ (depends ocaml alcotest coq-core dune))
