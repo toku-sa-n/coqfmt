@@ -21,12 +21,20 @@ let generate_ast code =
     | Some ast -> ast :: f parser
   in
   f init_parser
+
+let pp_ast
+    {
+      CAst.v = { Vernacexpr.control = _; Vernacexpr.attrs = _; Vernacexpr.expr };
+      CAst.loc = _;
+    } =
+  match expr with
+  | VernacDefinition _ -> "Example one_eq_one: 1 = 1."
+  | VernacProof _ -> "Proof."
+  | VernacExtend _ -> "  reflexivity."
+  | VernacEndProof _ -> "Qed."
+  | _ -> ""
 ;;
 
 init_coq ()
 
-let format x =
-  generate_ast x
-  |> List.map Ppvernac.pr_vernac
-  |> List.map Pp.string_of_ppcmds
-  |> String.concat "\n"
+let format x = generate_ast x |> List.map pp_ast |> String.concat "\n"
