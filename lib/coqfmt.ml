@@ -1,3 +1,5 @@
+(* This function follows the instructions written in
+   https://coq.github.io/doc/master/api/coq-core/Coqinit/index.html. *)
 let init_coq () =
   let args, () =
     Coqinit.parse_arguments
