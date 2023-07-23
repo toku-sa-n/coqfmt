@@ -9,7 +9,7 @@ jobs:
 
       matrix:
         os:
-          - linux-latest
+          - ubuntu-latest
           - macos-latest
           - windows-latest
 
