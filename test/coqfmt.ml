@@ -3,11 +3,11 @@ let test_empty_case () =
 
 let test_example () =
   Alcotest.(check string)
-    "same string" "Example one_eq_one:1=1. Proof. reflexivity. Qed."
-    (Coqfmt.format {|Exampme one_eq_one: 1 = 1.
+    "same string" {|Example one_eq_one: 1 = 1.
 Proof.
   reflexivity.
-Qed.|})
+Qed.|}
+    (Coqfmt.format "Example one_eq_one:1=1. Proof. reflexivity. Qed.")
 
 let () =
   Alcotest.run "Coqfmt"
