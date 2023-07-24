@@ -1,14 +1,13 @@
+let read_file path =
+  let channel = Stdlib.open_in path in
+  let content = In_channel.input_all channel in
+  let () = In_channel.close channel in
+  content
+
 let test_cases =
   let read_in_out_files dir =
-    let in_file = Filename.concat dir "in.v" in
-    let out_file = Filename.concat dir "out.v" in
-    let in_file_channel = Stdlib.open_in in_file in
-    let out_file_channel = Stdlib.open_in out_file in
-    let in_file_content = In_channel.input_all in_file_channel in
-    let out_file_content = In_channel.input_all out_file_channel in
-    let () = In_channel.close in_file_channel in
-    let () = In_channel.close out_file_channel in
-    (in_file_content, out_file_content)
+    ( Filename.concat dir "in.v" |> read_file,
+      Filename.concat dir "out.v" |> read_file )
   in
   Sys.readdir "coq_files" |> Array.to_list
   |> List.map (Filename.concat "coq_files")
