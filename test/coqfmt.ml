@@ -1,20 +1,23 @@
-let test_empty_case () =
-  Alcotest.(check string) "same string" "" (Coqfmt.format "")
+let read_file path =
+  let channel = Stdlib.open_in path in
+  let content = In_channel.input_all channel in
+  let () = In_channel.close channel in
+  content
 
-let test_example () =
-  Alcotest.(check string)
-    "same string" {|Example one_eq_one: 1 = 1.
-Proof.
-  reflexivity.
-Qed.|}
-    (Coqfmt.format "Example one_eq_one:1=1. Proof. reflexivity. Qed.")
+let read_in_out_files dir =
+  ( Filename.concat dir "in.v" |> read_file,
+    Filename.concat dir "out.v" |> read_file )
 
-let () =
-  Alcotest.run "Coqfmt"
-    [
-      ( "format",
-        [
-          Alcotest.test_case "Empty string" `Quick test_empty_case;
-          Alcotest.test_case "Example" `Quick test_example;
-        ] );
-    ]
+let dir_to_testcase name =
+  let in_content, out_content = read_in_out_files name in
+  Alcotest.test_case name `Quick (fun () ->
+      Alcotest.(check string)
+        "same string" out_content (Coqfmt.format in_content))
+
+let test_cases =
+  Sys.readdir "coq_files" |> Array.to_list
+  |> List.map (Filename.concat "coq_files")
+  |> List.filter Sys.is_directory
+  |> List.map dir_to_testcase
+
+let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]
