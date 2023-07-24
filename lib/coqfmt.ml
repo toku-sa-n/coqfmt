@@ -35,8 +35,10 @@ let pp_ast
   | VernacExtend _ -> "  reflexivity."
   | VernacEndProof _ -> "Qed."
   | _ -> ""
-;;
 
-init_coq ()
-
-let format x = generate_ast x |> List.map pp_ast |> String.concat "\n"
+(* Given that codes are usually stored in files, it is better to append a `\n` at the end if the code is not empty. *)
+let format = function
+  | "" -> ""
+  | x ->
+      init_coq ();
+      (generate_ast x |> List.map pp_ast |> String.concat "\n") ^ "\n"
