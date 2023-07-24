@@ -9,11 +9,7 @@ let generate_ast code =
   in
   f init_parser
 
-let pp_ast
-    {
-      CAst.v = { Vernacexpr.control = _; Vernacexpr.attrs = _; Vernacexpr.expr };
-      CAst.loc = _;
-    } =
+let pp_ast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
   | VernacDefinition _ -> "Example one_eq_one: 1 = 1."
   | VernacProof _ -> "Proof."
