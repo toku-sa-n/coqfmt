@@ -14,8 +14,6 @@ let test_cases =
   |> List.filter Sys.is_directory
   |> List.map (fun name ->
          let in_content, out_content = read_in_out_files name in
-         (name, in_content, out_content))
-  |> List.map (fun (name, in_content, out_content) ->
          Alcotest.test_case name `Quick (fun () ->
              Alcotest.(check string)
                "same string" out_content (Coqfmt.format in_content)))
