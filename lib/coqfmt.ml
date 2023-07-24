@@ -1,6 +1,6 @@
-(* Given that codes are usually stored in files, it is better to append a `\n` at the end if the code is not empty. *)
-let format = function
-  | "" -> ""
-  | x ->
-      Init.init_coq ();
-      (Ast.generate_from_code x |> Pp.pp_ast) ^ "\n"
+(* Do not put `Init.init_coq ()` inside `format`, otherwise an internal error in
+   Coq will happen
+   TODO: Is it correct to put this here? *)
+Init.init_coq ()
+
+let format code = Ast.generate_from_code code |> Pp.pp_ast
