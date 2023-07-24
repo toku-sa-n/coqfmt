@@ -3,5 +3,4 @@ let format = function
   | "" -> ""
   | x ->
       Init.init_coq ();
-      (Ast.generate_from_code x |> List.map Pp.pp_ast |> String.concat "\n")
-      ^ "\n"
+      (Ast.generate_from_code x |> Pp.pp_ast) ^ "\n"
