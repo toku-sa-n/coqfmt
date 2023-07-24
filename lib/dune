@@ -1,3 +1,4 @@
 (library
  (name coqfmt)
- (libraries coq-core.plugins.ltac))
+ (libraries coq-core.plugins.ltac)
+ (private_modules init))

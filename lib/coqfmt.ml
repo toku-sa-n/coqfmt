@@ -1,17 +1,3 @@
-(* This function follows the instructions written in
-   https://coq.github.io/doc/master/api/coq-core/Coqinit/index.html. *)
-let init_coq () =
-  let args, () =
-    Coqinit.parse_arguments
-      ~parse_extra:(fun _ -> ((), []))
-      ~usage:
-        Boot.Usage.
-          { executable_name = "coqfmt"; extra_args = ""; extra_options = "" }
-      ()
-  in
-  let cmds = Coqinit.init_runtime args in
-  Coqinit.start_library ~top:Names.DirPath.initial cmds
-
 let generate_ast code =
   let mode = Ltac_plugin.G_ltac.classic_proof_mode in
   let entry = Pvernac.main_entry (Some mode) in
@@ -40,5 +26,5 @@ let pp_ast
 let format = function
   | "" -> ""
   | x ->
-      init_coq ();
+      Init.init_coq ();
       (generate_ast x |> List.map pp_ast |> String.concat "\n") ^ "\n"
