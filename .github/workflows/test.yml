@@ -16,6 +16,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # Without this, tests will fail on Windows because Coqfmt converts
+      # newlines to LF while the cloned source code contains CRLF.
+      - name: Modify the git setting not to convert LF to CRLF
+        run: git config --global core.autocrlf input
+
       - uses: actions/checkout@v2
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
