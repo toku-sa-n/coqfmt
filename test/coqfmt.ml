@@ -4,18 +4,20 @@ let read_file path =
   let () = In_channel.close channel in
   content
 
+let read_in_out_files dir =
+  ( Filename.concat dir "in.v" |> read_file,
+    Filename.concat dir "out.v" |> read_file )
+
+let dir_to_testcase name =
+  let in_content, out_content = read_in_out_files name in
+  Alcotest.test_case name `Quick (fun () ->
+      Alcotest.(check string)
+        "same string" out_content (Coqfmt.format in_content))
+
 let test_cases =
-  let read_in_out_files dir =
-    ( Filename.concat dir "in.v" |> read_file,
-      Filename.concat dir "out.v" |> read_file )
-  in
   Sys.readdir "coq_files" |> Array.to_list
   |> List.map (Filename.concat "coq_files")
   |> List.filter Sys.is_directory
-  |> List.map (fun name ->
-         let in_content, out_content = read_in_out_files name in
-         Alcotest.test_case name `Quick (fun () ->
-             Alcotest.(check string)
-               "same string" out_content (Coqfmt.format in_content)))
+  |> List.map dir_to_testcase
 
 let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]
