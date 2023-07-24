@@ -1,5 +1,3 @@
-let () = Filename.current_dir_name |> print_endline
-
 let test_cases =
   let read_in_out_files dir =
     let in_file = Filename.concat dir "in.v" in
