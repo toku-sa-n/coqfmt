@@ -10,5 +10,11 @@ val write : t -> string -> unit
 val newline : t -> unit
 (** Write out a newline. *)
 
+val increase_indent : t -> unit
+(** Increase the indent level. *)
+
+val decrease_indent : t -> unit
+(** Decrease the indent level. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)
