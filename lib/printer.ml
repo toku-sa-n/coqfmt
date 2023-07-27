@@ -17,6 +17,8 @@ let write t s =
   Buffer.add_string t.buffer s;
   t.printed_newline <- false
 
+let space t = write t " "
+
 let newline t =
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true

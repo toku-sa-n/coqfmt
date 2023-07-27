@@ -16,7 +16,7 @@ let pp_subast printer
   match expr with
   | VernacDefinition ((_, kind), (name, _), _) ->
       pp_definition_object_kind printer kind;
-      Printer.write printer " ";
+      Printer.space printer;
       pp_lname printer name;
       Printer.write printer ": 1 = 1."
   | VernacProof _ -> Printer.write printer "Proof."
