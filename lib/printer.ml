@@ -5,4 +5,5 @@ type t = inner ref
    if unsure. *)
 let create () = ref { buffer = Buffer.create 16 }
 let write t = Buffer.add_string !t.buffer
+let newline t = Buffer.add_char !t.buffer '\n'
 let contents t = Buffer.contents !t.buffer

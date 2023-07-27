@@ -7,5 +7,8 @@ val create : unit -> t
 val write : t -> string -> unit
 (** Write out the given string. *)
 
+val newline : t -> unit
+(** Write out a newline. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)

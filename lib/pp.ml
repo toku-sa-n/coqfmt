@@ -16,7 +16,7 @@ let pp_ast ast =
     List.iter
       (fun subast ->
         pp_subast subast |> Printer.write printer;
-        Printer.write printer "\n")
+        Printer.newline printer)
       ast
   in
   Printer.contents printer
