@@ -15,7 +15,7 @@ let pp_ast ast =
   let () =
     List.iter
       (fun subast ->
-        let () = pp_subast subast |> Buffer.add_string buffer in
+        pp_subast subast |> Buffer.add_string buffer;
         Buffer.add_char buffer '\n')
       ast
   in
