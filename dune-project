@@ -20,7 +20,7 @@
  (depends
   ocaml
   alcotest
-  coq ; The `coqfmt` library does not depend on `coq` directly but modules in 
-      ; `coq-core`. However, without the `coq` dependency, building `coqfmt` 
-      ; fails due to `cannot guess a path for Coq libraries;` error.
+  coq ; FIXME: We should not specify Coq as a dependency as users may have
+      ; already installed it. However, removing it and installing Coq via
+      ; opam causes a build error on CI.
   dune))
