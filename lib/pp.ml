@@ -12,11 +12,9 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
 (* Given that codes are usually stored in files, it is better to append a `\n` at the end if the code is not empty. *)
 let pp_ast ast =
   let printer = Printer.create () in
-  let () =
-    List.iter
-      (fun subast ->
-        pp_subast subast |> Printer.write printer;
-        Printer.newline printer)
-      ast
-  in
+  List.iter
+    (fun subast ->
+      pp_subast subast |> Printer.write printer;
+      Printer.newline printer)
+    ast;
   Printer.contents printer
