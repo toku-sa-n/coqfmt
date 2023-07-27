@@ -1,5 +1,12 @@
 exception NotImplemented
 
+let pp_id printer id = Names.Id.to_string id |> Printer.write printer
+
+let pp_lname printer CAst.{ v; loc = _ } =
+  match v with
+  | Names.Name name -> pp_id printer name
+  | Names.Anonymous -> raise NotImplemented
+
 let pp_definition_object_kind printer = function
   | Decls.Example -> Printer.write printer "Example"
   | _ -> raise NotImplemented
@@ -7,9 +14,11 @@ let pp_definition_object_kind printer = function
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
-  | VernacDefinition ((_, kind), _, _) ->
+  | VernacDefinition ((_, kind), (name, _), _) ->
       pp_definition_object_kind printer kind;
-      Printer.write printer " one_eq_one: 1 = 1."
+      Printer.write printer " ";
+      pp_lname printer name;
+      Printer.write printer ": 1 = 1."
   | VernacProof _ -> Printer.write printer "Proof."
   | VernacExtend _ ->
       Printer.increase_indent printer;
