@@ -11,14 +11,20 @@ let pp_definition_object_kind printer = function
   | Decls.Example -> Printer.write printer "Example"
   | _ -> raise NotImplemented
 
+let pp_definition_expr printer = function
+  | Vernacexpr.ProveBody _ -> Printer.write printer "1 = 1"
+  | Vernacexpr.DefineBody _ -> raise NotImplemented
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
-  | VernacDefinition ((_, kind), (name, _), _) ->
+  | VernacDefinition ((_, kind), (name, _), expr) ->
       pp_definition_object_kind printer kind;
       Printer.space printer;
       pp_lname printer name;
-      Printer.write printer ": 1 = 1."
+      Printer.write printer ": ";
+      pp_definition_expr printer expr;
+      Printer.write printer "."
   | VernacProof _ -> Printer.write printer "Proof."
   | VernacExtend _ ->
       Printer.increase_indent printer;
