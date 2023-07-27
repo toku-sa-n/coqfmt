@@ -34,9 +34,6 @@ jobs:
             opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
             default: https://github.com/ocaml/opam-repository.git
 
-      - name: Install Coq
-        run: opam install --yes coq
-
       - name: Install dependencies
         run: opam install --deps-only .
 
