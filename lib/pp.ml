@@ -1,9 +1,15 @@
 exception NotImplemented
 
+let pp_definition_object_kind printer = function
+  | Decls.Example -> Printer.write printer "Example"
+  | _ -> raise NotImplemented
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
-  | VernacDefinition _ -> Printer.write printer "Example one_eq_one: 1 = 1."
+  | VernacDefinition ((_, kind), _, _) ->
+      pp_definition_object_kind printer kind;
+      Printer.write printer " one_eq_one: 1 = 1."
   | VernacProof _ -> Printer.write printer "Proof."
   | VernacExtend _ ->
       Printer.increase_indent printer;
