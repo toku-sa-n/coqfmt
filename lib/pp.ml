@@ -11,8 +11,40 @@ let pp_definition_object_kind printer = function
   | Decls.Example -> Printer.write printer "Example"
   | _ -> raise NotImplemented
 
+let pp_sign printer = function
+  | NumTok.SPlus -> ()
+  | NumTok.SMinus -> Printer.write printer "-"
+
+let pp_unsigned printer n = Printer.write printer (NumTok.Unsigned.sprint n)
+
+let pp_signed printer (sign, n) =
+  pp_sign printer sign;
+  pp_unsigned printer n
+
+let pp_prim_token printer = function
+  | Constrexpr.Number n -> pp_signed printer n
+  | Constrexpr.String s -> Printer.write printer s
+
+let rec pp_constr_expr printer CAst.{ v; loc = _ } =
+  match v with
+  | Constrexpr.CNotation (_, (_, init_notation), (init_replacers, _, _, _)) ->
+      let rec loop notation replacers =
+        match (notation, replacers) with
+        | "", [] -> ()
+        | "", _ -> failwith "Not all relpacers are consumed."
+        | s, h :: t when String.starts_with ~prefix:"_" s ->
+            pp_constr_expr printer h;
+            loop (String.sub s 1 (String.length s - 1)) t
+        | s, _ ->
+            Printer.write printer (String.sub s 0 1);
+            loop (String.sub s 1 (String.length s - 1)) replacers
+      in
+      loop init_notation init_replacers
+  | Constrexpr.CPrim prim -> pp_prim_token printer prim
+  | _ -> raise NotImplemented
+
 let pp_definition_expr printer = function
-  | Vernacexpr.ProveBody _ -> Printer.write printer "1 = 1"
+  | Vernacexpr.ProveBody (_, expr) -> pp_constr_expr printer expr
   | Vernacexpr.DefineBody _ -> raise NotImplemented
 
 let pp_subast printer
