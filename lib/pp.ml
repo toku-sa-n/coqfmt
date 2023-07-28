@@ -47,6 +47,10 @@ let pp_definition_expr printer = function
   | Vernacexpr.ProveBody (_, expr) -> pp_constr_expr printer expr
   | Vernacexpr.DefineBody _ -> raise NotImplemented
 
+let pp_proof_end printer = function
+  | Vernacexpr.Admitted -> raise NotImplemented
+  | Proved _ -> Printer.write printer "Qed."
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -61,9 +65,9 @@ let pp_subast printer
   | VernacExtend _ ->
       Printer.increase_indent printer;
       Printer.write printer "reflexivity."
-  | VernacEndProof _ ->
+  | VernacEndProof proof_end ->
       Printer.decrease_indent printer;
-      Printer.write printer "Qed."
+      pp_proof_end printer proof_end
   | _ -> raise NotImplemented
 
 (* Given that codes are usually stored in files, it is better to append a `\n` at the end if the code is not empty. *)
