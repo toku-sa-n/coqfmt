@@ -61,10 +61,10 @@ let pp_subast printer
       Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
-  | VernacProof _ -> Printer.write printer "Proof."
-  | VernacExtend _ ->
-      Printer.increase_indent printer;
-      Printer.write printer "reflexivity."
+  | VernacProof _ ->
+      Printer.write printer "Proof.";
+      Printer.increase_indent printer
+  | VernacExtend _ -> Printer.write printer "reflexivity."
   | VernacEndProof proof_end ->
       Printer.decrease_indent printer;
       pp_proof_end printer proof_end
