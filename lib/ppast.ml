@@ -51,6 +51,15 @@ let pp_proof_end printer = function
   | Vernacexpr.Admitted -> raise NotImplemented
   | Proved _ -> Printer.write printer "Qed."
 
+module PrinterObj : Genarg.GenObj = struct
+  type ('raw, 'glb, 'top) obj = unit
+
+  let name = "format"
+  let default _ = None
+end
+
+module PrinterRegister = Genarg.Register (PrinterObj)
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -64,7 +73,12 @@ let pp_subast printer
   | VernacProof _ ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
-  | VernacExtend _ -> Printer.write printer "reflexivity."
+  (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
+     See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
+  | VernacExtend _ ->
+      Ppvernac.pr_vernac_expr expr
+      |> Pp.string_of_ppcmds |> Printer.write printer;
+      Printer.write printer "."
   | VernacEndProof proof_end ->
       Printer.decrease_indent printer;
       pp_proof_end printer proof_end
