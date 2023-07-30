@@ -2,6 +2,9 @@ exception NotImplemented
 
 let pp_id printer id = Names.Id.to_string id |> Printer.write printer
 
+let pp_lident printer CAst.{ v; loc = _ } =
+  Names.Id.to_string v |> Printer.write printer
+
 let pp_lname printer CAst.{ v; loc = _ } =
   match v with
   | Names.Name name -> pp_id printer name
@@ -65,9 +68,11 @@ let pp_subast printer
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
-  | VernacInductive (Inductive_kw, [ (((NoCoercion, (_, None)), _, _, _), []) ])
-    ->
-      Printer.write printer "Inductive foo: Type :=";
+  | VernacInductive
+      (Inductive_kw, [ (((NoCoercion, (name, None)), _, _, _), []) ]) ->
+      Printer.write printer "Inductive ";
+      pp_lident printer name;
+      Printer.write printer ": Type :=";
       Printer.newline printer;
       Printer.increase_indent printer;
       Printer.write printer "| foo";
