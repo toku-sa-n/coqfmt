@@ -65,7 +65,7 @@ let pp_subast printer
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
-  | VernacInductive (Inductive_kw, _) ->
+  | VernacInductive (Inductive_kw, [ (((_, _), _, _, _), []) ]) ->
       Printer.write printer "Inductive foo: Type :=";
       Printer.newline printer;
       Printer.increase_indent printer;
