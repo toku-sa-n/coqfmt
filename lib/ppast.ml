@@ -45,8 +45,8 @@ let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   | _ -> raise NotImplemented
 
 let pp_definition_expr printer = function
-  | Vernacexpr.ProveBody (_, expr) -> pp_constr_expr printer expr
-  | Vernacexpr.DefineBody _ -> raise NotImplemented
+  | Vernacexpr.ProveBody ([], expr) -> pp_constr_expr printer expr
+  | _ -> raise NotImplemented
 
 let pp_proof_end printer = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) -> Printer.write printer "Qed."
