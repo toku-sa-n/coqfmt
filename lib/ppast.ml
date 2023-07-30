@@ -27,7 +27,8 @@ let pp_prim_token printer = function
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   match v with
-  | Constrexpr.CNotation (_, (_, init_notation), (init_replacers, _, _, _)) ->
+  | Constrexpr.CNotation
+      (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers =
         match (notation, replacers) with
         | "", [] -> ()
