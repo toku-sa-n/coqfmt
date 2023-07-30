@@ -77,4 +77,4 @@ jobs:
         run: opam install coq
 
       - name: Compile Coq files
-        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 coqc
+        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
