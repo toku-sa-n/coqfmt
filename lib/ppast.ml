@@ -30,7 +30,7 @@ let pp_prim_token printer = function
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   match v with
-  | Constrexpr.CRef _ -> raise NotImplemented
+  | Constrexpr.CRef (_, None) -> raise NotImplemented
   | Constrexpr.CFix _ -> raise NotImplemented
   | Constrexpr.CCoFix _ -> raise NotImplemented
   | Constrexpr.CProdN _ -> raise NotImplemented
