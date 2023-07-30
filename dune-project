@@ -18,9 +18,9 @@
  (synopsis "Coq code formatter")
  (description "Coqfmt formats the given Coq source code in a uniform style.")
  (depends
-  ocaml
   alcotest
   coq ; FIXME: We should not specify Coq as a dependency as users may have
       ; already installed it. However, removing it and installing Coq via
       ; opam causes a build error on CI.
-  dune))
+  dune
+  ocaml))
