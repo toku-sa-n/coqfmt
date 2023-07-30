@@ -12,7 +12,8 @@ let dir_to_testcase name =
   let in_content, out_content = read_in_out_files name in
   Alcotest.test_case name `Quick (fun () ->
       Alcotest.(check string)
-        "same string" out_content (Coqfmt.format in_content))
+        "same string" out_content
+        (Coqfmt.Format.format in_content))
 
 let test_cases =
   Sys.readdir "coq_files" |> Array.to_list
@@ -20,4 +21,5 @@ let test_cases =
   |> List.filter Sys.is_directory
   |> List.map dir_to_testcase
 
+let () = Coqfmt.Init.init_coq ()
 let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]

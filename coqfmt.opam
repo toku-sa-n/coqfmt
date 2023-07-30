@@ -8,9 +8,10 @@ license: "AGPL-3.0-or-later"
 homepage: "https://github.com/toku-sa-n/coqfmt"
 bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
-  "ocaml"
   "alcotest"
+  "coq"
   "dune" {>= "3.9"}
+  "ocaml"
   "odoc" {with-doc}
 ]
 build: [
