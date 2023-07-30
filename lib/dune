@@ -1,4 +1,4 @@
 (library
  (name coqfmt)
  (libraries coq-core.plugins.ltac)
- (private_modules ast ppast))
+ (private_modules ast ppast printer))
