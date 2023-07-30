@@ -9,7 +9,7 @@ homepage: "https://github.com/toku-sa-n/coqfmt"
 bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
   "alcotest"
-  "coq"
+  "coq-core"
   "dune" {>= "3.9"}
   "ocaml"
   "odoc" {with-doc}
