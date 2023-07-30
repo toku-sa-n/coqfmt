@@ -54,7 +54,7 @@ let pp_proof_end printer = function
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
-  | VernacDefinition ((_, kind), (name, _), expr) ->
+  | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
       Printer.space printer;
       pp_lname printer name;
