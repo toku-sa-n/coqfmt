@@ -30,6 +30,23 @@ let pp_prim_token printer = function
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   match v with
+  | Constrexpr.CRef _ -> raise NotImplemented
+  | Constrexpr.CFix _ -> raise NotImplemented
+  | Constrexpr.CCoFix _ -> raise NotImplemented
+  | Constrexpr.CProdN _ -> raise NotImplemented
+  | Constrexpr.CLambdaN _ -> raise NotImplemented
+  | Constrexpr.CLetIn _ -> raise NotImplemented
+  | Constrexpr.CAppExpl _ -> raise NotImplemented
+  | Constrexpr.CApp _ -> raise NotImplemented
+  | Constrexpr.CProj _ -> raise NotImplemented
+  | Constrexpr.CRecord _ -> raise NotImplemented
+  | Constrexpr.CCases _ -> raise NotImplemented
+  | Constrexpr.CLetTuple _ -> raise NotImplemented
+  | Constrexpr.CIf _ -> raise NotImplemented
+  | Constrexpr.CHole _ -> raise NotImplemented
+  | Constrexpr.CPatVar _ -> raise NotImplemented
+  | Constrexpr.CEvar _ -> raise NotImplemented
+  | Constrexpr.CSort _ -> raise NotImplemented
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers =
@@ -69,11 +86,13 @@ let pp_subast printer
       Printer.write printer "Proof.";
       Printer.increase_indent printer
   | VernacInductive
-      (Inductive_kw, [ (((NoCoercion, (name, None)), ([], None), _, _), []) ])
-    ->
+      ( Inductive_kw,
+        [ (((NoCoercion, (name, None)), ([], None), Some ty, _), []) ] ) ->
       Printer.write printer "Inductive ";
       pp_lident printer name;
-      Printer.write printer ": Type :=";
+      Printer.write printer ": ";
+      pp_constr_expr printer ty;
+      Printer.write printer " :=";
       Printer.newline printer;
       Printer.increase_indent printer;
       Printer.write printer "| foo";
