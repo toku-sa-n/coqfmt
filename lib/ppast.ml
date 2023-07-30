@@ -69,7 +69,8 @@ let pp_subast printer
       Printer.write printer "Proof.";
       Printer.increase_indent printer
   | VernacInductive
-      (Inductive_kw, [ (((NoCoercion, (name, None)), _, _, _), []) ]) ->
+      (Inductive_kw, [ (((NoCoercion, (name, None)), ([], None), _, _), []) ])
+    ->
       Printer.write printer "Inductive ";
       pp_lident printer name;
       Printer.write printer ": Type :=";
