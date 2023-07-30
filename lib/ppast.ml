@@ -51,15 +51,6 @@ let pp_proof_end printer = function
   | Vernacexpr.Admitted -> raise NotImplemented
   | Proved _ -> Printer.write printer "Qed."
 
-module PrinterObj : Genarg.GenObj = struct
-  type ('raw, 'glb, 'top) obj = unit
-
-  let name = "format"
-  let default _ = None
-end
-
-module PrinterRegister = Genarg.Register (PrinterObj)
-
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
