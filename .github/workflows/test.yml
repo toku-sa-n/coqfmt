@@ -66,3 +66,15 @@ jobs:
           dune-cache: true
 
       - uses: ocaml/setup-ocaml/lint-fmt@v2
+
+  test_coq_files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Coq
+        run: opam install coq
+
+      - name: Compile Coq files
+        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 coqc
