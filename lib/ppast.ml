@@ -61,7 +61,7 @@ let pp_subast printer
       Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
-  | VernacProof _ ->
+  | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
