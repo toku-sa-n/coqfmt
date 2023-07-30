@@ -65,6 +65,14 @@ let pp_subast printer
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
+  | VernacInductive (Inductive_kw, _) ->
+      Printer.write printer "Inductive foo: Type :=";
+      Printer.newline printer;
+      Printer.increase_indent printer;
+      Printer.write printer "| foo";
+      Printer.newline printer;
+      Printer.write printer "| bar.";
+      Printer.decrease_indent printer
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
   | VernacExtend _ ->
