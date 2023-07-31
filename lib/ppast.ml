@@ -88,16 +88,23 @@ let pp_subast printer
   | VernacInductive
       ( Inductive_kw,
         [
-          (((NoCoercion, (name, None)), ([], None), Some _, Constructors _), []);
+          ( ( (NoCoercion, (name, None)),
+              ([], None),
+              Some _,
+              Constructors constructors ),
+            [] );
         ] ) ->
       Printer.write printer "Inductive ";
       pp_lident printer name;
       Printer.write printer ": Type :=";
-      Printer.newline printer;
       Printer.increase_indent printer;
-      Printer.write printer "| foo";
-      Printer.newline printer;
-      Printer.write printer "| bar.";
+      List.iter
+        (fun (_, (name, _)) ->
+          Printer.newline printer;
+          Printer.write printer "| ";
+          pp_lident printer name)
+        constructors;
+      Printer.write printer ".";
       Printer.decrease_indent printer
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
