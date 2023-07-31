@@ -2,6 +2,9 @@ exception NotImplemented
 
 let pp_id printer id = Names.Id.to_string id |> Printer.write printer
 
+let pp_lident printer CAst.{ v; loc = _ } =
+  Names.Id.to_string v |> Printer.write printer
+
 let pp_lname printer CAst.{ v; loc = _ } =
   match v with
   | Names.Name name -> pp_id printer name
@@ -65,6 +68,27 @@ let pp_subast printer
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
+  | VernacInductive
+      ( Inductive_kw,
+        [
+          ( ( (NoCoercion, (name, None)),
+              ([], None),
+              Some _,
+              Constructors constructors ),
+            [] );
+        ] ) ->
+      Printer.write printer "Inductive ";
+      pp_lident printer name;
+      Printer.write printer ": Type :=";
+      Printer.increase_indent printer;
+      List.iter
+        (fun (_, (name, _)) ->
+          Printer.newline printer;
+          Printer.write printer "| ";
+          pp_lident printer name)
+        constructors;
+      Printer.write printer ".";
+      Printer.decrease_indent printer
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
   | VernacExtend _ ->
