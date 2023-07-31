@@ -1,0 +1,3 @@
+Inductive foo :=
+  | bar
+  | baz.
