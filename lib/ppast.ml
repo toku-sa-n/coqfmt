@@ -72,11 +72,12 @@ let pp_subast printer
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
               ([], None),
-              Some _,
+              ty,
               Vernacexpr.Constructors constructors ),
             [] ) ->
             pp_lident printer name;
-            Printer.write printer ": Type :=";
+            if Option.has_some ty then Printer.write printer ": Type";
+            Printer.write printer " :=";
             Printer.increase_indent printer;
             List.iter
               (fun (_, (name, _)) ->
