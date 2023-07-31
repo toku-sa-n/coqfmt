@@ -16,15 +16,15 @@ let dir_to_testcase name =
         (Coqfmt.Format.format in_content))
 
 let test_cases =
-  let rec scan_dir dir =
+  let rec scan_dir_recursively dir =
     if Sys.file_exists (Filename.concat dir "in.v") then [ dir ]
     else
       Sys.readdir dir |> Array.to_list
       |> List.map (Filename.concat dir)
       |> List.filter Sys.is_directory
-      |> List.concat_map scan_dir
+      |> List.concat_map scan_dir_recursively
   in
-  scan_dir "coq_files" |> List.map dir_to_testcase
+  scan_dir_recursively "coq_files" |> List.map dir_to_testcase
 
 let () = Coqfmt.Init.init_coq ()
 let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]
