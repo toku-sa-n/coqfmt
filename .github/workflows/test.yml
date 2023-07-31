@@ -16,7 +16,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      # Without this, tests will fail on Windows because Coqfmt uses LF as a
+      # newline while the cloned source code contains CRLF.
+      - name: Modify the git setting not to convert LF to CRLF
+        run: git config --global core.autocrlf input
+
+      - uses: actions/checkout@v3
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
       - uses: ocaml/setup-ocaml@v2
@@ -42,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run Prettier
         run: npx --yes prettier --check .
@@ -51,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: ocaml/setup-ocaml@v2
         with:
@@ -59,3 +64,20 @@ jobs:
           dune-cache: true
 
       - uses: ocaml/setup-ocaml/lint-fmt@v2
+
+  test_coq_files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: "4.14.1"
+          dune-cache: true
+
+      - name: Install Coq
+        run: opam install coq
+
+      - name: Compile Coq files
+        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
