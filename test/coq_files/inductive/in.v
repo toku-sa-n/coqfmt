@@ -1,1 +1,1 @@
-Inductive foo:Type:=foo|bar.
+Inductive foo:Type:=bar|baz.
