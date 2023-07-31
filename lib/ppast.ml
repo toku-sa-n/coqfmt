@@ -83,7 +83,8 @@ let pp_subast printer
                 Printer.newline printer;
                 Printer.write printer "| ";
                 pp_lident printer name)
-              constructors
+              constructors;
+            Printer.decrease_indent printer
         | _ -> raise NotImplemented
       in
       List.iteri
@@ -94,12 +95,10 @@ let pp_subast printer
               pp_single_inductive inductive
           | _ ->
               Printer.newline printer;
-              Printer.decrease_indent printer;
               Printer.write printer "with ";
               pp_single_inductive inductive)
         inductives;
-      Printer.write printer ".";
-      Printer.decrease_indent printer
+      Printer.write printer "."
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
   | VernacExtend _ ->
