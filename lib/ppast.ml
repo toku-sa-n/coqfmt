@@ -68,27 +68,37 @@ let pp_subast printer
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
-  | VernacInductive
-      ( Inductive_kw,
-        [
-          ( ( (NoCoercion, (name, None)),
+  | VernacInductive (Inductive_kw, inductives) ->
+      let pp_single_inductive = function
+        | ( ( (Vernacexpr.NoCoercion, (name, None)),
               ([], None),
               Some _,
-              Constructors constructors ),
-            [] );
-        ] ) ->
-      Printer.write printer "Inductive ";
-      pp_lident printer name;
-      Printer.write printer ": Type :=";
-      Printer.increase_indent printer;
-      List.iter
-        (fun (_, (name, _)) ->
-          Printer.newline printer;
-          Printer.write printer "| ";
-          pp_lident printer name)
-        constructors;
-      Printer.write printer ".";
-      Printer.decrease_indent printer
+              Vernacexpr.Constructors constructors ),
+            [] ) ->
+            pp_lident printer name;
+            Printer.write printer ": Type :=";
+            Printer.increase_indent printer;
+            List.iter
+              (fun (_, (name, _)) ->
+                Printer.newline printer;
+                Printer.write printer "| ";
+                pp_lident printer name)
+              constructors;
+            Printer.decrease_indent printer
+        | _ -> raise NotImplemented
+      in
+      List.iteri
+        (fun i inductive ->
+          match i with
+          | 0 ->
+              Printer.write printer "Inductive ";
+              pp_single_inductive inductive
+          | _ ->
+              Printer.newline printer;
+              Printer.write printer "with ";
+              pp_single_inductive inductive)
+        inductives;
+      Printer.write printer "."
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
   | VernacExtend _ ->
