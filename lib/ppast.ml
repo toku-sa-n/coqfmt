@@ -65,6 +65,7 @@ let pp_subast printer
       Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
+  | VernacStartTheoremProof _ -> Printer.write printer "Theorem foo: 1 = 1."
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
