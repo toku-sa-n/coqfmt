@@ -69,11 +69,13 @@ let pp_subast printer
       Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
-  | VernacStartTheoremProof (kind, [ ((ident, None), ([], _)) ]) ->
+  | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       Printer.write printer " ";
       pp_lident printer ident;
-      Printer.write printer ": 1 = 1."
+      Printer.write printer ": ";
+      pp_constr_expr printer expr;
+      Printer.write printer "."
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
