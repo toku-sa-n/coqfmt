@@ -1,0 +1,6 @@
+_build/
+.github/
+.gitignore
+.ocamlformat
+LICENSE
+README.md
