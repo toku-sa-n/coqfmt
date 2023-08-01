@@ -55,6 +55,10 @@ let pp_proof_end printer = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) -> Printer.write printer "Qed."
   | _ -> raise NotImplemented
 
+let pp_theorem_kind printer = function
+  | Decls.Theorem -> Printer.write printer "Theorem"
+  | _ -> raise NotImplemented
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -65,7 +69,9 @@ let pp_subast printer
       Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
-  | VernacStartTheoremProof _ -> Printer.write printer "Theorem foo: 1 = 1."
+  | VernacStartTheoremProof (kind, _) ->
+      pp_theorem_kind printer kind;
+      Printer.write printer " foo: 1 = 1."
   | VernacProof (None, None) ->
       Printer.write printer "Proof.";
       Printer.increase_indent printer
