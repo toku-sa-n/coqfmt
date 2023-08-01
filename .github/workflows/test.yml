@@ -81,3 +81,15 @@ jobs:
 
       - name: Compile Coq files
         run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t coqfmt .
+
+      - name: Run Docker image
+        run: docker run --rm coqfmt --version
