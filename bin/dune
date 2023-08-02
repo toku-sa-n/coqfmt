@@ -1,4 +1,4 @@
 (executable
  (public_name coqfmt)
  (name main)
- (libraries coqfmt))
+ (libraries cmdliner coqfmt dune-build-info))
