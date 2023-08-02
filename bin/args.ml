@@ -14,6 +14,12 @@ let man =
       "The $(b,coqfmt) utility formats the given Coq source code in a uniform \
        style. It reads from the standard input and writes to the standard \
        output.";
+    `S Manpage.s_bugs;
+    `P
+      "Report bugs on GitHub issues \
+       <https://github.com/toku-sa-n/coqfmt/issues>.";
+    `S Manpage.s_authors;
+    `P "Hiroki Tokunaga <tokusan441@gmail.com>";
   ]
 
 let info = Cmd.info "coqfmt" ~version ~doc ~man
