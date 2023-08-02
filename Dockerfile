@@ -3,6 +3,10 @@ FROM ubuntu:22.04
 RUN apt update
 RUN apt install -y opam
 
+# `opam init` warns if the runner is root.
+RUN useradd menyanya
+USER menyanya
+
 # See https://github.com/ocaml/opam/issues/3498#issuecomment-410401597 for
 # `--disable-sandboxing`.
 RUN opam init --disable-sandboxing --yes --shell-setup
