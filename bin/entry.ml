@@ -6,6 +6,6 @@ let input () =
   in
   loop []
 
-let format () =
+let coqfmt () =
   let () = Coqfmt.Init.init_coq () in
   input () |> Coqfmt.Format.format |> print_string
