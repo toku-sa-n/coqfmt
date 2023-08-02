@@ -14,9 +14,7 @@ let format () =
   let () = Coqfmt.Init.init_coq () in
   input () |> Coqfmt.Format.format |> print_string
 
-let format_t = Cmdliner.Term.(const format $ const ())
-
-let cmd term =
+let cmd handler =
   let doc = "Format the given Coq source code in a uniform style" in
   let man =
     [
@@ -33,6 +31,7 @@ let cmd term =
     | Some v -> Build_info.V1.Version.to_string v
   in
   let info = Cmd.info "coqfmt" ~version ~doc ~man in
+  let term = Cmdliner.Term.(const handler $ const ()) in
   Cmd.v info term
 
-let () = exit (Cmd.eval (cmd format_t))
+let () = exit (Cmd.eval (cmd format))
