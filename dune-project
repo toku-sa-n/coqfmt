@@ -13,14 +13,18 @@
 
 (license AGPL-3.0-or-later)
 
+(version 0.1.0)
+
 (package
  (name coqfmt)
  (synopsis "Coq code formatter")
  (description "Coqfmt formats the given Coq source code in a uniform style.")
  (depends
   alcotest
+  cmdliner
   coq ; FIXME: We should not specify Coq as a dependency as users may have
       ; already installed it. However, removing it and installing Coq via
       ; opam causes a build error on CI.
   dune
+  dune-build-info
   ocaml))
