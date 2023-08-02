@@ -8,4 +8,4 @@ COPY . .
 
 RUN opam install --yes .
 
-ENTRYPOINT [ "coqfmt" ]
+ENTRYPOINT [ "opam exec -- coqfmt" ]
