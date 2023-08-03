@@ -12,6 +12,7 @@ let pp_lname printer CAst.{ v; loc = _ } =
 
 let pp_definition_object_kind printer = function
   | Decls.Example -> Printer.write printer "Example"
+  | Decls.Definition -> Printer.write printer "Definition"
   | _ -> raise NotImplemented
 
 let pp_sign printer = function
@@ -30,6 +31,8 @@ let pp_prim_token printer = function
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   match v with
+  | Constrexpr.CRef (id, None) ->
+      Libnames.string_of_qualid id |> Printer.write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers =
@@ -47,8 +50,29 @@ let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
   | _ -> raise NotImplemented
 
+let pp_local_binder_expr printer = function
+  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
+      Printer.write printer "(";
+      pp_lname printer name;
+      Printer.write printer ": ";
+      pp_constr_expr printer ty;
+      Printer.write printer ")"
+  | _ -> raise NotImplemented
+
 let pp_definition_expr printer = function
-  | Vernacexpr.ProveBody ([], expr) -> pp_constr_expr printer expr
+  | Vernacexpr.ProveBody ([], expr) ->
+      Printer.write printer ": ";
+      pp_constr_expr printer expr
+  | Vernacexpr.DefineBody ([ arg ], None, def_body, Some return_ty) ->
+      Printer.space printer;
+      pp_local_binder_expr printer arg;
+      Printer.write printer " : ";
+      pp_constr_expr printer return_ty;
+      Printer.write printer " :=";
+      Printer.newline printer;
+      Printer.increase_indent printer;
+      pp_constr_expr printer def_body;
+      Printer.decrease_indent printer
   | _ -> raise NotImplemented
 
 let pp_proof_end printer = function
@@ -66,7 +90,6 @@ let pp_subast printer
       pp_definition_object_kind printer kind;
       Printer.space printer;
       pp_lname printer name;
-      Printer.write printer ": ";
       pp_definition_expr printer expr;
       Printer.write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
