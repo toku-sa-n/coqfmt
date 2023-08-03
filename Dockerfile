@@ -8,4 +8,4 @@ COPY . .
 
 RUN opam install --yes .
 
-ENTRYPOINT [ "opam exec -- coqfmt" ]
+ENTRYPOINT ["sh", "-c", "opam exec -- coqfmt \"$@\"", "--"]
