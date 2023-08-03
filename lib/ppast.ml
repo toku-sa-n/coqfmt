@@ -30,8 +30,9 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
-let rec pp_constr_expr printer CAst.{ v; loc = _ } =
-  match v with
+let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
+
+and pp_constr_expr_r printer = function
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
