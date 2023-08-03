@@ -3,9 +3,7 @@ open Printer
 exception NotImplemented
 
 let pp_id printer id = Names.Id.to_string id |> write printer
-
-let pp_lident printer CAst.{ v; loc = _ } =
-  Names.Id.to_string v |> write printer
+let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
 let pp_lname printer CAst.{ v; loc = _ } =
   match v with
