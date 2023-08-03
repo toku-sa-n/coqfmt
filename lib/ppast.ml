@@ -5,10 +5,11 @@ exception NotImplemented
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
-let pp_lname printer CAst.{ v; loc = _ } =
-  match v with
+let pp_name printer = function
   | Names.Name name -> pp_id printer name
   | Names.Anonymous -> raise NotImplemented
+
+let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
 
 let pp_definition_object_kind printer = function
   | Decls.Example -> write printer "Example"
