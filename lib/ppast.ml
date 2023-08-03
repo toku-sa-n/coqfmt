@@ -51,7 +51,7 @@ let rec pp_constr_expr printer CAst.{ v; loc = _ } =
   | _ -> raise NotImplemented
 
 let pp_local_binder_expr printer = function
-  | Constrexpr.CLocalAssum ([ name ], _, ty) ->
+  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
       Printer.write printer "(";
       pp_lname printer name;
       Printer.write printer ": ";
