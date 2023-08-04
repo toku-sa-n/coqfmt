@@ -30,7 +30,9 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
-let pp_case_expr printer = function _, _, _ -> write printer "n"
+let pp_case_expr printer = function
+  | _, None, _ -> write printer "n"
+  | _ -> raise NotImplemented
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
