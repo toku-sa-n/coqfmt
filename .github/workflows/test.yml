@@ -15,6 +15,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      DUNE_CACHE_ROOT: $HOME/.cache/dune
+
     steps:
       # Without this, tests will fail on Windows because Coqfmt uses LF as a
       # newline while the cloned source code contains CRLF.
@@ -22,6 +25,13 @@ jobs:
         run: git config --global core.autocrlf input
 
       - uses: actions/checkout@v3
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.DUNE_CACHE_ROOT }}
+          key: ${{ runner.os }}-dune-${{ hashFiles('**/dune-project') }}
+          restore-keys: |
+            ${{ runner.os }}-dune-
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
       - uses: ocaml/setup-ocaml@v2
