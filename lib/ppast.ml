@@ -33,6 +33,14 @@ let pp_prim_token printer = function
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
+  | Constrexpr.CCases _ ->
+      write printer "match n with";
+      newline printer;
+      write printer "| O => S O";
+      newline printer;
+      write printer "| S n' => S (inc n')";
+      newline printer;
+      write printer "end."
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
@@ -92,7 +100,7 @@ let pp_fixpoint_expr printer = function
         rec_order = None;
         binders;
         rtype;
-        body_def = _;
+        body_def = Some body_def;
         notations = [];
       } ->
       pp_lident printer fname;
@@ -103,13 +111,7 @@ let pp_fixpoint_expr printer = function
       write printer " :=";
       newline printer;
       increase_indent printer;
-      write printer "match n with";
-      newline printer;
-      write printer "| O => S O";
-      newline printer;
-      write printer "| S n' => S (inc n')";
-      newline printer;
-      write printer "end.";
+      pp_constr_expr printer body_def;
       decrease_indent printer
   | _ -> raise NotImplemented
 
