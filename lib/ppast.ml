@@ -111,10 +111,14 @@ let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
       write printer ": ";
       pp_constr_expr printer expr
-  | Vernacexpr.DefineBody ([ arg ], None, def_body, Some return_ty) ->
+  | Vernacexpr.DefineBody (args, None, def_body, Some return_ty) ->
       space printer;
-      pp_local_binder_expr printer arg;
-      write printer " : ";
+      List.iter
+        (fun arg ->
+          pp_local_binder_expr printer arg;
+          space printer)
+        args;
+      write printer ": ";
       pp_constr_expr printer return_ty;
       write printer " :=";
       newline printer;
