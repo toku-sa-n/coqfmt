@@ -93,7 +93,7 @@ let pp_subast printer
       pp_lname printer name;
       pp_definition_expr printer expr;
       write printer "."
-  | VernacFixpoint _ ->
+  | VernacFixpoint (_, _) ->
       write printer "Fixpoint inc (n: nat) : nat :=";
       newline printer;
       increase_indent printer;
