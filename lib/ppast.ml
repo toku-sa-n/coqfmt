@@ -10,6 +10,7 @@ let pp_name printer = function
   | Names.Anonymous -> raise NotImplemented
 
 let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
+let pp_lstring printer CAst.{ v; loc = _ } = write printer v
 
 let pp_definition_object_kind printer = function
   | Decls.Example -> write printer "Example"
@@ -180,6 +181,12 @@ let pp_subast printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
+  | VernacNotation (false, expr, (notation, []), None) ->
+      write printer "Notation \"";
+      pp_lstring printer notation;
+      write printer "\" := (";
+      pp_constr_expr printer expr;
+      write printer ")."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
