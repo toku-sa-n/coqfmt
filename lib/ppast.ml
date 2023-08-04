@@ -91,12 +91,14 @@ let pp_fixpoint_expr printer
         univs = _;
         rec_order = _;
         binders = _;
-        rtype = _;
+        rtype;
         body_def = _;
         notations = _;
       } =
   pp_lident printer fname;
-  write printer " (n: nat) : nat :=";
+  write printer " (n: nat) : ";
+  pp_constr_expr printer rtype;
+  write printer " :=";
   newline printer;
   increase_indent printer;
   write printer "match n with";
