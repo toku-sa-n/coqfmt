@@ -84,7 +84,17 @@ let pp_theorem_kind printer = function
   | Decls.Theorem -> write printer "Theorem"
   | _ -> raise NotImplemented
 
-let pp_fixpoint_expr printer _ =
+let pp_fixpoint_expr printer
+    Vernacexpr.
+      {
+        fname = _;
+        univs = _;
+        rec_order = _;
+        binders = _;
+        rtype = _;
+        body_def = _;
+        notations = _;
+      } =
   write printer "inc (n: nat) : nat :=";
   newline printer;
   increase_indent printer;
