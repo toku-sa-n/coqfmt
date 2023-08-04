@@ -158,6 +158,10 @@ let pp_fixpoint_expr printer = function
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
+  | VernacCheckMayEval (Some (CbvVm None), None, expr) ->
+      write printer "Compute (";
+      pp_constr_expr printer expr;
+      write printer ")."
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
       space printer;
