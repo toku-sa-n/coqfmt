@@ -87,7 +87,7 @@ let pp_theorem_kind printer = function
 let pp_fixpoint_expr printer
     Vernacexpr.
       {
-        fname = _;
+        fname;
         univs = _;
         rec_order = _;
         binders = _;
@@ -95,7 +95,8 @@ let pp_fixpoint_expr printer
         body_def = _;
         notations = _;
       } =
-  write printer "inc (n: nat) : nat :=";
+  pp_lident printer fname;
+  write printer " (n: nat) : nat :=";
   newline printer;
   increase_indent printer;
   write printer "match n with";
