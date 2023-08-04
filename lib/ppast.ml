@@ -30,11 +30,15 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
+let pp_case_expr printer = function _, _, _ -> write printer "n"
+
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
-  | Constrexpr.CCases (_, None, [ _ ], _) ->
-      write printer "match n with";
+  | Constrexpr.CCases (_, None, [ matchee ], _) ->
+      write printer "match ";
+      pp_case_expr printer matchee;
+      write printer " with";
       newline printer;
       write printer "| O => S O";
       newline printer;
