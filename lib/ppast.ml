@@ -93,6 +93,18 @@ let pp_subast printer
       pp_lname printer name;
       pp_definition_expr printer expr;
       write printer "."
+  | VernacFixpoint _ ->
+      write printer "Fixpoint inc (n: nat) : nat :=";
+      newline printer;
+      increase_indent printer;
+      write printer "match n with";
+      newline printer;
+      write printer "| O => S O";
+      newline printer;
+      write printer "| S n' => S (inc n')";
+      newline printer;
+      write printer "end.";
+      decrease_indent printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
