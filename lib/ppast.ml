@@ -180,7 +180,7 @@ let pp_subast printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
-  | VernacNotation (false, expr, _, None) ->
+  | VernacNotation (false, expr, (_, _), None) ->
       write printer "Notation \"x && y\" := ";
       write printer "(";
       pp_constr_expr printer expr;
