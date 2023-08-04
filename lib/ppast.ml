@@ -89,7 +89,7 @@ let pp_fixpoint_expr printer = function
       {
         fname;
         univs = None;
-        rec_order = _;
+        rec_order = None;
         binders = _;
         rtype;
         body_def = _;
