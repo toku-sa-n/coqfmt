@@ -53,10 +53,15 @@ and pp_constr_expr_r printer = function
       write printer "(";
       pp_constr_expr printer inner;
       write printer ")"
-  | Constrexpr.CApp (outer, [ (inner, None) ]) ->
+  | Constrexpr.CApp (outer, inners) ->
       pp_constr_expr printer outer;
-      space printer;
-      pp_constr_expr printer inner
+      List.iter
+        (function
+          | inner, None ->
+              space printer;
+              pp_constr_expr printer inner
+          | _, Some _ -> raise NotImplemented)
+        inners
   | Constrexpr.CCases (_, None, [ matchee ], branches) ->
       write printer "match ";
       pp_case_expr printer matchee;
