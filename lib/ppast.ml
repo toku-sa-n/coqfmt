@@ -90,13 +90,15 @@ let pp_fixpoint_expr printer = function
         fname;
         univs = None;
         rec_order = None;
-        binders = _;
+        binders;
         rtype;
         body_def = _;
-        notations = _;
+        notations = [];
       } ->
       pp_lident printer fname;
-      write printer " (n: nat) : ";
+      space printer;
+      List.iter (fun binder -> pp_local_binder_expr printer binder) binders;
+      write printer " : ";
       pp_constr_expr printer rtype;
       write printer " :=";
       newline printer;
