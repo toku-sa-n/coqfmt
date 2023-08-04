@@ -30,9 +30,44 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
+let pp_qualid printer id = Libnames.string_of_qualid id |> write printer
+
+let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
+  pp_cases_pattern_expr_r printer v
+
+and pp_cases_pattern_expr_r printer = function
+  | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
+  | Constrexpr.CPatCstr (outer, None, [ expr ]) ->
+      pp_qualid printer outer;
+      space printer;
+      pp_cases_pattern_expr printer expr
+  | _ -> raise NotImplemented
+
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
+  | Constrexpr.CApp
+      (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
+      pp_constr_expr printer outer;
+      space printer;
+      write printer "(";
+      pp_constr_expr printer inner;
+      write printer ")"
+  | Constrexpr.CApp (outer, [ (inner, None) ]) ->
+      pp_constr_expr printer outer;
+      space printer;
+      pp_constr_expr printer inner
+  | Constrexpr.CCases (_, None, [ matchee ], branches) ->
+      write printer "match ";
+      pp_case_expr printer matchee;
+      write printer " with";
+      newline printer;
+      List.iter
+        (fun branch ->
+          pp_branch_expr printer branch;
+          newline printer)
+        branches;
+      write printer "end"
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
@@ -49,6 +84,18 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
+  | _ -> raise NotImplemented
+
+and pp_case_expr printer = function
+  | expr, None, None -> pp_constr_expr printer expr
+  | _ -> raise NotImplemented
+
+and pp_branch_expr printer = function
+  | CAst.{ v = [ [ pattern ] ], expr; loc = _ } ->
+      write printer "| ";
+      pp_cases_pattern_expr printer pattern;
+      write printer " => ";
+      pp_constr_expr printer expr
   | _ -> raise NotImplemented
 
 let pp_local_binder_expr printer = function
@@ -84,6 +131,30 @@ let pp_theorem_kind printer = function
   | Decls.Theorem -> write printer "Theorem"
   | _ -> raise NotImplemented
 
+let pp_fixpoint_expr printer = function
+  | Vernacexpr.
+      {
+        fname;
+        univs = None;
+        rec_order = None;
+        binders;
+        rtype;
+        body_def = Some body_def;
+        notations = [];
+      } ->
+      pp_lident printer fname;
+      space printer;
+      List.iter (fun binder -> pp_local_binder_expr printer binder) binders;
+      write printer " : ";
+      pp_constr_expr printer rtype;
+      write printer " :=";
+      newline printer;
+      increase_indent printer;
+      pp_constr_expr printer body_def;
+      write printer ".";
+      decrease_indent printer
+  | _ -> raise NotImplemented
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -93,6 +164,9 @@ let pp_subast printer
       pp_lname printer name;
       pp_definition_expr printer expr;
       write printer "."
+  | VernacFixpoint (NoDischarge, [ expr ]) ->
+      write printer "Fixpoint ";
+      pp_fixpoint_expr printer expr
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
