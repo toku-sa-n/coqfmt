@@ -33,7 +33,7 @@ let pp_prim_token printer = function
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
-  | Constrexpr.CCases (_, _, _, _) ->
+  | Constrexpr.CCases (_, None, _, _) ->
       write printer "match n with";
       newline printer;
       write printer "| O => S O";
