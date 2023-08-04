@@ -30,10 +30,6 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
-let pp_case_expr printer = function
-  | _, None, None -> write printer "n"
-  | _ -> raise NotImplemented
-
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
@@ -63,6 +59,10 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
+  | _ -> raise NotImplemented
+
+and pp_case_expr printer = function
+  | expr, None, None -> pp_constr_expr printer expr
   | _ -> raise NotImplemented
 
 let pp_local_binder_expr printer = function
