@@ -37,9 +37,10 @@ let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
 
 and pp_cases_pattern_expr_r printer = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
-  | Constrexpr.CPatCstr (outer, None, _) ->
+  | Constrexpr.CPatCstr (outer, None, [ expr ]) ->
       pp_qualid printer outer;
-      write printer " n'"
+      space printer;
+      pp_cases_pattern_expr printer expr
   | _ -> raise NotImplemented
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
