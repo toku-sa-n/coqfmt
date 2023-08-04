@@ -84,6 +84,19 @@ let pp_theorem_kind printer = function
   | Decls.Theorem -> write printer "Theorem"
   | _ -> raise NotImplemented
 
+let pp_fixpoint_expr printer _ =
+  write printer "inc (n: nat) : nat :=";
+  newline printer;
+  increase_indent printer;
+  write printer "match n with";
+  newline printer;
+  write printer "| O => S O";
+  newline printer;
+  write printer "| S n' => S (inc n')";
+  newline printer;
+  write printer "end.";
+  decrease_indent printer
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -93,18 +106,9 @@ let pp_subast printer
       pp_lname printer name;
       pp_definition_expr printer expr;
       write printer "."
-  | VernacFixpoint (NoDischarge, [ _ ]) ->
-      write printer "Fixpoint inc (n: nat) : nat :=";
-      newline printer;
-      increase_indent printer;
-      write printer "match n with";
-      newline printer;
-      write printer "| O => S O";
-      newline printer;
-      write printer "| S n' => S (inc n')";
-      newline printer;
-      write printer "end.";
-      decrease_indent printer
+  | VernacFixpoint (NoDischarge, [ expr ]) ->
+      write printer "Fixpoint ";
+      pp_fixpoint_expr printer expr
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
