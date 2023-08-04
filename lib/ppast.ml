@@ -180,7 +180,7 @@ let pp_subast printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
-  | VernacNotation (false, _, _, _) ->
+  | VernacNotation (false, _, _, None) ->
       write printer "Notation \"x && y\" := (andb x y)."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
