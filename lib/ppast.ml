@@ -30,18 +30,40 @@ let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
   | Constrexpr.String s -> write printer s
 
+let pp_qualid printer id = Libnames.string_of_qualid id |> write printer
+
+let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
+  pp_cases_pattern_expr_r printer v
+
+and pp_cases_pattern_expr_r printer = function
+  | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
+  | Constrexpr.CPatCstr _ -> write printer "S n'"
+  | _ -> raise NotImplemented
+
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
-  | Constrexpr.CCases (_, None, [ matchee ], _) ->
+  | Constrexpr.CApp
+      (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
+      pp_constr_expr printer outer;
+      space printer;
+      write printer "(";
+      pp_constr_expr printer inner;
+      write printer ")"
+  | Constrexpr.CApp (outer, [ (inner, None) ]) ->
+      pp_constr_expr printer outer;
+      space printer;
+      pp_constr_expr printer inner
+  | Constrexpr.CCases (_, None, [ matchee ], branches) ->
       write printer "match ";
       pp_case_expr printer matchee;
       write printer " with";
       newline printer;
-      write printer "| O => S O";
-      newline printer;
-      write printer "| S n' => S (inc n')";
-      newline printer;
+      List.iter
+        (fun branch ->
+          pp_branch_expr printer branch;
+          newline printer)
+        branches;
       write printer "end"
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
@@ -63,6 +85,14 @@ and pp_constr_expr_r printer = function
 
 and pp_case_expr printer = function
   | expr, None, None -> pp_constr_expr printer expr
+  | _ -> raise NotImplemented
+
+and pp_branch_expr printer = function
+  | CAst.{ v = [ [ pattern ] ], expr; loc = _ } ->
+      write printer "| ";
+      pp_cases_pattern_expr printer pattern;
+      write printer " => ";
+      pp_constr_expr printer expr
   | _ -> raise NotImplemented
 
 let pp_local_binder_expr printer = function
