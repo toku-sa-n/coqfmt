@@ -40,7 +40,7 @@ and pp_constr_expr_r printer = function
       newline printer;
       write printer "| S n' => S (inc n')";
       newline printer;
-      write printer "end."
+      write printer "end"
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
@@ -112,6 +112,7 @@ let pp_fixpoint_expr printer = function
       newline printer;
       increase_indent printer;
       pp_constr_expr printer body_def;
+      write printer ".";
       decrease_indent printer
   | _ -> raise NotImplemented
 
