@@ -183,7 +183,7 @@ let pp_subast printer
       write printer "Compute (";
       pp_constr_expr printer expr;
       write printer ")."
-  | VernacCheckMayEval (None, _, expr) ->
+  | VernacCheckMayEval (None, None, expr) ->
       write printer "Check ";
       pp_constr_expr printer expr;
       write printer "."
