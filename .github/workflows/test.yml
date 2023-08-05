@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      DUNE_CACHE_ROOT: ${{ github.workspace }}/.cache/dune
+      DUNE_CACHE_ROOT: ${{ github.workspace }}/.cache
 
     steps:
       # Without this, tests will fail on Windows because Coqfmt uses LF as a
