@@ -74,6 +74,14 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
+  | Constrexpr.CIf _ ->
+      write printer "if b";
+      newline printer;
+      increase_indent printer;
+      write printer "then false";
+      newline printer;
+      write printer "else true";
+      decrease_indent printer
   | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
