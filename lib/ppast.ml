@@ -74,8 +74,9 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
-  | Constrexpr.CIf (_, (None, None), _, _) ->
-      write printer "if b";
+  | Constrexpr.CIf (cond, (None, None), _, _) ->
+      write printer "if ";
+      pp_constr_expr printer cond;
       newline printer;
       increase_indent printer;
       write printer "then false";
