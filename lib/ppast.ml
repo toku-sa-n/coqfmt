@@ -183,7 +183,10 @@ let pp_subast printer
       write printer "Compute (";
       pp_constr_expr printer expr;
       write printer ")."
-  | VernacCheckMayEval (None, _, _) -> write printer "Check true."
+  | VernacCheckMayEval (None, _, expr) ->
+      write printer "Check ";
+      pp_constr_expr printer expr;
+      write printer "."
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
       space printer;
