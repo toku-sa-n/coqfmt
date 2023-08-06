@@ -191,7 +191,7 @@ let pp_subast printer
        | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
        | _ -> parens printer (fun () -> pp_constr_expr printer expr));
       write printer "."
-  | VernacDefineModule _ ->
+  | VernacDefineModule (_, _, _, _, _) ->
       write printer "Module Foo.";
       increase_indent printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
