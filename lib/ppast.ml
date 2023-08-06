@@ -202,9 +202,11 @@ let pp_subast printer
       pp_lname printer name;
       pp_definition_expr printer expr;
       write printer "."
-  | VernacEndSegment _ ->
+  | VernacEndSegment name ->
       decrease_indent printer;
-      write printer "End Foo."
+      write printer "End ";
+      pp_lident printer name;
+      write printer "."
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
