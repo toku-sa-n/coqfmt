@@ -131,15 +131,17 @@ let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
       write printer ": ";
       pp_constr_expr printer expr
-  | Vernacexpr.DefineBody (args, None, def_body, Some return_ty) ->
-      space printer;
+  | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       List.iter
         (fun arg ->
-          pp_local_binder_expr printer arg;
-          space printer)
+          space printer;
+          pp_local_binder_expr printer arg)
         args;
-      write printer ": ";
-      pp_constr_expr printer return_ty;
+      (match return_ty with
+      | None -> ()
+      | Some ty ->
+          write printer " : ";
+          pp_constr_expr printer ty);
       write printer " :=";
       newline printer;
       increase_indent printer;
