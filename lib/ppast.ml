@@ -1,6 +1,7 @@
 open Printer
 
 exception NotImplemented
+exception NotImplementedAst of string
 
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
@@ -262,7 +263,11 @@ let pp_ast ast =
   let printer = create () in
   List.iter
     (fun subast ->
-      pp_subast printer subast;
-      newline printer)
+      try
+        pp_subast printer subast;
+        newline printer
+      with NotImplemented ->
+        raise
+          (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac subast))))
     ast;
   contents printer
