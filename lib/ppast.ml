@@ -72,9 +72,10 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
-  | Constrexpr.CCast (v, _, _) ->
+  | Constrexpr.CCast (v, _, t) ->
       pp_constr_expr printer v;
-      write printer " : bool"
+      write printer " : ";
+      pp_constr_expr printer t
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       write printer "if ";
       pp_constr_expr printer cond;
