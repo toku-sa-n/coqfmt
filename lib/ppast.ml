@@ -72,6 +72,7 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
+  | Constrexpr.CCast _ -> write printer "true : bool"
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       write printer "if ";
       pp_constr_expr printer cond;
@@ -182,7 +183,7 @@ let pp_subast printer
        | None -> write printer "Check "
        | _ -> raise NotImplemented);
        match expr.v with
-       | Constrexpr.CRef _ -> pp_constr_expr printer expr
+       | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
        | _ -> parens printer (fun () -> pp_constr_expr printer expr));
       write printer "."
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
