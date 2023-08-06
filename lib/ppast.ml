@@ -1,14 +1,13 @@
 open Printer
 
-exception NotImplemented
-exception NotImplementedAst of string
+exception NotImplemented of string
 
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
 let pp_name printer = function
   | Names.Name name -> pp_id printer name
-  | Names.Anonymous -> raise NotImplemented
+  | Names.Anonymous -> raise (NotImplemented (contents printer))
 
 let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
 let pp_lstring printer CAst.{ v; loc = _ } = write printer v
@@ -16,7 +15,7 @@ let pp_lstring printer CAst.{ v; loc = _ } = write printer v
 let pp_definition_object_kind printer = function
   | Decls.Example -> write printer "Example"
   | Decls.Definition -> write printer "Definition"
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_sign printer = function
   | NumTok.SPlus -> ()
@@ -44,7 +43,7 @@ and pp_cases_pattern_expr_r printer = function
       pp_qualid printer outer;
       space printer;
       pp_cases_pattern_expr printer expr
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
@@ -61,7 +60,7 @@ and pp_constr_expr_r printer = function
           | inner, None ->
               space printer;
               pp_constr_expr printer inner
-          | _, Some _ -> raise NotImplemented)
+          | _, Some _ -> raise (NotImplemented (contents printer)))
         inners
   | Constrexpr.CCases (_, None, [ matchee ], branches) ->
       write printer "match ";
@@ -105,11 +104,11 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
   | expr, None, None -> pp_constr_expr printer expr
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr printer = function
   | CAst.{ v = [ [ pattern ] ], expr; loc = _ } ->
@@ -117,7 +116,7 @@ and pp_branch_expr printer = function
       pp_cases_pattern_expr printer pattern;
       write printer " => ";
       pp_constr_expr printer expr
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
@@ -125,7 +124,7 @@ let pp_local_binder_expr printer = function
           pp_lname printer name;
           write printer ": ";
           pp_constr_expr printer ty)
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
@@ -147,15 +146,15 @@ let pp_definition_expr printer = function
       increase_indent printer;
       pp_constr_expr printer def_body;
       decrease_indent printer
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_proof_end printer = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) -> write printer "Qed."
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_theorem_kind printer = function
   | Decls.Theorem -> write printer "Theorem"
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_fixpoint_expr printer = function
   | Vernacexpr.
@@ -179,7 +178,7 @@ let pp_fixpoint_expr printer = function
       pp_constr_expr printer body_def;
       write printer ".";
       decrease_indent printer
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
@@ -188,7 +187,7 @@ let pp_subast printer
       ((match check_or_compute with
        | Some (CbvVm None) -> write printer "Compute "
        | None -> write printer "Check "
-       | _ -> raise NotImplemented);
+       | _ -> raise (NotImplemented (contents printer)));
        match expr.v with
        | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
        | _ -> parens printer (fun () -> pp_constr_expr printer expr));
@@ -246,7 +245,7 @@ let pp_subast printer
                 pp_lident printer name)
               constructors;
             decrease_indent printer
-        | _ -> raise NotImplemented
+        | _ -> raise (NotImplemented (contents printer))
       in
       List.iteri
         (fun i inductive ->
@@ -268,7 +267,7 @@ let pp_subast printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
-  | _ -> raise NotImplemented
+  | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
   let open Vernacexpr in
@@ -283,23 +282,15 @@ let pp_ast ast =
   let printer = create () in
   let rec loop = function
     | [] -> ()
-    | [ x ] -> (
-        try
-          pp_subast printer x;
-          (* Given that codes are usually stored in files, it is better to append
-             a `\n` at the end if the code is not empty. *)
-          newline printer
-        with NotImplemented ->
-          raise (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac x)))
-        )
-    | head :: next :: tail -> (
-        try
-          pp_subast printer head;
-          separator printer head next;
-          loop (next :: tail)
-        with NotImplemented ->
-          raise
-            (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac head))))
+    | [ x ] ->
+        pp_subast printer x;
+        (* Given that codes are usually stored in files, it is better to append
+           a `\n` at the end if the code is not empty. *)
+        newline printer
+    | head :: next :: tail ->
+        pp_subast printer head;
+        separator printer head next;
+        loop (next :: tail)
   in
   loop ast;
   contents printer
