@@ -1,4 +1,4 @@
 Module Foo.
-  Definition foo: nat :=
+  Definition x : nat :=
     3.
 End Foo.
