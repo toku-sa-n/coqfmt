@@ -1,5 +1,6 @@
-Definition or (xy: prod bool) :=
+Definition xor (xy: prod bool) :=
   match xy with
-  | (true, true) => true
+  | (true, false) => true
+  | (false, true) => true
   | _ => false
   end.

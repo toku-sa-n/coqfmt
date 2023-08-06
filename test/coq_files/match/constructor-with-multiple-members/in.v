@@ -1,1 +1,1 @@
-Definition or(xy:prod bool):=match xy with(true,true)=>true|_=>false end.
+Definition xor(xy:prod bool):=match xy with(true,false)=>true|(false,true)=>true|_=>false end.
