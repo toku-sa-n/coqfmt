@@ -191,11 +191,21 @@ let pp_subast printer
        | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
        | _ -> parens printer (fun () -> pp_constr_expr printer expr));
       write printer "."
+  | VernacDefineModule (None, name, [], Check [], []) ->
+      write printer "Module ";
+      pp_lident printer name;
+      write printer ".";
+      increase_indent printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
       space printer;
       pp_lname printer name;
       pp_definition_expr printer expr;
+      write printer "."
+  | VernacEndSegment name ->
+      decrease_indent printer;
+      write printer "End ";
+      pp_lident printer name;
       write printer "."
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
