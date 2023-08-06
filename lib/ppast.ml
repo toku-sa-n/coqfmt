@@ -270,16 +270,34 @@ let pp_subast printer
       pp_proof_end printer proof_end
   | _ -> raise NotImplemented
 
-(* Given that codes are usually stored in files, it is better to append a `\n` at the end if the code is not empty. *)
+let separator printer current next =
+  let open Vernacexpr in
+  let open CAst in
+  match (current.v.expr, next.v.expr) with
+  | VernacDefinition _, VernacDefinition _ -> blankline printer
+  | _, _ -> newline printer
+
 let pp_ast ast =
   let printer = create () in
-  List.iter
-    (fun subast ->
-      try
-        pp_subast printer subast;
-        newline printer
-      with NotImplemented ->
-        raise
-          (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac subast))))
-    ast;
+  let rec loop = function
+    | [] -> ()
+    | [ x ] -> (
+        try
+          pp_subast printer x;
+          (* Given that codes are usually stored in files, it is better to append
+             a `\n` at the end if the code is not empty. *)
+          newline printer
+        with NotImplemented ->
+          raise (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac x)))
+        )
+    | head :: next :: tail -> (
+        try
+          pp_subast printer head;
+          separator printer head next;
+          loop (next :: tail)
+        with NotImplemented ->
+          raise
+            (NotImplementedAst (Pp.string_of_ppcmds (Ppvernac.pr_vernac head))))
+  in
+  loop ast;
   contents printer
