@@ -19,5 +19,8 @@ val increase_indent : t -> unit
 val decrease_indent : t -> unit
 (** Decrease the indent level. *)
 
+val parens : t -> (unit -> unit) -> unit
+(** Write out parentheses around the given function. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)

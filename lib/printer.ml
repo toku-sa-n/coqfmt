@@ -25,4 +25,10 @@ let newline t =
 
 let increase_indent t = t.indent_level <- t.indent_level + 1
 let decrease_indent t = t.indent_level <- t.indent_level - 1
+
+let parens t f =
+  write t "(";
+  f ();
+  write t ")"
+
 let contents t = Buffer.contents t.buffer

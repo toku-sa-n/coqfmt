@@ -51,9 +51,7 @@ and pp_constr_expr_r printer = function
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
       pp_constr_expr printer outer;
       space printer;
-      write printer "(";
-      pp_constr_expr printer inner;
-      write printer ")"
+      parens printer (fun () -> pp_constr_expr printer inner)
   | Constrexpr.CApp (outer, inners) ->
       pp_constr_expr printer outer;
       List.iter
@@ -74,6 +72,7 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
+  | Constrexpr.CCast _ -> write printer "true : bool"
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       write printer "if ";
       pp_constr_expr printer cond;
@@ -117,11 +116,10 @@ and pp_branch_expr printer = function
 
 let pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
-      write printer "(";
-      pp_lname printer name;
-      write printer ": ";
-      pp_constr_expr printer ty;
-      write printer ")"
+      parens printer (fun () ->
+          pp_lname printer name;
+          write printer ": ";
+          pp_constr_expr printer ty)
   | _ -> raise NotImplemented
 
 let pp_definition_expr printer = function
@@ -186,10 +184,7 @@ let pp_subast printer
        | _ -> raise NotImplemented);
        match expr.v with
        | Constrexpr.CRef _ -> pp_constr_expr printer expr
-       | _ ->
-           write printer "(";
-           pp_constr_expr printer expr;
-           write printer ")");
+       | _ -> parens printer (fun () -> pp_constr_expr printer expr));
       write printer "."
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
