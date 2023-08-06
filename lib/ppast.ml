@@ -43,7 +43,7 @@ and pp_cases_pattern_expr_r printer = function
       pp_qualid printer outer;
       space printer;
       pp_cases_pattern_expr printer expr
-  | Constrexpr.CPatNotation _ -> write printer "(true, true)"
+  | Constrexpr.CPatNotation (_, _, _, _) -> write printer "(true, true)"
   | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
