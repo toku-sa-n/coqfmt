@@ -23,6 +23,10 @@ let newline t =
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true
 
+let blankline t =
+  newline t;
+  newline t
+
 let increase_indent t = t.indent_level <- t.indent_level + 1
 let decrease_indent t = t.indent_level <- t.indent_level - 1
 

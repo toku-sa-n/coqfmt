@@ -13,6 +13,9 @@ val space : t -> unit
 val newline : t -> unit
 (** Write out a newline. *)
 
+val blankline : t -> unit
+(** Write out a blank line. *)
+
 val increase_indent : t -> unit
 (** Increase the indent level. *)
 
