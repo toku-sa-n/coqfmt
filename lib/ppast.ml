@@ -274,7 +274,9 @@ let separator printer current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
-  | VernacDefinition _, VernacDefinition _ -> blankline printer
+  | VernacDefinition _, VernacDefinition _
+  | VernacInductive _, VernacDefinition _ ->
+      blankline printer
   | _, _ -> newline printer
 
 let pp_ast ast =
