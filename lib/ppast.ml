@@ -72,7 +72,7 @@ and pp_constr_expr_r printer = function
           newline printer)
         branches;
       write printer "end"
-  | Constrexpr.CCast (v, _, t) ->
+  | Constrexpr.CCast (v, DEFAULTcast, t) ->
       pp_constr_expr printer v;
       write printer " : ";
       pp_constr_expr printer t
