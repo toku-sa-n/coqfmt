@@ -1,1 +1,2 @@
-Definition foo := 3.
+Definition foo :=
+  3.
