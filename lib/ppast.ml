@@ -210,6 +210,12 @@ let pp_fixpoint_expr printer = function
       decrease_indent printer
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_construtor_expr printer (_, (name, expr)) =
+  newline printer;
+  write printer "| ";
+  pp_lident printer name;
+  pp_constr_expr printer expr
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -269,13 +275,7 @@ let pp_subast printer
             if Option.has_some ty then write printer ": Type";
             write printer " :=";
             increase_indent printer;
-            List.iter
-              (fun (_, (name, expr)) ->
-                newline printer;
-                write printer "| ";
-                pp_lident printer name;
-                pp_constr_expr printer expr)
-              constructors;
+            List.iter (pp_construtor_expr printer) constructors;
             decrease_indent printer
         | _ -> raise (NotImplemented (contents printer))
       in
