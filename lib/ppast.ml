@@ -88,9 +88,16 @@ and pp_constr_expr_r printer = function
               pp_constr_expr printer inner
           | _, Some _ -> raise (NotImplemented (contents printer)))
         inners
-  | Constrexpr.CCases (_, None, [ matchee ], branches) ->
+  | Constrexpr.CCases (_, None, matchees, branches) ->
       write printer "match ";
-      pp_case_expr printer matchee;
+      List.iteri
+        (fun i matchee ->
+          match i with
+          | 0 -> pp_case_expr printer matchee
+          | _ ->
+              write printer ", ";
+              pp_case_expr printer matchee)
+        matchees;
       write printer " with";
       newline printer;
       List.iter
@@ -159,9 +166,16 @@ and pp_local_binder_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr printer = function
-  | CAst.{ v = [ [ pattern ] ], expr; loc = _ } ->
+  | CAst.{ v = [ patterns ], expr; loc = _ } ->
       write printer "| ";
-      pp_cases_pattern_expr printer pattern;
+      List.iteri
+        (fun i pattern ->
+          match i with
+          | 0 -> pp_cases_pattern_expr printer pattern
+          | _ ->
+              write printer ", ";
+              pp_cases_pattern_expr printer pattern)
+        patterns;
       write printer " => ";
       pp_constr_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
