@@ -2,6 +2,18 @@ open Printer
 
 exception NotImplemented of string
 
+let with_seps ~sep f xs =
+  List.iteri
+    (fun i x ->
+      match i with
+      | 0 -> f x
+      | _ ->
+          sep ();
+          f x)
+    xs
+
+let commad printer = with_seps ~sep:(fun () -> write printer ", ")
+let spaced printer = with_seps ~sep:(fun () -> space printer)
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
@@ -59,14 +71,11 @@ and pp_cases_pattern_expr_r printer = function
         String.split_on_char '_' notation |> List.tl |> List.hd |> String.trim
       in
       write printer prefix;
-      List.iteri
-        (fun i expr ->
-          match i with
-          | 0 -> pp_cases_pattern_expr printer expr
-          | _ ->
-              write printer separator;
-              space printer;
-              pp_cases_pattern_expr printer expr)
+      with_seps
+        ~sep:(fun () ->
+          write printer separator;
+          space printer)
+        (pp_cases_pattern_expr printer)
         exprs;
       write printer suffix
   | _ -> raise (NotImplemented (contents printer))
@@ -90,14 +99,7 @@ and pp_constr_expr_r printer = function
         inners
   | Constrexpr.CCases (_, None, matchees, branches) ->
       write printer "match ";
-      List.iteri
-        (fun i matchee ->
-          match i with
-          | 0 -> pp_case_expr printer matchee
-          | _ ->
-              write printer ", ";
-              pp_case_expr printer matchee)
-        matchees;
+      commad printer (pp_case_expr printer) matchees;
       write printer " with";
       newline printer;
       List.iter
@@ -153,14 +155,7 @@ and pp_case_expr printer = function
 and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
-          List.iteri
-            (fun i name ->
-              match i with
-              | 0 -> pp_lname printer name
-              | _ ->
-                  space printer;
-                  pp_lname printer name)
-            names;
+          spaced printer (pp_lname printer) names;
           write printer ": ";
           pp_constr_expr printer ty)
   | _ -> raise (NotImplemented (contents printer))
@@ -168,14 +163,7 @@ and pp_local_binder_expr printer = function
 and pp_branch_expr printer = function
   | CAst.{ v = [ patterns ], expr; loc = _ } ->
       write printer "| ";
-      List.iteri
-        (fun i pattern ->
-          match i with
-          | 0 -> pp_cases_pattern_expr printer pattern
-          | _ ->
-              write printer ", ";
-              pp_cases_pattern_expr printer pattern)
-        patterns;
+      commad printer (pp_cases_pattern_expr printer) patterns;
       write printer " => ";
       pp_constr_expr printer expr
   | _ -> raise (NotImplemented (contents printer))

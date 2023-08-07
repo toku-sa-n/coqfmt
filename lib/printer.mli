@@ -25,5 +25,14 @@ val decrease_indent : t -> unit
 val parens : t -> (unit -> unit) -> unit
 (** Write out parentheses around the given function. *)
 
+val with_seps : sep:(unit -> unit) -> ('a -> unit) -> 'a list -> unit
+(** Arrange a series of elements with [~sep] as the delimiter  *)
+
+val commad : t -> ('a -> unit) -> 'a list -> unit
+(** Write out a comma-separated list of elements. *)
+
+val spaced : t -> ('a -> unit) -> 'a list -> unit
+(** Write out a space-separated list of elements. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)
