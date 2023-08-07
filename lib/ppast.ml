@@ -39,10 +39,13 @@ let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
 and pp_cases_pattern_expr_r printer = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
   | Constrexpr.CPatAtom None -> write printer "_"
-  | Constrexpr.CPatCstr (outer, None, [ expr ]) ->
+  | Constrexpr.CPatCstr (outer, None, values) ->
       pp_qualid printer outer;
-      space printer;
-      pp_cases_pattern_expr printer expr
+      List.iter
+        (fun value ->
+          space printer;
+          pp_cases_pattern_expr printer value)
+        values
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
