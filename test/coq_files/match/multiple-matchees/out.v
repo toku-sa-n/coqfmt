@@ -1,5 +1,5 @@
 Definition allzero (x y: nat) : bool :=
   match x, y with
   | O, O => true
-  | _ => false
+  | _, _ => false
   end.
