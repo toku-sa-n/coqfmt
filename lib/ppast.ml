@@ -264,7 +264,6 @@ let pp_subast printer
       write printer "Proof.";
       increase_indent printer
   | VernacInductive (Inductive_kw, inductives) ->
-      (* FIXME: Needs refactoring. *)
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
               ([], None),
