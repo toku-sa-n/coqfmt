@@ -35,4 +35,16 @@ let parens t f =
   f ();
   write t ")"
 
+let with_seps ~sep f xs =
+  List.iteri
+    (fun i x ->
+      match i with
+      | 0 -> f x
+      | _ ->
+          sep ();
+          f x)
+    xs
+
+let commad printer = with_seps ~sep:(fun () -> write printer ", ")
+let spaced printer = with_seps ~sep:(fun () -> space printer)
 let contents t = Buffer.contents t.buffer
