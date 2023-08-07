@@ -43,6 +43,29 @@ and pp_cases_pattern_expr_r printer = function
       pp_qualid printer outer;
       space printer;
       pp_cases_pattern_expr printer expr
+  | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
+      (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
+      let exprs = expr1 @ List.flatten expr2 in
+      let prefix =
+        String.split_on_char '_' notation |> List.hd |> String.trim
+      in
+      let suffix =
+        String.split_on_char '_' notation |> List.rev |> List.hd |> String.trim
+      in
+      let separator =
+        String.split_on_char '_' notation |> List.tl |> List.hd |> String.trim
+      in
+      write printer prefix;
+      List.iteri
+        (fun i expr ->
+          match i with
+          | 0 -> pp_cases_pattern_expr printer expr
+          | _ ->
+              write printer separator;
+              space printer;
+              pp_cases_pattern_expr printer expr)
+        exprs;
+      write printer suffix
   | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
