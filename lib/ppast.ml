@@ -128,7 +128,7 @@ and pp_constr_expr_r printer = function
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
   | Constrexpr.CProdN (_, _) -> write printer " (x: foo) (y: foo)"
-  | Constrexpr.CHole (None, IntroAnonymous, _) -> ()
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
