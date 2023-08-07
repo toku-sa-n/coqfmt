@@ -2,7 +2,7 @@ open Printer
 
 exception NotImplemented of string
 
-let with_seps sep f xs =
+let with_seps ~sep f xs =
   List.iteri
     (fun i x ->
       match i with
@@ -12,8 +12,8 @@ let with_seps sep f xs =
           f x)
     xs
 
-let commad printer = with_seps (fun () -> write printer ", ")
-let spaced printer = with_seps (fun () -> space printer)
+let commad printer = with_seps ~sep:(fun () -> write printer ", ")
+let spaced printer = with_seps ~sep:(fun () -> space printer)
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
@@ -72,7 +72,7 @@ and pp_cases_pattern_expr_r printer = function
       in
       write printer prefix;
       with_seps
-        (fun () ->
+        ~sep:(fun () ->
           write printer separator;
           space printer)
         (pp_cases_pattern_expr printer)
