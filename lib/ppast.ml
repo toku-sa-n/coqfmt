@@ -127,10 +127,25 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
+  | Constrexpr.CProdN (xs, _) ->
+      List.iter
+        (fun x ->
+          space printer;
+          pp_local_binder_expr printer x)
+        xs
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
   | expr, None, None -> pp_constr_expr printer expr
+  | _ -> raise (NotImplemented (contents printer))
+
+and pp_local_binder_expr printer = function
+  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
+      parens printer (fun () ->
+          pp_lname printer name;
+          write printer ": ";
+          pp_constr_expr printer ty)
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr printer = function
@@ -139,14 +154,6 @@ and pp_branch_expr printer = function
       pp_cases_pattern_expr printer pattern;
       write printer " => ";
       pp_constr_expr printer expr
-  | _ -> raise (NotImplemented (contents printer))
-
-let pp_local_binder_expr printer = function
-  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default Explicit, ty) ->
-      parens printer (fun () ->
-          pp_lname printer name;
-          write printer ": ";
-          pp_constr_expr printer ty)
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr printer = function
@@ -251,6 +258,7 @@ let pp_subast printer
       write printer "Proof.";
       increase_indent printer
   | VernacInductive (Inductive_kw, inductives) ->
+      (* FIXME: Needs refactoring. *)
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
               ([], None),
@@ -262,10 +270,11 @@ let pp_subast printer
             write printer " :=";
             increase_indent printer;
             List.iter
-              (fun (_, (name, _)) ->
+              (fun (_, (name, expr)) ->
                 newline printer;
                 write printer "| ";
-                pp_lident printer name)
+                pp_lident printer name;
+                pp_constr_expr printer expr)
               constructors;
             decrease_indent printer
         | _ -> raise (NotImplemented (contents printer))
