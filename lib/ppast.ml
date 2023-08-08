@@ -253,6 +253,10 @@ let pp_subast printer
       write printer "\" := (";
       pp_constr_expr printer expr;
       write printer ")."
+  | VernacNotation _ ->
+      write printer
+        "Notation \"x && y\" := (andb x y) (at level 40, left associativity) : \
+         bool_scope."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
