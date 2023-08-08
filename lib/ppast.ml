@@ -2,18 +2,6 @@ open Printer
 
 exception NotImplemented of string
 
-let with_seps ~sep f xs =
-  List.iteri
-    (fun i x ->
-      match i with
-      | 0 -> f x
-      | _ ->
-          sep ();
-          f x)
-    xs
-
-let commad printer = with_seps ~sep:(fun () -> write printer ", ")
-let spaced printer = with_seps ~sep:(fun () -> space printer)
 let pp_id printer id = Names.Id.to_string id |> write printer
 let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
 
