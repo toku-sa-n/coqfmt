@@ -253,7 +253,7 @@ let pp_subast printer
       write printer "\" := (";
       pp_constr_expr printer expr;
       write printer ")."
-  | VernacNotation (_, _, _, _) ->
+  | VernacNotation (_, _, (_, _), _) ->
       write printer
         "Notation \"x && y\" := (andb x y) (at level 40, left associativity) : \
          bool_scope."
