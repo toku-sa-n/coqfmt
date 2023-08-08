@@ -273,9 +273,8 @@ let pp_subast printer
       in
       write printer "Notation \"";
       pp_lstring printer notation;
-      write printer "\" := (";
-      pp_constr_expr printer expr;
-      write printer ")";
+      write printer "\" := ";
+      parens printer (fun () -> pp_constr_expr printer expr);
       if List.length modifiers > 0 then pp_modifiers ();
       pp_scope ();
       write printer "."
