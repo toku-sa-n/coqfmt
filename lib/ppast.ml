@@ -254,24 +254,25 @@ let pp_subast printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
-  | VernacNotation (false, expr, (notation, []), None) ->
+  | VernacNotation (false, expr, (notation, modifiers), scope) ->
       write printer "Notation \"";
       pp_lstring printer notation;
       write printer "\" := (";
       pp_constr_expr printer expr;
-      write printer ")."
-  | VernacNotation (false, expr, (notation, modifiers), Some scope) ->
-      let open CAst in
-      write printer "Notation \"";
-      pp_lstring printer notation;
-      write printer "\" := (";
-      pp_constr_expr printer expr;
-      write printer ") (";
-      commad printer
-        (fun modifier -> pp_syntax_modifier printer modifier.v)
-        modifiers;
-      write printer ") : ";
-      write printer scope;
+      write printer ")";
+      if List.length modifiers > 0 then (
+        write printer " (";
+        commad printer
+          (fun modifier ->
+            let open CAst in
+            pp_syntax_modifier printer modifier.v)
+          modifiers;
+        write printer ")");
+      (match scope with
+      | None -> ()
+      | Some scope ->
+          write printer " : ";
+          write printer scope);
       write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
