@@ -146,6 +146,15 @@ and pp_case_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_local_binder_expr printer = function
+  | Constrexpr.CLocalAssum
+      ( [ name ],
+        Constrexpr.Default Explicit,
+        CAst.
+          {
+            v = Constrexpr.CHole (Some (BinderType _), IntroAnonymous, None);
+            loc = _;
+          } ) ->
+      pp_lname printer name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
           spaced printer (pp_lname printer) names;
