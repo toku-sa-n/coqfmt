@@ -3,8 +3,12 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
+let pp_gen_tactic_arg printer = function
+  | Tacexpr.TacCall _ -> write printer "reflexivity."
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_gen_tactic_expr_r printer = function
-  | Tacexpr.TacArg _ -> write printer "reflexivity."
+  | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_tactic_expr printer CAst.{ v; loc = _ } =
