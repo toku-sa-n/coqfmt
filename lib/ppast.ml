@@ -255,24 +255,29 @@ let pp_subast printer
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
-      write printer "Notation \"";
-      pp_lstring printer notation;
-      write printer "\" := (";
-      pp_constr_expr printer expr;
-      write printer ")";
-      if List.length modifiers > 0 then (
+      let pp_modifiers () =
         write printer " (";
         commad printer
           (fun modifier ->
             let open CAst in
             pp_syntax_modifier printer modifier.v)
           modifiers;
-        write printer ")");
-      (match scope with
-      | None -> ()
-      | Some scope ->
-          write printer " : ";
-          write printer scope);
+        write printer ")"
+      in
+      let pp_scope () =
+        match scope with
+        | None -> ()
+        | Some scope ->
+            write printer " : ";
+            write printer scope
+      in
+      write printer "Notation \"";
+      pp_lstring printer notation;
+      write printer "\" := (";
+      pp_constr_expr printer expr;
+      write printer ")";
+      if List.length modifiers > 0 then pp_modifiers ();
+      pp_scope ();
       write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
