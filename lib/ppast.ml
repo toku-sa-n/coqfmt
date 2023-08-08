@@ -147,10 +147,10 @@ and pp_case_expr printer = function
 
 and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum
-      ( [ _ ],
+      ( [ name ],
         Constrexpr.Default Explicit,
         CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
-      write printer "n"
+      pp_lname printer name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
           spaced printer (pp_lname printer) names;
