@@ -218,7 +218,9 @@ let pp_construtor_expr printer (_, (name, expr)) =
 
 let pp_syntax_modifier printer = function
   | Vernacexpr.SetAssoc LeftA -> write printer "left associativity"
-  | Vernacexpr.SetLevel _ -> write printer "at level 40"
+  | Vernacexpr.SetLevel level ->
+      write printer "at level ";
+      write printer (string_of_int level)
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_subast printer
