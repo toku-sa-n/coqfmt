@@ -216,6 +216,11 @@ let pp_construtor_expr printer (_, (name, expr)) =
   pp_lident printer name;
   pp_constr_expr printer expr
 
+let pp_syntax_modifier printer = function
+  | Vernacexpr.SetAssoc _ -> write printer "left associativity"
+  | Vernacexpr.SetLevel _ -> write printer "at level 40"
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -253,12 +258,17 @@ let pp_subast printer
       write printer "\" := (";
       pp_constr_expr printer expr;
       write printer ")."
-  | VernacNotation (false, expr, (notation, _), Some scope) ->
+  | VernacNotation (false, expr, (notation, modifiers), Some scope) ->
+      let open CAst in
       write printer "Notation \"";
       pp_lstring printer notation;
       write printer "\" := (";
       pp_constr_expr printer expr;
-      write printer ") (at level 40, left associativity) : ";
+      write printer ") (";
+      commad printer
+        (fun modifier -> pp_syntax_modifier printer modifier.v)
+        modifiers;
+      write printer ") : ";
       write printer scope;
       write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
