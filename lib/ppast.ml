@@ -226,6 +226,9 @@ let pp_syntax_modifier printer = function
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
+  | VernacAbort ->
+      decrease_indent printer;
+      write printer "Abort."
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       ((match check_or_compute with
        | Some (CbvVm None) -> write printer "Compute "
