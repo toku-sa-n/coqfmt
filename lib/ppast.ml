@@ -149,7 +149,7 @@ and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
+        CAst.{ v = Constrexpr.CHole (_, _, _); loc = _ } ) ->
       pp_lname printer name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
