@@ -320,17 +320,12 @@ let pp_subast printer
             decrease_indent printer
         | _ -> raise (NotImplemented (contents printer))
       in
-      List.iteri
-        (fun i inductive ->
-          match i with
-          | 0 ->
-              write printer "Inductive ";
-              pp_single_inductive inductive
-          | _ ->
-              newline printer;
-              write printer "with ";
-              pp_single_inductive inductive)
-        inductives;
+      write printer "Inductive ";
+      with_seps
+        ~sep:(fun () ->
+          newline printer;
+          write printer "with ")
+        pp_single_inductive inductives;
       write printer "."
   (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
      See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
