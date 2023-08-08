@@ -1,8 +1,14 @@
 open Printer
+open Ltac_plugin
 
-(* exception NotImplemented of string *)
+exception NotImplemented of string
 
-let pp_raw_tactic_expr printer _ = write printer "reflexivity."
+let pp_gen_tactic_expr_r printer = function
+  | Tacexpr.TacArg _ -> write printer "reflexivity."
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_raw_tactic_expr printer CAst.{ v; loc = _ } =
+  pp_gen_tactic_expr_r printer v
 
 let raw_tactic_expr_of_raw_generic_argument arg =
   let open Sexplib.Sexp in
