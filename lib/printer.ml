@@ -2,7 +2,6 @@ type t = {
   buffer : Buffer.t;
   mutable indent_level : int;
   mutable printed_newline : bool;
-  mutable inside_theorem : bool;
 }
 
 let tab_size = 2
@@ -10,12 +9,7 @@ let tab_size = 2
 (* {{The doc} https://v2.ocaml.org/api/Buffer.html} says to allocate 16 buffers
    if unsure. *)
 let create () =
-  {
-    buffer = Buffer.create 16;
-    indent_level = 0;
-    printed_newline = false;
-    inside_theorem = false;
-  }
+  { buffer = Buffer.create 16; indent_level = 0; printed_newline = false }
 
 let write t s =
   if t.printed_newline then
@@ -35,13 +29,6 @@ let blankline t =
 
 let increase_indent t = t.indent_level <- t.indent_level + 1
 let decrease_indent t = t.indent_level <- t.indent_level - 1
-
-let inside_theorem t f =
-  t.inside_theorem <- true;
-  f ();
-  t.inside_theorem <- false
-
-let is_inside_theorem t = t.inside_theorem
 
 let parens t f =
   write t "(";
