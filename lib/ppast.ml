@@ -327,11 +327,8 @@ let pp_subast printer
           write printer "with ")
         pp_single_inductive inductives;
       write printer "."
-  (* FIXME: I have no idea how to extract the complete information of a `VernacExtend`.
-     See https://stackoverflow.com/questions/76792174/how-to-extract-the-exact-information-of-genarg. *)
-  | VernacExtend _ ->
-      Ppvernac.pr_vernac_expr expr |> Pp.string_of_ppcmds |> write printer;
-      write printer "."
+  (* FIXME: Support other plugins, like ltac2. *)
+  | VernacExtend (_, args) -> Ppltac.pp_ltac printer args
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
