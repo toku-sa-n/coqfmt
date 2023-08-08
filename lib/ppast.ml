@@ -256,13 +256,13 @@ let pp_subast printer
       pp_fixpoint_expr printer expr
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
       let pp_modifiers () =
-        write printer " (";
-        commad printer
-          (fun modifier ->
-            let open CAst in
-            pp_syntax_modifier printer modifier.v)
-          modifiers;
-        write printer ")"
+        space printer;
+        parens printer (fun () ->
+            commad printer
+              (fun modifier ->
+                let open CAst in
+                pp_syntax_modifier printer modifier.v)
+              modifiers)
       in
       let pp_scope () =
         match scope with
