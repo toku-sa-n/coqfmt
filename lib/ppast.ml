@@ -147,8 +147,9 @@ and pp_case_expr printer = function
 
 and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum
-      (_, Constrexpr.Default Explicit, CAst.{ v = Constrexpr.CHole _; loc = _ })
-    ->
+      ( [ _ ],
+        Constrexpr.Default Explicit,
+        CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
       write printer "n"
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
