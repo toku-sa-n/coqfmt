@@ -253,10 +253,12 @@ let pp_subast printer
       write printer "\" := (";
       pp_constr_expr printer expr;
       write printer ")."
-  | VernacNotation (false, _, (notation, _), Some scope) ->
+  | VernacNotation (false, expr, (notation, _), Some scope) ->
       write printer "Notation \"";
       pp_lstring printer notation;
-      write printer "\" := (andb x y) (at level 40, left associativity) : ";
+      write printer "\" := (";
+      pp_constr_expr printer expr;
+      write printer ") (at level 40, left associativity) : ";
       write printer scope;
       write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
