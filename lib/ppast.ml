@@ -127,12 +127,18 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
-  | Constrexpr.CProdN (xs, _) ->
-      List.iter
-        (fun x ->
-          space printer;
-          pp_local_binder_expr printer x)
-        xs
+  | Constrexpr.CProdN (xs, ty) ->
+      if is_inside_theorem printer then (
+        write printer "forall ";
+        spaced printer (pp_local_binder_expr printer) xs;
+        write printer ", ";
+        pp_constr_expr printer ty)
+      else
+        List.iter
+          (fun x ->
+            space printer;
+            pp_local_binder_expr printer x)
+          xs
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | _ -> raise (NotImplemented (contents printer))
 
@@ -282,12 +288,13 @@ let pp_subast printer
       pp_scope ();
       write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
-      pp_theorem_kind printer kind;
-      write printer " ";
-      pp_lident printer ident;
-      write printer ": ";
-      pp_constr_expr printer expr;
-      write printer "."
+      inside_theorem printer (fun () ->
+          pp_theorem_kind printer kind;
+          write printer " ";
+          pp_lident printer ident;
+          write printer ": ";
+          pp_constr_expr printer expr;
+          write printer ".")
   | VernacProof (None, None) ->
       write printer "Proof.";
       increase_indent printer

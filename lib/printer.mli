@@ -22,6 +22,12 @@ val increase_indent : t -> unit
 val decrease_indent : t -> unit
 (** Decrease the indent level. *)
 
+val inside_theorem : t -> (unit -> unit) -> unit
+(** Write out the given function inside a theorem environment. *)
+
+val is_inside_theorem : t -> bool
+(** Check if the printer is inside a theorem environment. *)
+
 val parens : t -> (unit -> unit) -> unit
 (** Write out parentheses around the given function. *)
 
