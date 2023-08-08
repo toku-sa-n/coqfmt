@@ -216,6 +216,13 @@ let pp_construtor_expr printer (_, (name, expr)) =
   pp_lident printer name;
   pp_constr_expr printer expr
 
+let pp_syntax_modifier printer = function
+  | Vernacexpr.SetAssoc LeftA -> write printer "left associativity"
+  | Vernacexpr.SetLevel level ->
+      write printer "at level ";
+      write printer (string_of_int level)
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -247,12 +254,30 @@ let pp_subast printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write printer "Fixpoint ";
       pp_fixpoint_expr printer expr
-  | VernacNotation (false, expr, (notation, []), None) ->
+  | VernacNotation (false, expr, (notation, modifiers), scope) ->
+      let pp_modifiers () =
+        space printer;
+        parens printer (fun () ->
+            commad printer
+              (fun modifier ->
+                let open CAst in
+                pp_syntax_modifier printer modifier.v)
+              modifiers)
+      in
+      let pp_scope () =
+        match scope with
+        | None -> ()
+        | Some scope ->
+            write printer " : ";
+            write printer scope
+      in
       write printer "Notation \"";
       pp_lstring printer notation;
-      write printer "\" := (";
-      pp_constr_expr printer expr;
-      write printer ")."
+      write printer "\" := ";
+      parens printer (fun () -> pp_constr_expr printer expr);
+      if List.length modifiers > 0 then pp_modifiers ();
+      pp_scope ();
+      write printer "."
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write printer " ";
