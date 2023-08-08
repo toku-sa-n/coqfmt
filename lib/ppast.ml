@@ -127,12 +127,17 @@ and pp_constr_expr_r printer = function
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token printer prim
-  | Constrexpr.CProdN (xs, _) ->
+  | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       List.iter
         (fun x ->
           space printer;
           pp_local_binder_expr printer x)
         xs
+  | Constrexpr.CProdN (xs, ty) ->
+      write printer "forall ";
+      spaced printer (pp_local_binder_expr printer) xs;
+      write printer ", ";
+      pp_constr_expr printer ty
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | _ -> raise (NotImplemented (contents printer))
 
