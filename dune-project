@@ -25,6 +25,7 @@
   coq ; FIXME: We should not specify Coq as a dependency as users may have
       ; already installed it. However, removing it and installing Coq via
       ; opam causes a build error on CI.
+  coq-serapi
   dune
   dune-build-info
   ocaml))

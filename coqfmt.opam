@@ -12,6 +12,7 @@ depends: [
   "alcotest"
   "cmdliner"
   "coq"
+  "coq-serapi"
   "dune" {>= "3.9"}
   "dune-build-info"
   "ocaml"
