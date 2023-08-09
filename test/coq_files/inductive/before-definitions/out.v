@@ -1,8 +1,8 @@
-Inductive foo: Type :=
+Inductive foo : Type :=
   | bar
   | baz.
 
-Definition isbar (x: foo) : bool :=
+Definition isbar (x : foo) : bool :=
   match x with
   | bar => true
   | baz => false

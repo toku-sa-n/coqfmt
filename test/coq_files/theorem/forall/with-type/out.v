@@ -1,3 +1,3 @@
-Theorem eq: forall (n: nat), n = n.
+Theorem eq : forall (n : nat), n = n.
 Proof.
 Abort.

@@ -1,4 +1,4 @@
-Theorem foo: forall n m, n = m.
+Theorem foo : forall n m, n = m.
 Proof.
   intros n m.
 Abort.

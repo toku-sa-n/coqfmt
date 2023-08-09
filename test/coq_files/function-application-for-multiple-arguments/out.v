@@ -1,4 +1,4 @@
-Example foo: orb true true = true.
+Example foo : orb true true = true.
 Proof.
   reflexivity.
 Qed.

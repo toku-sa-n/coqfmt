@@ -159,7 +159,7 @@ and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens printer (fun () ->
           spaced printer (pp_lname printer) names;
-          write printer ": ";
+          write printer " : ";
           pp_constr_expr printer ty)
   | _ -> raise (NotImplemented (contents printer))
 
@@ -173,7 +173,7 @@ and pp_branch_expr printer = function
 
 let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
-      write printer ": ";
+      write printer " : ";
       pp_constr_expr printer expr
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       List.iter
@@ -376,7 +376,7 @@ let pp_subast printer
       pp_theorem_kind printer kind;
       write printer " ";
       pp_lident printer ident;
-      write printer ": ";
+      write printer " : ";
       pp_constr_expr printer expr;
       write printer "."
   | VernacProof (None, None) ->
@@ -390,7 +390,7 @@ let pp_subast printer
               Vernacexpr.Constructors constructors ),
             [] ) ->
             pp_lident printer name;
-            if Option.has_some ty then write printer ": Type";
+            if Option.has_some ty then write printer " : Type";
             write printer " :=";
             increase_indent printer;
             List.iter (pp_construtor_expr printer) constructors;

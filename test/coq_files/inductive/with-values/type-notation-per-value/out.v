@@ -1,2 +1,2 @@
-Inductive foo: Type :=
-  | bar (x: nat) (y: nat).
+Inductive foo : Type :=
+  | bar (x : nat) (y : nat).

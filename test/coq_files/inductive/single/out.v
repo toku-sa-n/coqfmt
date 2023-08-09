@@ -1,3 +1,3 @@
-Inductive foo: Type :=
+Inductive foo : Type :=
   | bar
   | baz.

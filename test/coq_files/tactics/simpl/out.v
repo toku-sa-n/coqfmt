@@ -1,4 +1,4 @@
-Example foo: 1 = 1.
+Example foo : 1 = 1.
 Proof.
   simpl.
   reflexivity.
