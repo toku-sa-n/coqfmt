@@ -278,7 +278,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
       spaced printer (fun expr -> pp_intro_pattern_expr printer expr.v) exprs;
       write printer "."
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
-  | Tacexpr.TacRewrite (false, [ (_, _, _) ], _, None) ->
+  | Tacexpr.TacRewrite (false, [ (true, _, _) ], _, None) ->
       write printer "rewrite H."
   | _ -> raise (NotImplemented (contents printer))
 
