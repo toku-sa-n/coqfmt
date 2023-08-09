@@ -245,11 +245,14 @@ let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
       write printer "."
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
+  match expr with _ -> write printer "simpl."
+
 let pp_gen_tactic_expr_r printer
     (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r) =
   match expr with
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
-  | Tacexpr.TacAtom _ -> write printer "simpl."
+  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr printer atom
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
