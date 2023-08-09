@@ -280,10 +280,12 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
   | Tacexpr.TacRewrite
       ( false,
-        [ (true, Precisely 1, (None, (_, _))) ],
+        [ (true, Precisely 1, (None, (expr, _))) ],
         Locus.{ onhyps = None; concl_occs = AllOccurrences },
         None ) ->
-      write printer "rewrite H."
+      write printer "rewrite ";
+      pp_constr_expr printer expr;
+      write printer "."
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r printer
