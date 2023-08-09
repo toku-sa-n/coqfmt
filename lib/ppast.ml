@@ -1,4 +1,5 @@
 open Printer
+open Ltac_plugin
 
 exception NotImplemented of string
 
@@ -237,6 +238,46 @@ let pp_syntax_modifier printer = function
       write printer (string_of_int level)
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
+  match expr with
+  | Tacexpr.TacCall ast ->
+      pp_qualid printer (fst ast.v);
+      write printer "."
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_gen_tactic_expr_r printer
+    (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r) =
+  match expr with
+  | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+  pp_gen_tactic_expr_r printer v
+
+let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
+    =
+  (* XXX: I'm not sure if this way is correct. See
+          https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60.
+  *)
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "tactic" ] ];
+        rems;
+      ] ->
+      Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
+  | _ -> None
+
+let pp_ltac printer args =
+  List.iter
+    (fun arg ->
+      match raw_tactic_expr_of_raw_generic_argument arg with
+      | None -> ()
+      | Some t -> pp_raw_tactic_expr printer t)
+    args
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -328,7 +369,7 @@ let pp_subast printer
         pp_single_inductive inductives;
       write printer "."
   (* FIXME: Support other plugins, like ltac2. *)
-  | VernacExtend (_, args) -> Ppltac.pp_ltac printer args
+  | VernacExtend (_, args) -> pp_ltac printer args
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
