@@ -264,7 +264,7 @@ let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
 
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   match expr with
-  | Tacexpr.TacIntroPattern (false, _) -> write printer "intros n."
+  | Tacexpr.TacIntroPattern (false, [ _ ]) -> write printer "intros n."
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
