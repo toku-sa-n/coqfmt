@@ -247,7 +247,19 @@ let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
 
 let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
   match expr with
-  | Genredexpr.Simpl (_, None) -> write printer "simpl."
+  | Genredexpr.Simpl
+      ( Genredexpr.
+          {
+            rBeta = true;
+            rMatch = true;
+            rFix = true;
+            rCofix = true;
+            rZeta = true;
+            rDelta = true;
+            rConst = [];
+          },
+        None ) ->
+      write printer "simpl."
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
