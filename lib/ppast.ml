@@ -263,7 +263,8 @@ let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr printer = function
-  | _ -> write printer "intros n."
+  | Namegen.IntroIdentifier _ -> write printer "intros n."
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_expr printer = function
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
