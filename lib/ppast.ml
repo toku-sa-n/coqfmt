@@ -245,10 +245,33 @@ let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
       write printer "."
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
+  match expr with
+  | Genredexpr.Simpl
+      ( Genredexpr.
+          {
+            rBeta = true;
+            rMatch = true;
+            rFix = true;
+            rCofix = true;
+            rZeta = true;
+            rDelta = true;
+            rConst = [];
+          },
+        None ) ->
+      write printer "simpl."
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
+  match expr with
+  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_gen_tactic_expr_r printer
     (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r) =
   match expr with
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
+  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr printer atom
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
