@@ -262,8 +262,20 @@ let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
       write printer "simpl."
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_intro_pattern_naming_expr printer = function
+  | Namegen.IntroIdentifier name -> pp_id printer name
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_intro_pattern_expr printer = function
+  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   match expr with
+  | Tacexpr.TacIntroPattern (false, [ expr ]) ->
+      write printer "intros ";
+      pp_intro_pattern_expr printer expr.v;
+      write printer "."
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
