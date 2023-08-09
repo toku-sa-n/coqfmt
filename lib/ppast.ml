@@ -281,7 +281,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   | Tacexpr.TacRewrite
       ( false,
         [ (true, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = None; concl_occs = AllOccurrences },
+        Locus.{ onhyps = Some _; concl_occs = AllOccurrences },
         None ) ->
       write printer "rewrite ";
       pp_constr_expr printer expr;
