@@ -270,9 +270,12 @@ let pp_intro_pattern_expr printer = function
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_destruction_arg printer = function
+  | None, Tactics.ElimOnIdent ident -> pp_lident printer ident
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_induction_clause printer = function
-  | (None, Tactics.ElimOnIdent ident), (None, None), None ->
-      pp_lident printer ident
+  | arg, (None, None), None -> pp_destruction_arg printer arg
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
