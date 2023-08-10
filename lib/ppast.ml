@@ -270,9 +270,29 @@ let pp_intro_pattern_expr printer = function
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_core_destruction_arg printer = function
+  | Tactics.ElimOnIdent ident -> pp_lident printer ident
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_destruction_arg printer = function
+  | None, arg -> pp_core_destruction_arg printer arg
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_induction_clause printer = function
+  | arg, (None, None), None -> pp_destruction_arg printer arg
+  | _ -> raise (NotImplemented (contents printer))
+
+let pp_induction_clause_list printer = function
+  | [ clause ], None -> pp_induction_clause printer clause
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   let open CAst in
   match expr with
+  | Tacexpr.TacInductionDestruct (false, false, clause_list) ->
+      write printer "destruct ";
+      pp_induction_clause_list printer clause_list;
+      write printer "."
   | Tacexpr.TacIntroPattern (false, exprs) ->
       write printer "intros ";
       spaced printer (fun expr -> pp_intro_pattern_expr printer expr.v) exprs;
