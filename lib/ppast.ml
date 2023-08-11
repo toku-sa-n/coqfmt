@@ -306,7 +306,7 @@ let pp_induction_clause printer = function
       in
       pp_destruction_arg printer arg;
       pp_as_list as_list
-  | arg, (Some _, _), None ->
+  | arg, (Some _, None), None ->
       pp_destruction_arg printer arg;
       write printer " eqn:E"
   | _ -> raise (NotImplemented (contents printer))
