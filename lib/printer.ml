@@ -35,6 +35,11 @@ let parens t f =
   f ();
   write t ")"
 
+let brackets t f =
+  write t "[";
+  f ();
+  write t "]"
+
 let with_seps ~sep f xs =
   List.iteri
     (fun i x ->

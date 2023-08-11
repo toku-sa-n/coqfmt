@@ -25,6 +25,9 @@ val decrease_indent : t -> unit
 val parens : t -> (unit -> unit) -> unit
 (** Write out parentheses around the given function. *)
 
+val brackets : t -> (unit -> unit) -> unit
+(** Write out brackets around the given function. *)
+
 val with_seps : sep:(unit -> unit) -> ('a -> unit) -> 'a list -> unit
 (** Arrange a series of elements with [~sep] as the delimiter  *)
 
