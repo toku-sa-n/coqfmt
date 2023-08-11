@@ -292,8 +292,8 @@ let pp_induction_clause printer = function
       List.iteri
         (fun i pattern ->
           match (i, pattern) with
+          | 0, [] -> space printer
           | 0, xs ->
-              space printer;
               spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs
           | _, xs ->
               write printer "| ";
