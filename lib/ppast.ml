@@ -287,19 +287,22 @@ let pp_induction_clause printer = function
       ),
       None ) ->
       let open CAst in
+      let pp_as_list () =
+        write printer " as [";
+        List.iteri
+          (fun i pattern ->
+            match (i, pattern) with
+            | 0, [] -> space printer
+            | 0, xs ->
+                spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs
+            | _, xs ->
+                write printer "| ";
+                spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs)
+          patterns;
+        write printer "]"
+      in
       pp_destruction_arg printer arg;
-      write printer " as [";
-      List.iteri
-        (fun i pattern ->
-          match (i, pattern) with
-          | 0, [] -> space printer
-          | 0, xs ->
-              spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs
-          | _, xs ->
-              write printer "| ";
-              spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs)
-        patterns;
-      write printer "]"
+      pp_as_list ()
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
