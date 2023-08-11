@@ -279,7 +279,7 @@ let pp_destruction_arg printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause printer = function
-  | arg, (None, as_list), None ->
+  | arg, (eqn, as_list), None ->
       let open CAst in
       let pp_as_list = function
         | None -> ()
@@ -304,8 +304,16 @@ let pp_induction_clause printer = function
                   patterns)
         | _ -> raise (NotImplemented (contents printer))
       in
+      let pp_eqn = function
+        | None -> ()
+        | Some x ->
+            let open CAst in
+            write printer " eqn:";
+            pp_intro_pattern_naming_expr printer x.v
+      in
       pp_destruction_arg printer arg;
-      pp_as_list as_list
+      pp_as_list as_list;
+      pp_eqn eqn
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
