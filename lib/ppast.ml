@@ -280,7 +280,9 @@ let pp_destruction_arg printer = function
 
 let pp_induction_clause printer = function
   | arg, (None, None), None -> pp_destruction_arg printer arg
-  | _, (None, Some _), None -> write printer "n as [| n']"
+  | arg, (None, Some _), None ->
+      pp_destruction_arg printer arg;
+      write printer " as [| n']"
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
