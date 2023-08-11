@@ -438,7 +438,7 @@ let pp_subast printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
-  | VernacBullet (Dash _) -> write printer "  - "
+  | VernacBullet (Dash 1) -> write printer "  - "
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
