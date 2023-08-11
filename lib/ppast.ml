@@ -281,7 +281,10 @@ let pp_destruction_arg printer = function
 let pp_induction_clause printer = function
   | arg, (None, None), None -> pp_destruction_arg printer arg
   | ( arg,
-      (None, Some (Locus.ArgArg CAst.{ v = Tactypes.IntroOrPattern _; loc = _ })),
+      ( None,
+        Some
+          (Locus.ArgArg CAst.{ v = Tactypes.IntroOrPattern [ _; _ ]; loc = _ })
+      ),
       None ) ->
       pp_destruction_arg printer arg;
       write printer " as [| n']"
