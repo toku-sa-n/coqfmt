@@ -88,4 +88,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - uses: ocaml/setup-ocaml/lint/opam@v2
+      - uses: ocaml/setup-ocaml/lint-opam@v2
