@@ -280,7 +280,7 @@ let pp_destruction_arg printer = function
 
 let pp_induction_clause printer = function
   | arg, (None, None), None -> pp_destruction_arg printer arg
-  | arg, (None, Some _), None ->
+  | arg, (None, Some (Locus.ArgArg _)), None ->
       pp_destruction_arg printer arg;
       write printer " as [| n']"
   | _ -> raise (NotImplemented (contents printer))
