@@ -306,9 +306,11 @@ let pp_induction_clause printer = function
       in
       pp_destruction_arg printer arg;
       pp_as_list as_list
-  | arg, (Some _, None), None ->
+  | arg, (Some x, None), None ->
+      let open CAst in
       pp_destruction_arg printer arg;
-      write printer " eqn:E"
+      write printer " eqn:";
+      pp_intro_pattern_naming_expr printer x.v
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
