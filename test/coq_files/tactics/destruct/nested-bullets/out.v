@@ -1,4 +1,4 @@
-Theorem or_comm : forall (x y : bool) : orb x y = orb y x.
+Theorem or_comm : forall (x y : bool), orb x y = orb y x.
 Proof.
   destruct x.
     - destruct y.
