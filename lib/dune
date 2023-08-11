@@ -1,2 +1,4 @@
 (library
- (name coqfmt))
+ (name coqfmt)
+ (libraries coq-core.plugins.ltac coq-serapi.serlib.ltac)
+ (private_modules ast ppast printer))
