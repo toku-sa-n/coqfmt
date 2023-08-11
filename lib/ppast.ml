@@ -279,30 +279,33 @@ let pp_destruction_arg printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause printer = function
-  | arg, (None, None), None -> pp_destruction_arg printer arg
-  | ( arg,
-      ( None,
-        Some
-          (Locus.ArgArg CAst.{ v = Tactypes.IntroOrPattern patterns; loc = _ })
-      ),
-      None ) ->
+  | arg, (None, as_list), None ->
       let open CAst in
-      let pp_as_list () =
-        write printer " as [";
-        List.iteri
-          (fun i pattern ->
-            match (i, pattern) with
-            | 0, [] -> space printer
-            | 0, xs ->
-                spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs
-            | _, xs ->
-                write printer "| ";
-                spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs)
-          patterns;
-        write printer "]"
+      let pp_as_list = function
+        | None -> ()
+        | Some
+            (Locus.ArgArg
+              CAst.{ v = Tactypes.IntroOrPattern patterns; loc = _ }) ->
+            write printer " as [";
+            List.iteri
+              (fun i pattern ->
+                match (i, pattern) with
+                | 0, [] -> space printer
+                | 0, xs ->
+                    spaced printer
+                      (fun x -> pp_intro_pattern_expr printer x.v)
+                      xs
+                | _, xs ->
+                    write printer "| ";
+                    spaced printer
+                      (fun x -> pp_intro_pattern_expr printer x.v)
+                      xs)
+              patterns;
+            write printer "]"
+        | _ -> raise (NotImplemented (contents printer))
       in
       pp_destruction_arg printer arg;
-      pp_as_list ()
+      pp_as_list as_list
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
