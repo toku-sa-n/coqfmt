@@ -438,6 +438,7 @@ let pp_subast printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
+  | VernacBullet _ -> write printer "  - "
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
@@ -447,6 +448,7 @@ let separator printer current next =
   | VernacDefinition _, VernacDefinition _
   | VernacInductive _, VernacDefinition _ ->
       blankline printer
+  | VernacBullet _, _ -> ()
   | _, _ -> newline printer
 
 let pp_ast ast =
