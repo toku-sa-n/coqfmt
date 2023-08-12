@@ -164,12 +164,14 @@ and pp_local_binder_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr printer = function
-  | CAst.{ v = [ patterns ], expr; loc = _ } ->
+  | CAst.{ v = patterns, expr; loc = _ } ->
       write printer "| ";
-      commad printer (pp_cases_pattern_expr printer) patterns;
+      with_seps
+        ~sep:(fun () -> write printer " | ")
+        (commad printer (pp_cases_pattern_expr printer))
+        patterns;
       write printer " => ";
       pp_constr_expr printer expr
-  | _ -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
