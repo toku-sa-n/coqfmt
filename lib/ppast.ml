@@ -269,7 +269,8 @@ let pp_intro_pattern_naming_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_action_expr printer = function
-  | _ -> write printer "[ | n']"
+  | Tactypes.IntroOrAndPattern _ -> write printer "[ | n']"
+  | _ -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_expr printer = function
   | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr printer expr
