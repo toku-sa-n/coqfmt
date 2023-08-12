@@ -512,7 +512,8 @@ let separator printer current next =
   let open CAst in
   match (current.v.expr, next.v.expr) with
   | VernacDefinition _, VernacDefinition _
-  | VernacInductive _, VernacDefinition _ ->
+  | VernacInductive _, VernacDefinition _
+  | VernacEndProof _, _ ->
       blankline printer
   | VernacBullet _, _ -> ()
   | _, _ -> newline printer
