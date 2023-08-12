@@ -342,6 +342,9 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
       write printer "destruct ";
       pp_induction_clause_list printer clause_list;
       write printer "."
+  | Tacexpr.TacIntroPattern
+      (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
+      write printer "intros."
   | Tacexpr.TacIntroPattern (false, exprs) ->
       write printer "intros ";
       spaced printer (fun expr -> pp_intro_pattern_expr printer expr.v) exprs;
