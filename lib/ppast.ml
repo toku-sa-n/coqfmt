@@ -67,7 +67,7 @@ and pp_cases_pattern_expr_r printer = function
         (pp_cases_pattern_expr printer)
         exprs;
       write printer suffix
-  | Constrexpr.CPatPrim _ -> write printer "0"
+  | Constrexpr.CPatPrim token -> pp_prim_token printer token
   | Constrexpr.CPatOr _ -> write printer "(0 | 1 | 2)"
   | _ -> raise (NotImplemented (contents printer))
 
