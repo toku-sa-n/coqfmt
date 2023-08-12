@@ -67,6 +67,13 @@ and pp_cases_pattern_expr_r printer = function
         (pp_cases_pattern_expr printer)
         exprs;
       write printer suffix
+  | Constrexpr.CPatPrim token -> pp_prim_token printer token
+  | Constrexpr.CPatOr xs ->
+      parens printer (fun () ->
+          with_seps
+            ~sep:(fun () -> write printer " | ")
+            (pp_cases_pattern_expr printer)
+            xs)
   | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
