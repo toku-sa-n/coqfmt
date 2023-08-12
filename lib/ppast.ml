@@ -268,15 +268,15 @@ let pp_intro_pattern_naming_expr printer = function
   | Namegen.IntroIdentifier name -> pp_id printer name
   | _ -> raise (NotImplemented (contents printer))
 
-let pp_or_and_intro_pattern_expr printer = function
-  | Tactypes.IntroOrPattern _ -> write printer "[ | n']"
+let rec pp_or_and_intro_pattern_expr printer = function
+  | Tactypes.IntroOrPattern [ []; [ _ ] ] -> write printer "[ | n']"
   | _ -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_action_expr printer = function
+and pp_intro_pattern_action_expr printer = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_expr printer = function
+and pp_intro_pattern_expr printer = function
   | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr printer expr
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
