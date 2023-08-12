@@ -194,7 +194,9 @@ let pp_definition_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_proof_end printer = function
-  | Vernacexpr.Proved (Vernacexpr.Opaque, None) -> write printer "Qed."
+  | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
+      clear_bullets printer;
+      write printer "Qed."
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_theorem_kind printer = function
@@ -377,6 +379,11 @@ let pp_ltac printer args =
       | Some t -> pp_raw_tactic_expr printer t)
     args
 
+let pp_proof_bullet printer = function
+  | Proof_bullet.Dash 1 -> write printer "- "
+  | Proof_bullet.Plus 1 -> write printer "+ "
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -472,7 +479,9 @@ let pp_subast printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
-  | VernacBullet (Dash 1) -> write printer "  - "
+  | VernacBullet bullet ->
+      bullet_appears printer bullet;
+      pp_proof_bullet printer bullet
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =

@@ -22,6 +22,12 @@ val increase_indent : t -> unit
 val decrease_indent : t -> unit
 (** Decrease the indent level. *)
 
+val bullet_appears : t -> Proof_bullet.t -> unit
+(** Call this function when a bullet appears. *)
+
+val clear_bullets : t -> unit
+(** Clear all the bullets. *)
+
 val parens : t -> (unit -> unit) -> unit
 (** Write out parentheses around the given function. *)
 
