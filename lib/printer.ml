@@ -20,7 +20,8 @@ let create () =
 let calculate_indent t =
   match List.length t.bullets with
   | 0 -> t.indent_level * tab_size
-  | n -> (t.indent_level * tab_size) + 2 + (4 * (n - 1))
+  | n -> (t.indent_level * tab_size) + tab_size + ((tab_size + 2) * (n - 1))
+(* 2 for the bullet and a space after it. *)
 
 let write t s =
   if t.printed_newline then
