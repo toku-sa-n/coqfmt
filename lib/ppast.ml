@@ -67,6 +67,8 @@ and pp_cases_pattern_expr_r printer = function
         (pp_cases_pattern_expr printer)
         exprs;
       write printer suffix
+  | Constrexpr.CPatPrim _ -> write printer "0"
+  | Constrexpr.CPatOr _ -> write printer "(0 | 1 | 2)"
   | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
