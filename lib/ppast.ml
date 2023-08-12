@@ -268,7 +268,28 @@ let pp_intro_pattern_naming_expr printer = function
   | Namegen.IntroIdentifier name -> pp_id printer name
   | _ -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_expr printer = function
+let rec pp_or_and_intro_pattern_expr printer = function
+  | Tactypes.IntroOrPattern patterns ->
+      let open CAst in
+      brackets printer (fun () ->
+          List.iteri
+            (fun i pattern ->
+              match (i, pattern) with
+              | 0, [] -> space printer
+              | 0, xs ->
+                  spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs
+              | _, xs ->
+                  write printer "| ";
+                  spaced printer (fun x -> pp_intro_pattern_expr printer x.v) xs)
+            patterns)
+  | _ -> raise (NotImplemented (contents printer))
+
+and pp_intro_pattern_action_expr printer = function
+  | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr printer expr
+  | _ -> raise (NotImplemented (contents printer))
+
+and pp_intro_pattern_expr printer = function
+  | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr printer expr
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
@@ -282,28 +303,11 @@ let pp_destruction_arg printer = function
 
 let pp_induction_clause printer = function
   | arg, (eqn, as_list), None ->
-      let open CAst in
       let pp_as_list = function
         | None -> ()
-        | Some
-            (Locus.ArgArg
-              CAst.{ v = Tactypes.IntroOrPattern patterns; loc = _ }) ->
+        | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
             write printer " as ";
-            brackets printer (fun () ->
-                List.iteri
-                  (fun i pattern ->
-                    match (i, pattern) with
-                    | 0, [] -> space printer
-                    | 0, xs ->
-                        spaced printer
-                          (fun x -> pp_intro_pattern_expr printer x.v)
-                          xs
-                    | _, xs ->
-                        write printer "| ";
-                        spaced printer
-                          (fun x -> pp_intro_pattern_expr printer x.v)
-                          xs)
-                  patterns)
+            pp_or_and_intro_pattern_expr printer v
         | _ -> raise (NotImplemented (contents printer))
       in
       let pp_eqn = function
