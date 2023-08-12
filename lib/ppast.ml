@@ -379,6 +379,11 @@ let pp_ltac printer args =
       | Some t -> pp_raw_tactic_expr printer t)
     args
 
+let pp_proof_bullet printer = function
+  | Proof_bullet.Dash 1 -> write printer "- "
+  | Proof_bullet.Plus 1 -> write printer "+ "
+  | _ -> raise (NotImplemented (contents printer))
+
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
   match expr with
@@ -476,10 +481,10 @@ let pp_subast printer
       pp_proof_end printer proof_end
   | VernacBullet (Dash 1) ->
       bullet_appears printer (Dash 1);
-      write printer "- "
+      pp_proof_bullet printer (Dash 1)
   | VernacBullet (Plus 1) ->
       bullet_appears printer (Plus 1);
-      write printer "+ "
+      pp_proof_bullet printer (Plus 1)
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
