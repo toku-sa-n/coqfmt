@@ -479,12 +479,9 @@ let pp_subast printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end printer proof_end
-  | VernacBullet (Dash 1) ->
-      bullet_appears printer (Dash 1);
-      pp_proof_bullet printer (Dash 1)
-  | VernacBullet (Plus 1) ->
-      bullet_appears printer (Plus 1);
-      pp_proof_bullet printer (Plus 1)
+  | VernacBullet bullet ->
+      bullet_appears printer bullet;
+      pp_proof_bullet printer bullet
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
