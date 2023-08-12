@@ -482,6 +482,12 @@ let pp_subast printer
   | VernacBullet bullet ->
       bullet_appears printer bullet;
       pp_proof_bullet printer bullet
+  | VernacSubproof None ->
+      write printer "{";
+      increase_indent printer
+  | VernacEndSubproof ->
+      decrease_indent printer;
+      write printer "}"
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
