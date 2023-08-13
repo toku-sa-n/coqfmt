@@ -1,4 +1,4 @@
-Definition add (n m : nat) =
+Definition add (n m : nat) :=
   n + m.
 
 Notation "x + y" := (add x y).
