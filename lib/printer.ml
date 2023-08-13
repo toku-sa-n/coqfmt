@@ -18,10 +18,8 @@ let create () =
   }
 
 let calculate_indent t =
-  match List.length t.bullets with
-  | 0 -> t.indent_spaces
-  | n -> t.indent_spaces + tab_size + ((tab_size + 2) * (n - 1))
-(* 2 for the bullet and a space after it. *)
+  (* 2 for the bullet and a space after it. *)
+  t.indent_spaces + ((tab_size + 2) * List.length t.bullets)
 
 let write t s =
   if t.printed_newline then
@@ -41,6 +39,11 @@ let blankline t =
 
 let increase_indent t = t.indent_spaces <- t.indent_spaces + tab_size
 let decrease_indent t = t.indent_spaces <- t.indent_spaces - tab_size
+
+let write_before_indent t s =
+  t.indent_spaces <- t.indent_spaces - String.length s;
+  write t s;
+  t.indent_spaces <- t.indent_spaces + String.length s
 
 let bullet_appears t bullet =
   let rec update_bullet = function

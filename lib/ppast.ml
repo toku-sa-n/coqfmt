@@ -389,9 +389,9 @@ let pp_ltac printer args =
     args
 
 let pp_proof_bullet printer = function
-  | Proof_bullet.Dash 1 -> write printer "- "
-  | Proof_bullet.Plus 1 -> write printer "+ "
-  | Proof_bullet.Star 1 -> write printer "* "
+  | Proof_bullet.Dash 1 -> write_before_indent printer "- "
+  | Proof_bullet.Plus 1 -> write_before_indent printer "+ "
+  | Proof_bullet.Star 1 -> write_before_indent printer "* "
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_subast printer
