@@ -88,12 +88,19 @@ and pp_constr_expr_r printer = function
       space printer;
       parens printer (fun () -> pp_constr_expr printer inner)
   | Constrexpr.CApp (outer, inners) ->
+      let open CAst in
+      let conditional_parens expr =
+        match expr.v with
+        | Constrexpr.CApp _ ->
+            parens printer (fun () -> pp_constr_expr printer expr)
+        | _ -> pp_constr_expr printer expr
+      in
       pp_constr_expr printer outer;
       List.iter
         (function
           | inner, None ->
               space printer;
-              pp_constr_expr printer inner
+              conditional_parens inner
           | _, Some _ -> raise (NotImplemented (contents printer)))
         inners
   | Constrexpr.CCases (_, None, matchees, branches) ->
