@@ -516,6 +516,8 @@ let separator printer current next =
   | _, VernacNotation _
   | VernacDefinition _, _
   | _, VernacDefinition _
+  | VernacFixpoint _, _
+  | _, VernacFixpoint _
   | VernacInductive _, _
   | _, VernacInductive _
   | _, VernacDefineModule _
