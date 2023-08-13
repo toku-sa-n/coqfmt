@@ -518,6 +518,8 @@ let separator printer current next =
   | _, VernacDefinition _
   | VernacInductive _, _
   | _, VernacInductive _
+  | _, VernacDefineModule _
+  | VernacEndSegment _, _
   | VernacEndProof _, _ ->
       blankline printer
   | VernacBullet _, _ -> ()
