@@ -40,12 +40,19 @@ let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
 and pp_cases_pattern_expr_r printer = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
   | Constrexpr.CPatAtom None -> write printer "_"
+  (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
+      let open CAst in
+      let conditional_parens expr =
+        match expr.v with
+        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr printer expr
+        | _ -> parens printer (fun () -> pp_cases_pattern_expr printer expr)
+      in
       pp_qualid printer outer;
       List.iter
         (fun value ->
           space printer;
-          pp_cases_pattern_expr printer value)
+          conditional_parens value)
         values
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
