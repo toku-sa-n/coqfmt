@@ -225,7 +225,7 @@ let pp_fixpoint_expr printer = function
       } ->
       pp_lident printer fname;
       space printer;
-      spaced printer (fun binder -> pp_local_binder_expr printer binder) binders;
+      spaced printer (pp_local_binder_expr printer) binders;
       write printer " : ";
       pp_constr_expr printer rtype;
       write printer " :=";
