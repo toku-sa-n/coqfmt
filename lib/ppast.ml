@@ -40,6 +40,7 @@ let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
 and pp_cases_pattern_expr_r printer = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
   | Constrexpr.CPatAtom None -> write printer "_"
+  (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
       let open CAst in
       let conditional_parens expr =
