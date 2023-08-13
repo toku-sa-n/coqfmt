@@ -74,4 +74,5 @@ let with_seps ~sep f xs =
 
 let commad printer = with_seps ~sep:(fun () -> write printer ", ")
 let spaced printer = with_seps ~sep:(fun () -> space printer)
+let bard printer = with_seps ~sep:(fun () -> write printer " | ")
 let contents t = Buffer.contents t.buffer

@@ -43,5 +43,8 @@ val commad : t -> ('a -> unit) -> 'a list -> unit
 val spaced : t -> ('a -> unit) -> 'a list -> unit
 (** Write out a space-separated list of elements. *)
 
+val bard : t -> ('a -> unit) -> 'a list -> unit
+(** Write out a bar-separated list of elements. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)
