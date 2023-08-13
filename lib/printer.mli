@@ -22,6 +22,9 @@ val increase_indent : t -> unit
 val decrease_indent : t -> unit
 (** Decrease the indent level. *)
 
+val write_before_indent : t -> string -> unit
+(** Write out the given string before the indent spaces. Mostly for writing bullets. *)
+
 val bullet_appears : t -> Proof_bullet.t -> unit
 (** Call this function when a bullet appears. *)
 
