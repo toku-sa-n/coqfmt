@@ -1,6 +1,6 @@
 type t = {
   buffer : Buffer.t;
-  mutable indent_level : int;
+  mutable indent_spaces : int;
   mutable printed_newline : bool;
   mutable bullets : Proof_bullet.t list;
 }
@@ -12,15 +12,15 @@ let tab_size = 2
 let create () =
   {
     buffer = Buffer.create 16;
-    indent_level = 0;
+    indent_spaces = 0;
     printed_newline = false;
     bullets = [];
   }
 
 let calculate_indent t =
   match List.length t.bullets with
-  | 0 -> t.indent_level * tab_size
-  | n -> (t.indent_level * tab_size) + tab_size + ((tab_size + 2) * (n - 1))
+  | 0 -> t.indent_spaces
+  | n -> t.indent_spaces + tab_size + ((tab_size + 2) * (n - 1))
 (* 2 for the bullet and a space after it. *)
 
 let write t s =
@@ -39,8 +39,8 @@ let blankline t =
   newline t;
   newline t
 
-let increase_indent t = t.indent_level <- t.indent_level + 1
-let decrease_indent t = t.indent_level <- t.indent_level - 1
+let increase_indent t = t.indent_spaces <- t.indent_spaces + tab_size
+let decrease_indent t = t.indent_spaces <- t.indent_spaces - tab_size
 
 let bullet_appears t bullet =
   let rec update_bullet = function
