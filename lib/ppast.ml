@@ -504,6 +504,9 @@ let separator printer current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
+  | VernacCheckMayEval _, VernacCheckMayEval _ -> newline printer
+  | VernacCheckMayEval _, _
+  | _, VernacCheckMayEval _
   | VernacDefinition _, VernacDefinition _
   | VernacInductive _, VernacDefinition _
   | VernacEndProof _, _ ->
