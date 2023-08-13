@@ -1,1 +1,1 @@
-Fixpoint add(n:nat)(m:nat):nat:=match n with 0=>m|S n'=>S(add n' m)end.
+Fixpoint add(n:nat)(m:nat):nat:=match n with O=>m|S n'=>S(add n' m)end.
