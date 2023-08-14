@@ -80,7 +80,9 @@ and pp_cases_pattern_expr_r printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr printer = function
-  | Glob_term.UAnonymous _ -> write printer "Type"
+  | Glob_term.UAnonymous { rigid = true } -> write printer "Type"
+  | Glob_term.UAnonymous { rigid = false } ->
+      raise (NotImplemented (contents printer))
   | Glob_term.UNamed _ -> write printer "Set"
 
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
