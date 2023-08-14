@@ -136,8 +136,30 @@ and pp_constr_expr_r printer = function
         match (notation, replacers) with
         | "", [] -> ()
         | "", _ -> failwith "Not all relpacers are consumed."
+        | s, [ x ] when String.starts_with ~prefix:"_" s ->
+            pp_constr_expr printer x;
+            loop (String.sub s 1 (String.length s - 1)) []
         | s, h :: t when String.starts_with ~prefix:"_" s ->
-            pp_constr_expr printer h;
+            let open CAst in
+            (* CProdN denotes a `forall foo, ... ` value. This value needs to be
+               enclosed by parentheses if it is not on the rightmost position,
+               otherwise all expressions will be in the scope of the `forall
+               foo`.
+
+               For example, `(forall x, f x = x) -> (forall x, f x = x)` is
+               valid, but `forall x, f x = x -> forall x, f x = x` will be
+               interpreted as `forall x, (f x = x -> forall x, f x = x).
+               Certainly, these two have different meanings, and thus lhs'
+               `forall` needs parentheses.*)
+            let parens_needed =
+              match h.v with Constrexpr.CProdN _ -> true | _ -> false
+            in
+            let conditional_parens expr =
+              if parens_needed then
+                parens printer (fun () -> pp_constr_expr printer expr)
+              else pp_constr_expr printer expr
+            in
+            conditional_parens h;
             loop (String.sub s 1 (String.length s - 1)) t
         | s, _ ->
             write printer (String.sub s 0 1);
