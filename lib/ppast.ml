@@ -440,6 +440,7 @@ let pp_proof_bullet printer = function
 
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
+  let open Vernacexpr in
   match expr with
   | VernacAbort ->
       decrease_indent printer;
@@ -546,6 +547,33 @@ let pp_subast printer
   | VernacEndSubproof ->
       decrease_indent printer;
       write printer "}"
+  | VernacRequire (dirpath, export_with_cats, filtered_import) ->
+      Option.iter
+        (fun dirpath ->
+          let dirpath = Libnames.string_of_qualid dirpath in
+          write printer ("From " ^ dirpath ^ " "))
+        dirpath;
+      write printer "Require";
+      Option.iter
+        (function
+          | Export, _ -> write printer " Export"
+          | Import, _ ->
+              write printer " Import"
+              (* TODO import_categories - not sure what that is *))
+        export_with_cats;
+      List.iter
+        (fun (modname, import_filter_expr) ->
+          let modname = Libnames.string_of_qualid modname in
+          match import_filter_expr with
+          | ImportAll -> write printer (" " ^ modname)
+          | _ ->
+              raise
+                (NotImplemented
+                   (contents printer)
+                   (* TODO Filtered imports e.g. From Foo Require Bar(baz).
+                      FIXME: The Coq parser will raise an exception here if Export/Import was omitted *)))
+        filtered_import;
+      write printer "."
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
