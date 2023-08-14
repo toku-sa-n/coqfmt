@@ -79,6 +79,10 @@ and pp_cases_pattern_expr_r printer = function
       parens printer (fun () -> bard printer (pp_cases_pattern_expr printer) xs)
   | _ -> raise (NotImplemented (contents printer))
 
+let pp_sort_expr printer = function
+  | Glob_term.UAnonymous _ -> write printer "Type"
+  | Glob_term.UNamed _ -> write printer "Set"
+
 let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
@@ -157,6 +161,7 @@ and pp_constr_expr_r printer = function
       write printer ", ";
       pp_constr_expr printer ty
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
+  | Constrexpr.CSort expr -> pp_sort_expr printer expr
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
@@ -484,7 +489,11 @@ let pp_subast printer
               Vernacexpr.Constructors constructors ),
             [] ) ->
             pp_lident printer name;
-            if Option.has_some ty then write printer " : Type";
+            (match ty with
+            | Some ty ->
+                write printer " : ";
+                pp_constr_expr printer ty
+            | None -> ());
             write printer " :=";
             increase_indent printer;
             List.iter (pp_construtor_expr printer) constructors;
