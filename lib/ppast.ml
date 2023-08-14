@@ -148,9 +148,9 @@ and pp_constr_expr_r printer = function
 
                For example, `(forall x, f x = x) -> (forall x, f x = x)` is
                valid, but `forall x, f x = x -> forall x, f x = x` will be
-               interpreted as `forall x, (f x = x -> forall x, f x = x).
-               Certainly, these two have different meanings, and thus lhs'
-               `forall` needs parentheses.*)
+               interpreted as `forall x, (f x = x -> forall x, f x = x).` which
+               is invalid. Certainly, these two have different meanings, and
+               thus lhs' `forall` needs parentheses.*)
             let parens_needed =
               match h.v with Constrexpr.CProdN _ -> true | _ -> false
             in
