@@ -217,8 +217,7 @@ and pp_local_binder_expr = function
       parens (concat [ spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_branch_expr expr =
-  match expr with
+and pp_branch_expr = function
   | CAst.{ v = patterns, expr; loc = _ } ->
       concat
         [
