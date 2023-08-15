@@ -327,8 +327,11 @@ let rec pp_or_and_intro_pattern_expr = function
               | 0, [] -> space printer
               | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs printer
               | _, xs ->
-                  write "| " printer;
-                  spaced (fun x -> pp_intro_pattern_expr x.v) xs printer)
+                  concat
+                    [
+                      write "| "; spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+                    ]
+                    printer)
             patterns)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
