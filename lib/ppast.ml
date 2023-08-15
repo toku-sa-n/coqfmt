@@ -143,13 +143,15 @@ and pp_constr_expr_r = function
   | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id)
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
-      let rec loop notation replacers printer =
+      let rec loop notation replacers =
         match (notation, replacers) with
-        | "", [] -> ()
-        | "", _ -> failwith "Not all relpacers are consumed."
+        | "", [] -> fun _ -> ()
+        | "", _ -> fun _ -> failwith "Not all relpacers are consumed."
         | s, [ x ] when String.starts_with ~prefix:"_" s ->
-            pp_constr_expr x printer;
-            loop (String.sub s 1 (String.length s - 1)) [] printer
+            concat
+              [
+                pp_constr_expr x; loop (String.sub s 1 (String.length s - 1)) [];
+              ]
         | s, h :: t when String.starts_with ~prefix:"_" s ->
             let open CAst in
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
@@ -167,14 +169,20 @@ and pp_constr_expr_r = function
             in
             let conditional_parens expr =
               if parens_needed then
-                parens (fun printer -> pp_constr_expr expr printer) printer
-              else pp_constr_expr expr printer
+                parens (fun printer -> pp_constr_expr expr printer)
+              else pp_constr_expr expr
             in
-            conditional_parens h;
-            loop (String.sub s 1 (String.length s - 1)) t printer
+            concat
+              [
+                conditional_parens h;
+                loop (String.sub s 1 (String.length s - 1)) t;
+              ]
         | s, _ ->
-            write (String.sub s 0 1) printer;
-            loop (String.sub s 1 (String.length s - 1)) replacers printer
+            concat
+              [
+                write (String.sub s 0 1);
+                loop (String.sub s 1 (String.length s - 1)) replacers;
+              ]
       in
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token prim
