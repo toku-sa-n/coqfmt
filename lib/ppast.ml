@@ -4,7 +4,7 @@ open Ltac_plugin
 exception NotImplemented of string
 
 let pp_id id = write (Names.Id.to_string id)
-let pp_lident CAst.{ v; loc = _ } printer = pp_id v printer
+let pp_lident CAst.{ v; loc = _ } = pp_id v
 
 let pp_name printer = function
   | Names.Name name -> pp_id name printer
