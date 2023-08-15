@@ -313,7 +313,8 @@ let pp_raw_red_expr = function
       write "simpl."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_naming_expr printer = function
+let pp_intro_pattern_naming_expr expr printer =
+  match expr with
   | Namegen.IntroIdentifier name -> pp_id name printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -345,7 +346,7 @@ and pp_intro_pattern_action_expr printer = function
 
 and pp_intro_pattern_expr printer = function
   | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr printer expr
-  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
+  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_core_destruction_arg printer = function
@@ -370,7 +371,7 @@ let pp_induction_clause printer = function
         | Some x ->
             let open CAst in
             write " eqn:" printer;
-            pp_intro_pattern_naming_expr printer x.v
+            pp_intro_pattern_naming_expr x.v printer
       in
       pp_destruction_arg printer arg;
       pp_as_list as_list;
