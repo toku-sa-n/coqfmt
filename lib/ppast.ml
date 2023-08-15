@@ -287,7 +287,8 @@ let pp_fixpoint_expr = function
 let pp_construtor_expr (_, (name, expr)) =
   concat [ newline; write "| "; pp_lident name; pp_constr_expr expr ]
 
-let pp_syntax_modifier printer = function
+let pp_syntax_modifier expr printer =
+  match expr with
   | Vernacexpr.SetAssoc LeftA -> write "left associativity" printer
   | Vernacexpr.SetLevel level ->
       write "at level " printer;
@@ -496,7 +497,7 @@ let pp_subast printer
             commad
               (fun modifier printer ->
                 let open CAst in
-                pp_syntax_modifier printer modifier.v)
+                pp_syntax_modifier modifier.v printer)
               modifiers printer)
           printer
       in
