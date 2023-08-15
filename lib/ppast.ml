@@ -227,10 +227,10 @@ and pp_branch_expr = function
           pp_constr_expr expr;
         ]
 
-let pp_definition_expr expr printer =
+let pp_definition_expr expr =
   match expr with
   | Vernacexpr.ProveBody ([], expr) ->
-      concat [ write " : "; pp_constr_expr expr ] printer
+      concat [ write " : "; pp_constr_expr expr ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       concat
         [
@@ -247,8 +247,7 @@ let pp_definition_expr expr printer =
           pp_constr_expr def_body;
           decrease_indent;
         ]
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_proof_end printer = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
