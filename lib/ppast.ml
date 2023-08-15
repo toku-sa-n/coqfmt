@@ -87,9 +87,10 @@ let pp_sort_expr = function
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_constr_expr CAst.{ v; loc = _ } printer = pp_constr_expr_r printer v
+let rec pp_constr_expr CAst.{ v; loc = _ } printer = pp_constr_expr_r v printer
 
-and pp_constr_expr_r printer = function
+and pp_constr_expr_r expr printer =
+  match expr with
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
       pp_constr_expr outer printer;
