@@ -248,7 +248,8 @@ let pp_definition_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_proof_end printer = function
+let pp_proof_end expr printer =
+  match expr with
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
       clear_bullets printer;
       write "Qed." printer
@@ -558,7 +559,7 @@ let pp_subast printer
   | VernacExtend (_, args) -> pp_ltac printer args
   | VernacEndProof proof_end ->
       decrease_indent printer;
-      pp_proof_end printer proof_end
+      pp_proof_end proof_end printer
   | VernacBullet bullet ->
       bullet_appears bullet printer;
       pp_proof_bullet printer bullet
