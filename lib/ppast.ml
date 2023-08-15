@@ -135,9 +135,7 @@ and pp_constr_expr_r expr printer =
         ]
         printer
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
-      pp_constr_expr v printer;
-      write " : " printer;
-      pp_constr_expr t printer
+      concat [ pp_constr_expr v; write " : "; pp_constr_expr t ] printer
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       write "if " printer;
       pp_constr_expr cond printer;
