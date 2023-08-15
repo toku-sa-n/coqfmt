@@ -10,7 +10,7 @@ let pp_name = function
   | Names.Name name -> pp_id name
   | Names.Anonymous -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_lname printer CAst.{ v; loc = _ } = pp_name v printer
+let pp_lname CAst.{ v; loc = _ } printer = pp_name v printer
 let pp_lstring printer CAst.{ v; loc = _ } = write v printer
 
 let pp_definition_object_kind printer = function
@@ -202,11 +202,11 @@ and pp_local_binder_expr printer = function
             v = Constrexpr.CHole (Some (BinderType _), IntroAnonymous, None);
             loc = _;
           } ) ->
-      pp_lname printer name
+      pp_lname name printer
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
         (fun () ->
-          spaced (pp_lname printer) names printer;
+          spaced (fun x -> pp_lname x printer) names printer;
           write " : " printer;
           pp_constr_expr printer ty)
         printer
@@ -467,7 +467,7 @@ let pp_subast printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       pp_definition_object_kind printer kind;
       space printer;
-      pp_lname printer name;
+      pp_lname name printer;
       pp_definition_expr printer expr;
       write "." printer
   | VernacEndSegment name ->
