@@ -233,16 +233,21 @@ let pp_definition_expr expr printer =
       concat [ write " : "; pp_constr_expr expr ] printer
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       concat
-        (List.map (fun arg -> concat [ space; pp_local_binder_expr arg ]) args)
-        printer;
-      (match return_ty with
-      | None -> ()
-      | Some ty -> concat [ write " : "; pp_constr_expr ty ] printer);
-      write " :=" printer;
-      newline printer;
-      increase_indent printer;
-      pp_constr_expr def_body printer;
-      decrease_indent printer
+        [
+          concat
+            (List.map
+               (fun arg -> concat [ space; pp_local_binder_expr arg ])
+               args);
+          (match return_ty with
+          | None -> fun _ -> ()
+          | Some ty -> concat [ write " : "; pp_constr_expr ty ]);
+          write " :=";
+          newline;
+          increase_indent;
+          pp_constr_expr def_body;
+          decrease_indent;
+        ]
+        printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_proof_end printer = function
