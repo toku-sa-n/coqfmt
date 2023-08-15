@@ -27,8 +27,7 @@ let pp_sign = function
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 let pp_signed (sign, n) = concat [ pp_sign sign; pp_unsigned n ]
 
-let pp_prim_token token =
-  match token with
+let pp_prim_token = function
   | Constrexpr.Number n -> pp_signed n
   | Constrexpr.String s -> write s
 
