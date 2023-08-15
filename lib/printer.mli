@@ -37,16 +37,16 @@ val parens : (unit -> unit) -> t -> unit
 val brackets : (unit -> unit) -> t -> unit
 (** Write out brackets around the given function. *)
 
-val with_seps : sep:(t -> unit) -> ('a -> unit) -> 'a list -> t -> unit
+val with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 (** Arrange a series of elements with [~sep] as the delimiter  *)
 
-val commad : ('a -> unit) -> 'a list -> t -> unit
+val commad : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a comma-separated list of elements. *)
 
-val spaced : ('a -> unit) -> 'a list -> t -> unit
+val spaced : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a space-separated list of elements. *)
 
-val bard : ('a -> unit) -> 'a list -> t -> unit
+val bard : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a bar-separated list of elements. *)
 
 val contents : t -> string

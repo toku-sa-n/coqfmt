@@ -69,10 +69,10 @@ let with_seps ~sep f xs printer =
   List.iteri
     (fun i x ->
       match i with
-      | 0 -> f x
+      | 0 -> f x printer
       | _ ->
           sep printer;
-          f x)
+          f x printer)
     xs
 
 let commad f xs = with_seps ~sep:(write ", ") f xs

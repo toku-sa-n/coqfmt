@@ -69,13 +69,14 @@ and pp_cases_pattern_expr_r expr printer =
         ~sep:(fun printer ->
           write separator printer;
           space printer)
-        (fun x -> pp_cases_pattern_expr x printer)
+        (fun x printer -> pp_cases_pattern_expr x printer)
         exprs printer;
       write suffix printer
   | Constrexpr.CPatPrim token -> pp_prim_token token printer
   | Constrexpr.CPatOr xs ->
       parens
-        (fun () -> bard (fun x -> pp_cases_pattern_expr x printer) xs printer)
+        (fun () ->
+          bard (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
         printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -112,7 +113,7 @@ and pp_constr_expr_r printer = function
         inners
   | Constrexpr.CCases (_, None, matchees, branches) ->
       write "match " printer;
-      commad (pp_case_expr printer) matchees printer;
+      commad (fun expr printer -> pp_case_expr printer expr) matchees printer;
       write " with" printer;
       newline printer;
       List.iter
@@ -182,7 +183,7 @@ and pp_constr_expr_r printer = function
         xs
   | Constrexpr.CProdN (xs, ty) ->
       write "forall " printer;
-      spaced (pp_local_binder_expr printer) xs printer;
+      spaced (fun expr printer -> pp_local_binder_expr printer expr) xs printer;
       write ", " printer;
       pp_constr_expr printer ty
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
@@ -206,7 +207,7 @@ and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
         (fun () ->
-          spaced (fun x -> pp_lname x printer) names printer;
+          spaced (fun x printer -> pp_lname x printer) names printer;
           write " : " printer;
           pp_constr_expr printer ty)
         printer
@@ -216,7 +217,8 @@ and pp_branch_expr printer = function
   | CAst.{ v = patterns, expr; loc = _ } ->
       write "| " printer;
       bard
-        (fun xs -> commad (fun x -> pp_cases_pattern_expr x printer) xs printer)
+        (fun xs printer ->
+          commad (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
         patterns printer;
       write " => " printer;
       pp_constr_expr printer expr
@@ -266,7 +268,9 @@ let pp_fixpoint_expr printer = function
       } ->
       pp_lident fname printer;
       space printer;
-      spaced (pp_local_binder_expr printer) binders printer;
+      spaced
+        (fun expr printer -> pp_local_binder_expr printer expr)
+        binders printer;
       write " : " printer;
       pp_constr_expr printer rtype;
       write " :=" printer;
@@ -328,10 +332,14 @@ let rec pp_or_and_intro_pattern_expr printer = function
               match (i, pattern) with
               | 0, [] -> space printer
               | 0, xs ->
-                  spaced (fun x -> pp_intro_pattern_expr printer x.v) xs printer
+                  spaced
+                    (fun x printer -> pp_intro_pattern_expr printer x.v)
+                    xs printer
               | _, xs ->
                   write "| " printer;
-                  spaced (fun x -> pp_intro_pattern_expr printer x.v) xs printer)
+                  spaced
+                    (fun x printer -> pp_intro_pattern_expr printer x.v)
+                    xs printer)
             patterns)
         printer
   | _ -> raise (NotImplemented (contents printer))
@@ -390,7 +398,9 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
       write "intros." printer
   | Tacexpr.TacIntroPattern (false, exprs) ->
       write "intros " printer;
-      spaced (fun expr -> pp_intro_pattern_expr printer expr.v) exprs printer;
+      spaced
+        (fun expr printer -> pp_intro_pattern_expr printer expr.v)
+        exprs printer;
       write "." printer
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
   | Tacexpr.TacRewrite
@@ -484,7 +494,7 @@ let pp_subast printer
         parens
           (fun () ->
             commad
-              (fun modifier ->
+              (fun modifier printer ->
                 let open CAst in
                 pp_syntax_modifier printer modifier.v)
               modifiers printer)
@@ -538,7 +548,8 @@ let pp_subast printer
         ~sep:(fun printer ->
           newline printer;
           write "with " printer)
-        pp_single_inductive inductives printer;
+        (fun inductive _ -> pp_single_inductive inductive)
+        inductives printer;
       write "." printer
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac printer args
