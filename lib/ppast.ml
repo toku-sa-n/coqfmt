@@ -125,10 +125,9 @@ and pp_constr_expr_r expr printer =
       commad (fun expr printer -> pp_case_expr expr printer) matchees printer;
       write " with" printer;
       newline printer;
+
       List.iter
-        (fun branch ->
-          pp_branch_expr branch printer;
-          newline printer)
+        (fun branch -> concat [ pp_branch_expr branch; newline ] printer)
         branches;
       write "end" printer
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
