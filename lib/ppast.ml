@@ -253,7 +253,8 @@ let pp_proof_end = function
       concat [ clear_bullets; write "Qed." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_theorem_kind printer = function
+let pp_theorem_kind expr printer =
+  match expr with
   | Decls.Theorem -> write "Theorem" printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -517,7 +518,7 @@ let pp_subast printer
       pp_scope ();
       write "." printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
-      pp_theorem_kind printer kind;
+      pp_theorem_kind kind printer;
       write " " printer;
       pp_lident ident printer;
       write " : " printer;
