@@ -190,7 +190,9 @@ and pp_constr_expr_r expr printer =
       loop init_notation init_replacers printer
   | Constrexpr.CPrim prim -> pp_prim_token prim printer
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      List.iter (fun x -> concat [ space; pp_local_binder_expr x ] printer) xs
+      concat
+        (List.map (fun x -> concat [ space; pp_local_binder_expr x ]) xs)
+        printer
   | Constrexpr.CProdN (xs, ty) ->
       write "forall " printer;
       spaced (fun expr printer -> pp_local_binder_expr expr printer) xs printer;
