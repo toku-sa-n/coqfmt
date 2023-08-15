@@ -574,17 +574,18 @@ let pp_subast printer
       List.iter
         (fun (modname, import_filter_expr) ->
           let modname = Libnames.string_of_qualid modname in
+          space printer;
           match import_filter_expr with
-          | ImportAll ->
-              space printer;
-              write printer modname
-          | _ ->
-              raise
-                (NotImplemented
-                   (contents printer)
-                   (* TODO Filtered imports e.g. From Foo Require Bar(baz).
-                      FIXME: The Coq parser will raise an exception here if
-                      Export/Import was omitted *)))
+          | ImportAll -> write printer modname
+          | ImportNames names ->
+              (* FIXME: The Coq parser will raise an exception here if
+                 Export/Import was omitted *)
+              write printer modname;
+              parens printer (fun () ->
+                  commad printer
+                    (fun (filter_name, _) ->
+                      write printer (Libnames.string_of_qualid filter_name))
+                    names))
         filtered_import;
       write printer "."
   | _ -> raise (NotImplemented (contents printer))
