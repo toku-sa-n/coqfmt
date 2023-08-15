@@ -345,8 +345,7 @@ and pp_intro_pattern_expr = function
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_core_destruction_arg expr =
-  match expr with
+let pp_core_destruction_arg = function
   | Tactics.ElimOnIdent ident -> pp_lident ident
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
