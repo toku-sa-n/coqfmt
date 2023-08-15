@@ -48,11 +48,10 @@ and pp_cases_pattern_expr_r expr printer =
         | _ -> parens (fun () -> pp_cases_pattern_expr expr printer)
       in
       pp_qualid outer printer;
-      List.iter
-        (fun value ->
-          space printer;
-          conditional_parens value printer)
-        values
+      concat
+        (List.concat
+           (List.map (fun value -> [ space; conditional_parens value ]) values))
+        printer
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
