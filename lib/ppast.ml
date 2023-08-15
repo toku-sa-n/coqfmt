@@ -3,6 +3,8 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
+(* TODO: Move this function into the appropriate module. *)
+let concat xs printer = List.iter (fun x -> x printer) xs
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 
@@ -23,10 +25,7 @@ let pp_sign = function
   | NumTok.SMinus -> write "-"
 
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
-
-let pp_signed (sign, n) printer =
-  pp_sign sign printer;
-  pp_unsigned n printer
+let pp_signed (sign, n) = concat [ pp_sign sign; pp_unsigned n ]
 
 let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed n printer
