@@ -188,11 +188,11 @@ and pp_constr_expr_r expr printer =
       List.iter
         (fun x ->
           space printer;
-          pp_local_binder_expr printer x)
+          pp_local_binder_expr x printer)
         xs
   | Constrexpr.CProdN (xs, ty) ->
       write "forall " printer;
-      spaced (fun expr printer -> pp_local_binder_expr printer expr) xs printer;
+      spaced (fun expr printer -> pp_local_binder_expr expr printer) xs printer;
       write ", " printer;
       pp_constr_expr ty printer
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
@@ -204,7 +204,8 @@ and pp_case_expr expr =
   | expr, None, None -> pp_constr_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_local_binder_expr printer = function
+and pp_local_binder_expr expr printer =
+  match expr with
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
@@ -241,7 +242,7 @@ let pp_definition_expr printer = function
       List.iter
         (fun arg ->
           space printer;
-          pp_local_binder_expr printer arg)
+          pp_local_binder_expr arg printer)
         args;
       (match return_ty with
       | None -> ()
@@ -279,7 +280,7 @@ let pp_fixpoint_expr printer = function
       pp_lident fname printer;
       space printer;
       spaced
-        (fun expr printer -> pp_local_binder_expr printer expr)
+        (fun expr printer -> pp_local_binder_expr expr printer)
         binders printer;
       write " : " printer;
       pp_constr_expr rtype printer;
