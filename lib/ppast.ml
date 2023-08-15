@@ -44,14 +44,14 @@ and pp_cases_pattern_expr_r expr printer =
       let open CAst in
       let conditional_parens expr =
         match expr.v with
-        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr printer
-        | _ -> parens (fun () -> pp_cases_pattern_expr expr printer) printer
+        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
+        | _ -> parens (fun () -> pp_cases_pattern_expr expr printer)
       in
       pp_qualid outer printer;
       List.iter
         (fun value ->
           space printer;
-          conditional_parens value)
+          conditional_parens value printer)
         values
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
