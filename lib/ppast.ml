@@ -35,8 +35,7 @@ let pp_qualid id = write (Libnames.string_of_qualid id)
 
 let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
 
-and pp_cases_pattern_expr_r expr =
-  match expr with
+and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid id
   | Constrexpr.CPatAtom None -> write "_"
   (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
