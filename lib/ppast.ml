@@ -31,13 +31,13 @@ let pp_prim_token = function
   | Constrexpr.Number n -> pp_signed n
   | Constrexpr.String s -> write s
 
-let pp_qualid printer id = write (Libnames.string_of_qualid id) printer
+let pp_qualid id printer = write (Libnames.string_of_qualid id) printer
 
 let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
   pp_cases_pattern_expr_r printer v
 
 and pp_cases_pattern_expr_r printer = function
-  | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
+  | Constrexpr.CPatAtom (Some id) -> pp_qualid id printer
   | Constrexpr.CPatAtom None -> write "_" printer
   (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
@@ -47,7 +47,7 @@ and pp_cases_pattern_expr_r printer = function
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr printer expr
         | _ -> parens (fun () -> pp_cases_pattern_expr printer expr) printer
       in
-      pp_qualid printer outer;
+      pp_qualid outer printer;
       List.iter
         (fun value ->
           space printer;
@@ -292,7 +292,7 @@ let pp_syntax_modifier printer = function
 let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
   match expr with
   | Tacexpr.TacCall ast ->
-      pp_qualid printer (fst ast.v);
+      pp_qualid (fst ast.v) printer;
       write "." printer
   | _ -> raise (NotImplemented (contents printer))
 
