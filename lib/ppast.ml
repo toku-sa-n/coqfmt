@@ -31,7 +31,7 @@ let pp_prim_token = function
   | Constrexpr.Number n -> pp_signed n
   | Constrexpr.String s -> write s
 
-let pp_qualid id printer = write (Libnames.string_of_qualid id) printer
+let pp_qualid id = write (Libnames.string_of_qualid id)
 
 let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
   pp_cases_pattern_expr_r printer v
