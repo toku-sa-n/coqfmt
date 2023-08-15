@@ -124,7 +124,7 @@ and pp_constr_expr_r expr printer =
       concat
         [
           write "match ";
-          commad (fun expr printer -> pp_case_expr expr printer) matchees;
+          commad pp_case_expr matchees;
           write " with";
           newline;
           concat
