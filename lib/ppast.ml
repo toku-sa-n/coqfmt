@@ -137,16 +137,20 @@ and pp_constr_expr_r expr printer =
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
       concat [ pp_constr_expr v; write " : "; pp_constr_expr t ] printer
   | Constrexpr.CIf (cond, (None, None), t, f) ->
-      write "if " printer;
-      pp_constr_expr cond printer;
-      newline printer;
-      increase_indent printer;
-      write "then " printer;
-      pp_constr_expr t printer;
-      newline printer;
-      write "else " printer;
-      pp_constr_expr f printer;
-      decrease_indent printer
+      concat
+        [
+          write "if ";
+          pp_constr_expr cond;
+          newline;
+          increase_indent;
+          write "then ";
+          pp_constr_expr t;
+          newline;
+          write "else ";
+          pp_constr_expr f;
+          decrease_indent;
+        ]
+        printer
   | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id) printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
