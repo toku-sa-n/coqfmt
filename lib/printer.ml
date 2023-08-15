@@ -65,17 +65,17 @@ let brackets f t =
   f ();
   write "]" t
 
-let with_seps ~sep f xs =
+let with_seps ~sep f xs printer =
   List.iteri
     (fun i x ->
       match i with
       | 0 -> f x
       | _ ->
-          sep ();
+          sep printer;
           f x)
     xs
 
-let commad f xs printer = with_seps ~sep:(fun () -> write ", " printer) f xs
-let spaced f xs printer = with_seps ~sep:(fun () -> space printer) f xs
-let bard f xs printer = with_seps ~sep:(fun () -> write " | " printer) f xs
+let commad f xs = with_seps ~sep:(write ", ") f xs
+let spaced f xs = with_seps ~sep:space f xs
+let bard f xs = with_seps ~sep:(write " | ") f xs
 let contents t = Buffer.contents t.buffer

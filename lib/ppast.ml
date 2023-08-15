@@ -66,11 +66,11 @@ and pp_cases_pattern_expr_r expr printer =
       in
       write prefix printer;
       with_seps
-        ~sep:(fun () ->
+        ~sep:(fun printer ->
           write separator printer;
           space printer)
         (fun x -> pp_cases_pattern_expr x printer)
-        exprs;
+        exprs printer;
       write suffix printer
   | Constrexpr.CPatPrim token -> pp_prim_token token printer
   | Constrexpr.CPatOr xs ->
@@ -535,10 +535,10 @@ let pp_subast printer
       in
       write "Inductive " printer;
       with_seps
-        ~sep:(fun () ->
+        ~sep:(fun printer ->
           newline printer;
           write "with " printer)
-        pp_single_inductive inductives;
+        pp_single_inductive inductives printer;
       write "." printer
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac printer args
