@@ -317,7 +317,8 @@ let pp_intro_pattern_naming_expr = function
   | Namegen.IntroIdentifier name -> pp_id name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_or_and_intro_pattern_expr printer = function
+let rec pp_or_and_intro_pattern_expr expr printer =
+  match expr with
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
       brackets
@@ -340,7 +341,7 @@ let rec pp_or_and_intro_pattern_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_action_expr printer = function
-  | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr printer expr
+  | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_expr printer = function
@@ -362,7 +363,7 @@ let pp_induction_clause printer = function
         | None -> ()
         | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
             write " as " printer;
-            pp_or_and_intro_pattern_expr printer v
+            pp_or_and_intro_pattern_expr v printer
         | _ -> raise (NotImplemented (contents printer))
       in
       let pp_eqn = function
