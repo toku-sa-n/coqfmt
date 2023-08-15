@@ -320,21 +320,20 @@ let pp_intro_pattern_naming_expr = function
 let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
-      brackets (fun printer ->
-          concat
-            (List.mapi
-               (fun i pattern ->
-                 match (i, pattern) with
-                 | 0, [] -> space
-                 | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs
-                 | _, xs ->
-                     concat
-                       [
-                         write "| ";
-                         spaced (fun x -> pp_intro_pattern_expr x.v) xs;
-                       ])
-               patterns)
-            printer)
+      brackets
+        (concat
+           (List.mapi
+              (fun i pattern ->
+                match (i, pattern) with
+                | 0, [] -> space
+                | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs
+                | _, xs ->
+                    concat
+                      [
+                        write "| ";
+                        spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+                      ])
+              patterns))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_action_expr = function
