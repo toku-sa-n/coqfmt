@@ -204,7 +204,7 @@ and pp_constr_expr_r expr printer =
         printer
   | Constrexpr.CHole (None, IntroAnonymous, None) -> (fun _ -> ()) printer
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> (fun printer -> raise (NotImplemented (contents printer))) printer
 
 and pp_case_expr expr =
   match expr with
