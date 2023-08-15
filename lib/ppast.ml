@@ -202,7 +202,7 @@ and pp_constr_expr_r expr printer =
           pp_constr_expr ty;
         ]
         printer
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> (fun _ -> ()) printer
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
