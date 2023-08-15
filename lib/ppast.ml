@@ -11,7 +11,7 @@ let pp_name = function
   | Names.Anonymous -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_lname CAst.{ v; loc = _ } = pp_name v
-let pp_lstring printer CAst.{ v; loc = _ } = write v printer
+let pp_lstring CAst.{ v; loc = _ } printer = write v printer
 
 let pp_definition_object_kind printer = function
   | Decls.Example -> write "Example" printer
@@ -498,7 +498,7 @@ let pp_subast printer
             write scope printer
       in
       write "Notation \"" printer;
-      pp_lstring printer notation;
+      pp_lstring notation printer;
       write "\" := " printer;
       parens (fun () -> pp_constr_expr printer expr) printer;
       if List.length modifiers > 0 then pp_modifiers ();
