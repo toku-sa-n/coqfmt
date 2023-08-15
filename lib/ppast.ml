@@ -203,8 +203,7 @@ and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_local_binder_expr expr =
-  match expr with
+and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
