@@ -287,8 +287,7 @@ let pp_fixpoint_expr = function
 let pp_construtor_expr (_, (name, expr)) =
   concat [ newline; write "| "; pp_lident name; pp_constr_expr expr ]
 
-let pp_syntax_modifier expr =
-  match expr with
+let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetLevel level ->
       concat [ write "at level "; write (string_of_int level) ]
