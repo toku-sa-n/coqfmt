@@ -33,7 +33,7 @@ let pp_prim_token = function
 
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
-let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
+let rec pp_cases_pattern_expr CAst.{ v; loc = _ } printer =
   pp_cases_pattern_expr_r printer v
 
 and pp_cases_pattern_expr_r printer = function
@@ -44,8 +44,8 @@ and pp_cases_pattern_expr_r printer = function
       let open CAst in
       let conditional_parens expr =
         match expr.v with
-        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr printer expr
-        | _ -> parens (fun () -> pp_cases_pattern_expr printer expr) printer
+        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr printer
+        | _ -> parens (fun () -> pp_cases_pattern_expr expr printer) printer
       in
       pp_qualid outer printer;
       List.iter
@@ -70,12 +70,14 @@ and pp_cases_pattern_expr_r printer = function
         ~sep:(fun () ->
           write separator printer;
           space printer)
-        (pp_cases_pattern_expr printer)
+        (fun x -> pp_cases_pattern_expr x printer)
         exprs;
       write suffix printer
   | Constrexpr.CPatPrim token -> pp_prim_token token printer
   | Constrexpr.CPatOr xs ->
-      parens (fun () -> bard (pp_cases_pattern_expr printer) xs printer) printer
+      parens
+        (fun () -> bard (fun x -> pp_cases_pattern_expr x printer) xs printer)
+        printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr printer = function
@@ -215,7 +217,7 @@ and pp_branch_expr printer = function
   | CAst.{ v = patterns, expr; loc = _ } ->
       write "| " printer;
       bard
-        (fun xs -> commad (pp_cases_pattern_expr printer) xs printer)
+        (fun xs -> commad (fun x -> pp_cases_pattern_expr x printer) xs printer)
         patterns printer;
       write " => " printer;
       pp_constr_expr printer expr
