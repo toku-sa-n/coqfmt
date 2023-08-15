@@ -11,7 +11,7 @@ bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
   "alcotest"
   "cmdliner"
-  "coq"
+  "coq" {= "8.17.1"}
   "coq-serapi"
   "dune" {>= "3.9"}
   "dune-build-info"
