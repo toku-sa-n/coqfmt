@@ -24,12 +24,12 @@ let pp_sign = function
 
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 
-let pp_signed printer (sign, n) =
+let pp_signed (sign, n) printer =
   pp_sign sign printer;
   pp_unsigned n printer
 
 let pp_prim_token printer = function
-  | Constrexpr.Number n -> pp_signed printer n
+  | Constrexpr.Number n -> pp_signed n printer
   | Constrexpr.String s -> write s printer
 
 let pp_qualid printer id = write (Libnames.string_of_qualid id) printer
