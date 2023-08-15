@@ -215,7 +215,7 @@ and pp_local_binder_expr = function
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens (fun printer ->
-          spaced (fun x printer -> pp_lname x printer) names printer;
+          spaced pp_lname names printer;
           write " : " printer;
           pp_constr_expr ty printer)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
