@@ -122,7 +122,7 @@ and pp_constr_expr_r expr printer =
         printer
   | Constrexpr.CCases (_, None, matchees, branches) ->
       write "match " printer;
-      commad (fun expr printer -> pp_case_expr printer expr) matchees printer;
+      commad (fun expr printer -> pp_case_expr expr printer) matchees printer;
       write " with" printer;
       newline printer;
       List.iter
@@ -199,7 +199,8 @@ and pp_constr_expr_r expr printer =
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
-and pp_case_expr printer = function
+and pp_case_expr expr printer =
+  match expr with
   | expr, None, None -> pp_constr_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
