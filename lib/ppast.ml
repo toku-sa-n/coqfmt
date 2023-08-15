@@ -45,7 +45,7 @@ and pp_cases_pattern_expr_r expr printer =
       let conditional_parens expr =
         match expr.v with
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
-        | _ -> parens (fun () -> pp_cases_pattern_expr expr printer)
+        | _ -> parens (fun printer -> pp_cases_pattern_expr expr printer)
       in
       pp_qualid outer printer;
       concat
@@ -75,7 +75,7 @@ and pp_cases_pattern_expr_r expr printer =
   | Constrexpr.CPatPrim token -> pp_prim_token token printer
   | Constrexpr.CPatOr xs ->
       parens
-        (fun () ->
+        (fun printer ->
           bard (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
         printer
   | _ -> raise (NotImplemented (contents printer))
@@ -94,13 +94,13 @@ and pp_constr_expr_r printer = function
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
       pp_constr_expr printer outer;
       space printer;
-      parens (fun () -> pp_constr_expr printer inner) printer
+      parens (fun printer -> pp_constr_expr printer inner) printer
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
         match expr.v with
         | Constrexpr.CApp _ ->
-            parens (fun () -> pp_constr_expr printer expr) printer
+            parens (fun printer -> pp_constr_expr printer expr) printer
         | _ -> pp_constr_expr printer expr
       in
       pp_constr_expr printer outer;
@@ -164,7 +164,7 @@ and pp_constr_expr_r printer = function
             in
             let conditional_parens expr =
               if parens_needed then
-                parens (fun () -> pp_constr_expr printer expr) printer
+                parens (fun printer -> pp_constr_expr printer expr) printer
               else pp_constr_expr printer expr
             in
             conditional_parens h;
@@ -206,7 +206,7 @@ and pp_local_binder_expr printer = function
       pp_lname name printer
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
-        (fun () ->
+        (fun printer ->
           spaced (fun x printer -> pp_lname x printer) names printer;
           write " : " printer;
           pp_constr_expr printer ty)
@@ -326,7 +326,7 @@ let rec pp_or_and_intro_pattern_expr printer = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
       brackets
-        (fun () ->
+        (fun printer ->
           List.iteri
             (fun i pattern ->
               match (i, pattern) with
@@ -467,7 +467,7 @@ let pp_subast printer
        | _ -> raise (NotImplemented (contents printer)));
        match expr.v with
        | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
-       | _ -> parens (fun () -> pp_constr_expr printer expr) printer);
+       | _ -> parens (fun printer -> pp_constr_expr printer expr) printer);
       write "." printer
   | VernacDefineModule (None, name, [], Check [], []) ->
       write "Module " printer;
@@ -492,7 +492,7 @@ let pp_subast printer
       let pp_modifiers () =
         space printer;
         parens
-          (fun () ->
+          (fun printer ->
             commad
               (fun modifier printer ->
                 let open CAst in
@@ -510,7 +510,7 @@ let pp_subast printer
       write "Notation \"" printer;
       pp_lstring notation printer;
       write "\" := " printer;
-      parens (fun () -> pp_constr_expr printer expr) printer;
+      parens (fun printer -> pp_constr_expr printer expr) printer;
       if List.length modifiers > 0 then pp_modifiers ();
       pp_scope ();
       write "." printer

@@ -57,12 +57,12 @@ let clear_bullets t = t.bullets <- []
 
 let parens f t =
   write "(" t;
-  f ();
+  f t;
   write ")" t
 
 let brackets f t =
   write "[" t;
-  f ();
+  f t;
   write "]" t
 
 let with_seps ~sep f xs printer =
