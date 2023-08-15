@@ -194,10 +194,14 @@ and pp_constr_expr_r expr printer =
         (List.map (fun x -> concat [ space; pp_local_binder_expr x ]) xs)
         printer
   | Constrexpr.CProdN (xs, ty) ->
-      write "forall " printer;
-      spaced (fun expr printer -> pp_local_binder_expr expr printer) xs printer;
-      write ", " printer;
-      pp_constr_expr ty printer
+      concat
+        [
+          write "forall ";
+          spaced (fun expr printer -> pp_local_binder_expr expr printer) xs;
+          write ", ";
+          pp_constr_expr ty;
+        ]
+        printer
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
