@@ -191,7 +191,7 @@ and pp_constr_expr_r = function
       concat
         [
           write "forall ";
-          spaced (fun expr printer -> pp_local_binder_expr expr printer) xs;
+          spaced pp_local_binder_expr xs;
           write ", ";
           pp_constr_expr ty;
         ]
