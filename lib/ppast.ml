@@ -411,8 +411,7 @@ let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
 let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
     =
   (* XXX: I'm not sure if this way is correct. See
-          https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60.
-  *)
+     https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60. *)
   let open Sexplib.Sexp in
   match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
   | List
@@ -440,6 +439,7 @@ let pp_proof_bullet printer = function
 
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
+  let open Vernacexpr in
   match expr with
   | VernacAbort ->
       decrease_indent printer;
@@ -546,6 +546,48 @@ let pp_subast printer
   | VernacEndSubproof ->
       decrease_indent printer;
       write printer "}"
+  | VernacRequire (dirpath, export_with_cats, filtered_import) ->
+      Option.iter
+        (fun dirpath ->
+          let dirpath = Libnames.string_of_qualid dirpath in
+          write printer ("From " ^ dirpath ^ " "))
+        dirpath;
+      write printer "Require";
+      let pp_import_categories { negative; import_cats } =
+        write printer " ";
+        if negative then write printer "-";
+        parens printer (fun () ->
+            commad printer (CAst.with_val (write printer)) import_cats)
+        (* TODO Better way to compose printers? *)
+      in
+      Option.iter
+        (function
+          | Export, import_categories ->
+              space printer;
+              write printer "Export";
+              Option.iter pp_import_categories import_categories
+          | Import, import_categories ->
+              space printer;
+              write printer "Import";
+              Option.iter pp_import_categories import_categories)
+        export_with_cats;
+      List.iter
+        (fun (modname, import_filter_expr) ->
+          let modname = Libnames.string_of_qualid modname in
+          space printer;
+          match import_filter_expr with
+          | ImportAll -> write printer modname
+          | ImportNames names ->
+              (* FIXME: The Coq parser will raise an exception here if
+                 Export/Import was omitted *)
+              write printer modname;
+              parens printer (fun () ->
+                  commad printer
+                    (fun (filter_name, _) ->
+                      write printer (Libnames.string_of_qualid filter_name))
+                    names))
+        filtered_import;
+      write printer "."
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =

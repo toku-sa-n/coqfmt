@@ -1,0 +1,2 @@
+Require Import   (coercions)
+                 Nat.
