@@ -108,14 +108,17 @@ and pp_constr_expr_r expr printer =
             parens (fun printer -> pp_constr_expr expr printer)
         | _ -> pp_constr_expr expr
       in
-      pp_constr_expr outer printer;
       concat
-        (List.map
-           (function
-             | inner, None -> concat [ space; conditional_parens inner ]
-             | _, Some _ ->
-                 fun printer -> raise (NotImplemented (contents printer)))
-           inners)
+        [
+          pp_constr_expr outer;
+          concat
+            (List.map
+               (function
+                 | inner, None -> concat [ space; conditional_parens inner ]
+                 | _, Some _ ->
+                     fun printer -> raise (NotImplemented (contents printer)))
+               inners);
+        ]
         printer
   | Constrexpr.CCases (_, None, matchees, branches) ->
       write "match " printer;
