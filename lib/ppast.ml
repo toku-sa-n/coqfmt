@@ -411,8 +411,7 @@ let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
 let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
     =
   (* XXX: I'm not sure if this way is correct. See
-          https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60.
-  *)
+     https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60. *)
   let open Sexplib.Sexp in
   match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
   | List
@@ -571,7 +570,8 @@ let pp_subast printer
                 (NotImplemented
                    (contents printer)
                    (* TODO Filtered imports e.g. From Foo Require Bar(baz).
-                      FIXME: The Coq parser will raise an exception here if Export/Import was omitted *)))
+                      FIXME: The Coq parser will raise an exception here if
+                      Export/Import was omitted *)))
         filtered_import;
       write printer "."
   | _ -> raise (NotImplemented (contents printer))
