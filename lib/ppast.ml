@@ -554,12 +554,26 @@ let pp_subast printer
           write printer ("From " ^ dirpath ^ " "))
         dirpath;
       write printer "Require";
+      let pp_import_categories { negative; import_cats } =
+        write printer " ";
+        if negative then write printer "-";
+        assert (List.length import_cats > 0);
+        (* Always true because import_categories was Some *)
+        let CAst.{ v; loc = _ } = List.hd import_cats in
+        write printer ("(" ^ v);
+        List.iter
+          (fun CAst.{ v; loc = _ } -> write printer (", " ^ v))
+          (List.tl import_cats);
+        write printer ")"
+      in
       Option.iter
         (function
-          | Export, _ -> write printer " Export"
-          | Import, _ ->
-              write printer " Import"
-              (* TODO import_categories - not sure what that is *))
+          | Export, import_categories ->
+              write printer " Export";
+              Option.iter pp_import_categories import_categories
+          | Import, import_categories ->
+              write printer " Import";
+              Option.iter pp_import_categories import_categories)
         export_with_cats;
       List.iter
         (fun (modname, import_filter_expr) ->
