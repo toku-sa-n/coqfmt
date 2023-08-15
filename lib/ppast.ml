@@ -337,8 +337,7 @@ let rec pp_or_and_intro_pattern_expr = function
             patterns)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_intro_pattern_action_expr expr =
-  match expr with
+and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
