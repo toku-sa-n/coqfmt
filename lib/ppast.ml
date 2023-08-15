@@ -4,7 +4,7 @@ open Ltac_plugin
 exception NotImplemented of string
 
 let pp_id id = write (Names.Id.to_string id)
-let pp_lident printer CAst.{ v; loc = _ } = pp_id v printer
+let pp_lident CAst.{ v; loc = _ } printer = pp_id v printer
 
 let pp_name printer = function
   | Names.Name name -> pp_id name printer
@@ -264,7 +264,7 @@ let pp_fixpoint_expr printer = function
         body_def = Some body_def;
         notations = [];
       } ->
-      pp_lident printer fname;
+      pp_lident fname printer;
       space printer;
       spaced (pp_local_binder_expr printer) binders printer;
       write " : " printer;
@@ -280,7 +280,7 @@ let pp_fixpoint_expr printer = function
 let pp_construtor_expr printer (_, (name, expr)) =
   newline printer;
   write "| " printer;
-  pp_lident printer name;
+  pp_lident name printer;
   pp_constr_expr printer expr
 
 let pp_syntax_modifier printer = function
@@ -346,7 +346,7 @@ and pp_intro_pattern_expr printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_core_destruction_arg printer = function
-  | Tactics.ElimOnIdent ident -> pp_lident printer ident
+  | Tactics.ElimOnIdent ident -> pp_lident ident printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_destruction_arg printer = function
@@ -461,7 +461,7 @@ let pp_subast printer
       write "." printer
   | VernacDefineModule (None, name, [], Check [], []) ->
       write "Module " printer;
-      pp_lident printer name;
+      pp_lident name printer;
       write "." printer;
       increase_indent printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
@@ -473,7 +473,7 @@ let pp_subast printer
   | VernacEndSegment name ->
       decrease_indent printer;
       write "End " printer;
-      pp_lident printer name;
+      pp_lident name printer;
       write "." printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       write "Fixpoint " printer;
@@ -507,7 +507,7 @@ let pp_subast printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind printer kind;
       write " " printer;
-      pp_lident printer ident;
+      pp_lident ident printer;
       write " : " printer;
       pp_constr_expr printer expr;
       write "." printer
@@ -521,7 +521,7 @@ let pp_subast printer
               ty,
               Vernacexpr.Constructors constructors ),
             [] ) ->
-            pp_lident printer name;
+            pp_lident name printer;
             (match ty with
             | Some ty ->
                 write " : " printer;
