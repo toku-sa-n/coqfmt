@@ -18,14 +18,13 @@ let pp_definition_object_kind = function
   | Decls.Definition -> write "Definition"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_sign printer = function
-  | NumTok.SPlus -> ()
-  | NumTok.SMinus -> write "-" printer
+let pp_sign sign printer =
+  match sign with NumTok.SPlus -> () | NumTok.SMinus -> write "-" printer
 
 let pp_unsigned printer n = write (NumTok.Unsigned.sprint n) printer
 
 let pp_signed printer (sign, n) =
-  pp_sign printer sign;
+  pp_sign sign printer;
   pp_unsigned printer n
 
 let pp_prim_token printer = function
