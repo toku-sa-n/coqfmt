@@ -203,7 +203,7 @@ and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_local_binder_expr expr printer =
+and pp_local_binder_expr expr =
   match expr with
   | Constrexpr.CLocalAssum
       ( [ name ],
@@ -213,15 +213,13 @@ and pp_local_binder_expr expr printer =
             v = Constrexpr.CHole (Some (BinderType _), IntroAnonymous, None);
             loc = _;
           } ) ->
-      pp_lname name printer
+      pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
-      parens
-        (fun printer ->
+      parens (fun printer ->
           spaced (fun x printer -> pp_lname x printer) names printer;
           write " : " printer;
           pp_constr_expr ty printer)
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr expr printer =
   match expr with
