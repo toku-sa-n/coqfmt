@@ -11,7 +11,7 @@ let pp_name = function
   | Names.Anonymous -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_lname CAst.{ v; loc = _ } = pp_name v
-let pp_lstring CAst.{ v; loc = _ } printer = write v printer
+let pp_lstring CAst.{ v; loc = _ } = write v
 
 let pp_definition_object_kind printer = function
   | Decls.Example -> write "Example" printer
