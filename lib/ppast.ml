@@ -227,8 +227,7 @@ and pp_branch_expr = function
           pp_constr_expr expr;
         ]
 
-let pp_definition_expr expr =
-  match expr with
+let pp_definition_expr = function
   | Vernacexpr.ProveBody ([], expr) ->
       concat [ write " : "; pp_constr_expr expr ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
