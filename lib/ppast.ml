@@ -313,10 +313,10 @@ let pp_raw_red_expr = function
       write "simpl."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_naming_expr expr printer =
+let pp_intro_pattern_naming_expr expr =
   match expr with
-  | Namegen.IntroIdentifier name -> pp_id name printer
-  | _ -> raise (NotImplemented (contents printer))
+  | Namegen.IntroIdentifier name -> pp_id name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_or_and_intro_pattern_expr printer = function
   | Tactypes.IntroOrPattern patterns ->
