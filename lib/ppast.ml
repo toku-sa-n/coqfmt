@@ -341,11 +341,11 @@ and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_intro_pattern_expr expr printer =
+and pp_intro_pattern_expr expr =
   match expr with
-  | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr expr printer
-  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr printer
-  | _ -> raise (NotImplemented (contents printer))
+  | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr expr
+  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_core_destruction_arg printer = function
   | Tactics.ElimOnIdent ident -> pp_lident ident printer
