@@ -353,7 +353,7 @@ let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause expr printer =
+let pp_induction_clause expr =
   match expr with
   | arg, (eqn, as_list), None ->
       let pp_as_list = function
@@ -368,8 +368,8 @@ let pp_induction_clause expr printer =
             let open CAst in
             concat [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
       in
-      concat [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ] printer
-  | _ -> raise (NotImplemented (contents printer))
+      concat [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
   | [ clause ], None -> pp_induction_clause clause printer
