@@ -284,7 +284,7 @@ let pp_fixpoint_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_construtor_expr printer (_, (name, expr)) =
+let pp_construtor_expr (_, (name, expr)) printer =
   newline printer;
   write "| " printer;
   pp_lident name printer;
@@ -542,7 +542,7 @@ let pp_subast printer
             | None -> ());
             write " :=" printer;
             increase_indent printer;
-            List.iter (pp_construtor_expr printer) constructors;
+            List.iter (fun x -> pp_construtor_expr x printer) constructors;
             decrease_indent printer
         | _ -> raise (NotImplemented (contents printer))
       in
