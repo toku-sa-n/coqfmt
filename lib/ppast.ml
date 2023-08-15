@@ -121,16 +121,19 @@ and pp_constr_expr_r expr printer =
         ]
         printer
   | Constrexpr.CCases (_, None, matchees, branches) ->
-      write "match " printer;
-      commad (fun expr printer -> pp_case_expr expr printer) matchees printer;
-      write " with" printer;
-      newline printer;
       concat
-        (List.map
-           (fun branch -> concat [ pp_branch_expr branch; newline ])
-           branches)
-        printer;
-      write "end" printer
+        [
+          write "match ";
+          commad (fun expr printer -> pp_case_expr expr printer) matchees;
+          write " with";
+          newline;
+          concat
+            (List.map
+               (fun branch -> concat [ pp_branch_expr branch; newline ])
+               branches);
+          write "end";
+        ]
+        printer
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
       pp_constr_expr v printer;
       write " : " printer;
