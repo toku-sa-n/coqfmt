@@ -285,10 +285,7 @@ let pp_fixpoint_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_construtor_expr (_, (name, expr)) printer =
-  newline printer;
-  write "| " printer;
-  pp_lident name printer;
-  pp_constr_expr expr printer
+  concat [ newline; write "| "; pp_lident name; pp_constr_expr expr ] printer
 
 let pp_syntax_modifier printer = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity" printer
