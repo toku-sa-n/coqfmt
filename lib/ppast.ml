@@ -22,7 +22,7 @@ let pp_sign = function
   | NumTok.SPlus -> fun _ -> ()
   | NumTok.SMinus -> write "-"
 
-let pp_unsigned n printer = write (NumTok.Unsigned.sprint n) printer
+let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 
 let pp_signed printer (sign, n) =
   pp_sign sign printer;
