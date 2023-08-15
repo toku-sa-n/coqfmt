@@ -295,9 +295,7 @@ let pp_syntax_modifier = function
 
 let pp_gen_tactic_arg (expr : Tacexpr.raw_tactic_arg) printer =
   match expr with
-  | Tacexpr.TacCall ast ->
-      pp_qualid (fst ast.v) printer;
-      write "." printer
+  | Tacexpr.TacCall ast -> concat [ pp_qualid (fst ast.v); write "." ] printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
