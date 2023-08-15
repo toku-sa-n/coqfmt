@@ -368,9 +368,7 @@ let pp_induction_clause expr printer =
             let open CAst in
             concat [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
       in
-      pp_destruction_arg arg printer;
-      pp_as_list as_list printer;
-      pp_eqn eqn printer
+      concat [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ] printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
