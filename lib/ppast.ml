@@ -34,9 +34,10 @@ let pp_prim_token = function
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
 let rec pp_cases_pattern_expr CAst.{ v; loc = _ } printer =
-  pp_cases_pattern_expr_r printer v
+  pp_cases_pattern_expr_r v printer
 
-and pp_cases_pattern_expr_r printer = function
+and pp_cases_pattern_expr_r expr printer =
+  match expr with
   | Constrexpr.CPatAtom (Some id) -> pp_qualid id printer
   | Constrexpr.CPatAtom None -> write "_" printer
   (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
