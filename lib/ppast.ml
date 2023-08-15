@@ -317,12 +317,11 @@ let pp_intro_pattern_naming_expr = function
   | Namegen.IntroIdentifier name -> pp_id name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_or_and_intro_pattern_expr expr printer =
+let rec pp_or_and_intro_pattern_expr expr =
   match expr with
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
-      brackets
-        (fun printer ->
+      brackets (fun printer ->
           List.iteri
             (fun i pattern ->
               match (i, pattern) with
@@ -337,8 +336,7 @@ let rec pp_or_and_intro_pattern_expr expr printer =
                     (fun x printer -> pp_intro_pattern_expr printer x.v)
                     xs printer)
             patterns)
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_action_expr printer = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr printer
