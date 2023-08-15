@@ -349,7 +349,8 @@ let pp_core_destruction_arg = function
   | Tactics.ElimOnIdent ident -> pp_lident ident
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_destruction_arg printer = function
+let pp_destruction_arg expr printer =
+  match expr with
   | None, arg -> pp_core_destruction_arg arg printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -369,7 +370,7 @@ let pp_induction_clause printer = function
             write " eqn:" printer;
             pp_intro_pattern_naming_expr x.v printer
       in
-      pp_destruction_arg printer arg;
+      pp_destruction_arg arg printer;
       pp_as_list as_list;
       pp_eqn eqn
   | _ -> raise (NotImplemented (contents printer))
