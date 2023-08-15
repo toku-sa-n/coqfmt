@@ -353,7 +353,8 @@ let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause printer = function
+let pp_induction_clause expr printer =
+  match expr with
   | arg, (eqn, as_list), None ->
       let pp_as_list = function
         | None -> ()
@@ -375,7 +376,7 @@ let pp_induction_clause printer = function
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list printer = function
-  | [ clause ], None -> pp_induction_clause printer clause
+  | [ clause ], None -> pp_induction_clause clause printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
