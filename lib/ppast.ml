@@ -291,8 +291,7 @@ let pp_syntax_modifier expr printer =
   match expr with
   | Vernacexpr.SetAssoc LeftA -> write "left associativity" printer
   | Vernacexpr.SetLevel level ->
-      write "at level " printer;
-      write (string_of_int level) printer
+      concat [ write "at level "; write (string_of_int level) ] printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
