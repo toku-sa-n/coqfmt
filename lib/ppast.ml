@@ -6,8 +6,7 @@ exception NotImplemented of string
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 
-let pp_name expr =
-  match expr with
+let pp_name = function
   | Names.Name name -> pp_id name
   | Names.Anonymous -> fun printer -> raise (NotImplemented (contents printer))
 
