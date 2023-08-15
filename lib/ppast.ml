@@ -297,7 +297,7 @@ let pp_gen_tactic_arg = function
   | Tacexpr.TacCall ast -> concat [ pp_qualid (fst ast.v); write "." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
+let pp_raw_red_expr (expr : Tacexpr.raw_red_expr) printer =
   match expr with
   | Genredexpr.Simpl
       ( Genredexpr.
@@ -398,7 +398,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
         (fun expr printer -> pp_intro_pattern_expr printer expr.v)
         exprs printer;
       write "." printer
-  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
+  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr printer
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
