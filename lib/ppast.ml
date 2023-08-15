@@ -35,10 +35,10 @@ let pp_qualid id = write (Libnames.string_of_qualid id)
 
 let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
 
-and pp_cases_pattern_expr_r expr printer =
+and pp_cases_pattern_expr_r expr =
   match expr with
-  | Constrexpr.CPatAtom (Some id) -> pp_qualid id printer
-  | Constrexpr.CPatAtom None -> write "_" printer
+  | Constrexpr.CPatAtom (Some id) -> pp_qualid id
+  | Constrexpr.CPatAtom None -> write "_"
   (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
       let open CAst in
@@ -47,11 +47,15 @@ and pp_cases_pattern_expr_r expr printer =
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
         | _ -> parens (fun printer -> pp_cases_pattern_expr expr printer)
       in
-      pp_qualid outer printer;
       concat
-        (List.concat
-           (List.map (fun value -> [ space; conditional_parens value ]) values))
-        printer
+        [
+          pp_qualid outer;
+          concat
+            (List.concat
+               (List.map
+                  (fun value -> [ space; conditional_parens value ])
+                  values));
+        ]
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
@@ -64,21 +68,22 @@ and pp_cases_pattern_expr_r expr printer =
       let separator =
         String.split_on_char '_' notation |> List.tl |> List.hd |> String.trim
       in
-      write prefix printer;
-      with_seps
-        ~sep:(fun printer ->
-          write separator printer;
-          space printer)
-        (fun x printer -> pp_cases_pattern_expr x printer)
-        exprs printer;
-      write suffix printer
-  | Constrexpr.CPatPrim token -> pp_prim_token token printer
+      concat
+        [
+          write prefix;
+          with_seps
+            ~sep:(fun printer ->
+              write separator printer;
+              space printer)
+            (fun x printer -> pp_cases_pattern_expr x printer)
+            exprs;
+          write suffix;
+        ]
+  | Constrexpr.CPatPrim token -> pp_prim_token token
   | Constrexpr.CPatOr xs ->
-      parens
-        (fun printer ->
+      parens (fun printer ->
           bard (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr printer = function
   | Glob_term.UAnonymous { rigid = true } -> write "Type" printer
