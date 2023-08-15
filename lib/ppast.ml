@@ -237,9 +237,7 @@ let pp_definition_expr expr printer =
         printer;
       (match return_ty with
       | None -> ()
-      | Some ty ->
-          write " : " printer;
-          pp_constr_expr ty printer);
+      | Some ty -> concat [ write " : "; pp_constr_expr ty ] printer);
       write " :=" printer;
       newline printer;
       increase_indent printer;
