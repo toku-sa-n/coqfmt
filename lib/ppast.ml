@@ -556,29 +556,28 @@ let pp_subast printer
       let pp_import_categories { negative; import_cats } =
         write printer " ";
         if negative then write printer "-";
-        assert (List.length import_cats > 0);
-        (* Always true because import_categories was Some *)
-        let CAst.{ v; loc = _ } = List.hd import_cats in
-        write printer ("(" ^ v);
-        List.iter
-          (fun CAst.{ v; loc = _ } -> write printer (", " ^ v))
-          (List.tl import_cats);
-        write printer ")"
+        parens printer (fun () ->
+            commad printer (CAst.with_val (write printer)) import_cats)
+        (* TODO Better way to compose printers? *)
       in
       Option.iter
         (function
           | Export, import_categories ->
-              write printer " Export";
+              space printer;
+              write printer "Export";
               Option.iter pp_import_categories import_categories
           | Import, import_categories ->
-              write printer " Import";
+              space printer;
+              write printer "Import";
               Option.iter pp_import_categories import_categories)
         export_with_cats;
       List.iter
         (fun (modname, import_filter_expr) ->
           let modname = Libnames.string_of_qualid modname in
           match import_filter_expr with
-          | ImportAll -> write printer (" " ^ modname)
+          | ImportAll ->
+              space printer;
+              write printer modname
           | _ ->
               raise
                 (NotImplemented
