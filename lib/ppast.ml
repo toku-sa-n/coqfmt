@@ -222,9 +222,7 @@ and pp_branch_expr = function
       concat
         [
           write "| ";
-          bard
-            (commad (fun x printer -> pp_cases_pattern_expr x printer))
-            patterns;
+          bard (commad pp_cases_pattern_expr) patterns;
           write " => ";
           pp_constr_expr expr;
         ]
