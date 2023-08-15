@@ -357,10 +357,10 @@ let pp_induction_clause expr printer =
   match expr with
   | arg, (eqn, as_list), None ->
       let pp_as_list = function
-        | None -> ()
+        | None -> fun _ -> ()
         | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
-            concat [ write " as "; pp_or_and_intro_pattern_expr v ] printer
-        | _ -> raise (NotImplemented (contents printer))
+            concat [ write " as "; pp_or_and_intro_pattern_expr v ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
       let pp_eqn = function
         | None -> ()
@@ -369,7 +369,7 @@ let pp_induction_clause expr printer =
             concat [ write " eqn:"; pp_intro_pattern_naming_expr x.v ] printer
       in
       pp_destruction_arg arg printer;
-      pp_as_list as_list;
+      pp_as_list as_list printer;
       pp_eqn eqn
   | _ -> raise (NotImplemented (contents printer))
 
