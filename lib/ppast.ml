@@ -92,12 +92,7 @@ let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 and pp_constr_expr_r = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      concat
-        [
-          pp_constr_expr outer;
-          space;
-          parens (fun printer -> pp_constr_expr inner printer);
-        ]
+      concat [ pp_constr_expr outer; space; parens (pp_constr_expr inner) ]
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
