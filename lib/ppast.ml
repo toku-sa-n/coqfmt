@@ -353,8 +353,7 @@ let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause expr =
-  match expr with
+let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
       let pp_as_list = function
         | None -> fun _ -> ()
