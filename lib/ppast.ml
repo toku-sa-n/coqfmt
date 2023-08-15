@@ -111,9 +111,7 @@ and pp_constr_expr_r expr printer =
       pp_constr_expr outer printer;
       List.iter
         (function
-          | inner, None ->
-              space printer;
-              conditional_parens inner printer
+          | inner, None -> concat [ space; conditional_parens inner ] printer
           | _, Some _ -> raise (NotImplemented (contents printer)))
         inners
   | Constrexpr.CCases (_, None, matchees, branches) ->
