@@ -45,7 +45,7 @@ and pp_cases_pattern_expr_r expr =
       let conditional_parens expr =
         match expr.v with
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
-        | _ -> parens (fun printer -> pp_cases_pattern_expr expr printer)
+        | _ -> parens (pp_cases_pattern_expr expr)
       in
       concat
         [
@@ -72,17 +72,12 @@ and pp_cases_pattern_expr_r expr =
         [
           write prefix;
           with_seps
-            ~sep:(fun printer ->
-              write separator printer;
-              space printer)
-            (fun x printer -> pp_cases_pattern_expr x printer)
-            exprs;
+            ~sep:(concat [ write separator; space ])
+            pp_cases_pattern_expr exprs;
           write suffix;
         ]
   | Constrexpr.CPatPrim token -> pp_prim_token token
-  | Constrexpr.CPatOr xs ->
-      parens (fun printer ->
-          bard (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
+  | Constrexpr.CPatOr xs -> parens (bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr printer = function
