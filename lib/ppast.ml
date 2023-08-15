@@ -154,13 +154,13 @@ and pp_constr_expr_r expr printer =
   | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id) printer
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
-      let rec loop notation replacers =
+      let rec loop notation replacers printer =
         match (notation, replacers) with
         | "", [] -> ()
         | "", _ -> failwith "Not all relpacers are consumed."
         | s, [ x ] when String.starts_with ~prefix:"_" s ->
             pp_constr_expr x printer;
-            loop (String.sub s 1 (String.length s - 1)) []
+            loop (String.sub s 1 (String.length s - 1)) [] printer
         | s, h :: t when String.starts_with ~prefix:"_" s ->
             let open CAst in
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
@@ -182,12 +182,12 @@ and pp_constr_expr_r expr printer =
               else pp_constr_expr expr printer
             in
             conditional_parens h;
-            loop (String.sub s 1 (String.length s - 1)) t
+            loop (String.sub s 1 (String.length s - 1)) t printer
         | s, _ ->
             write (String.sub s 0 1) printer;
-            loop (String.sub s 1 (String.length s - 1)) replacers
+            loop (String.sub s 1 (String.length s - 1)) replacers printer
       in
-      loop init_notation init_replacers
+      loop init_notation init_replacers printer
   | Constrexpr.CPrim prim -> pp_prim_token prim printer
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       List.iter
