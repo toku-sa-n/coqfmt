@@ -97,8 +97,7 @@ and pp_constr_expr_r = function
       let open CAst in
       let conditional_parens expr =
         match expr.v with
-        | Constrexpr.CApp _ ->
-            parens (fun printer -> pp_constr_expr expr printer)
+        | Constrexpr.CApp _ -> parens (pp_constr_expr expr)
         | _ -> pp_constr_expr expr
       in
       concat
