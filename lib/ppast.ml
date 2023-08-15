@@ -293,7 +293,7 @@ let pp_syntax_modifier = function
       concat [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
+let pp_gen_tactic_arg (expr : Tacexpr.raw_tactic_arg) printer =
   match expr with
   | Tacexpr.TacCall ast ->
       pp_qualid (fst ast.v) printer;
@@ -416,7 +416,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
 let pp_gen_tactic_expr_r printer
     (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r) =
   match expr with
-  | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
+  | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg printer
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr printer atom
   | _ -> raise (NotImplemented (contents printer))
 
