@@ -6,11 +6,12 @@ exception NotImplemented of string
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 
-let pp_name printer = function
+let pp_name expr printer =
+  match expr with
   | Names.Name name -> pp_id name printer
   | Names.Anonymous -> raise (NotImplemented (contents printer))
 
-let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
+let pp_lname printer CAst.{ v; loc = _ } = pp_name v printer
 let pp_lstring printer CAst.{ v; loc = _ } = write v printer
 
 let pp_definition_object_kind printer = function
