@@ -87,23 +87,23 @@ let pp_sort_expr = function
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
+let rec pp_constr_expr CAst.{ v; loc = _ } printer = pp_constr_expr_r printer v
 
 and pp_constr_expr_r printer = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      pp_constr_expr printer outer;
+      pp_constr_expr outer printer;
       space printer;
-      parens (fun printer -> pp_constr_expr printer inner) printer
+      parens (fun printer -> pp_constr_expr inner printer) printer
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
         match expr.v with
         | Constrexpr.CApp _ ->
-            parens (fun printer -> pp_constr_expr printer expr) printer
-        | _ -> pp_constr_expr printer expr
+            parens (fun printer -> pp_constr_expr expr printer) printer
+        | _ -> pp_constr_expr expr printer
       in
-      pp_constr_expr printer outer;
+      pp_constr_expr outer printer;
       List.iter
         (function
           | inner, None ->
@@ -123,19 +123,19 @@ and pp_constr_expr_r printer = function
         branches;
       write "end" printer
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
-      pp_constr_expr printer v;
+      pp_constr_expr v printer;
       write " : " printer;
-      pp_constr_expr printer t
+      pp_constr_expr t printer
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       write "if " printer;
-      pp_constr_expr printer cond;
+      pp_constr_expr cond printer;
       newline printer;
       increase_indent printer;
       write "then " printer;
-      pp_constr_expr printer t;
+      pp_constr_expr t printer;
       newline printer;
       write "else " printer;
-      pp_constr_expr printer f;
+      pp_constr_expr f printer;
       decrease_indent printer
   | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id) printer
   | Constrexpr.CNotation
@@ -145,7 +145,7 @@ and pp_constr_expr_r printer = function
         | "", [] -> ()
         | "", _ -> failwith "Not all relpacers are consumed."
         | s, [ x ] when String.starts_with ~prefix:"_" s ->
-            pp_constr_expr printer x;
+            pp_constr_expr x printer;
             loop (String.sub s 1 (String.length s - 1)) []
         | s, h :: t when String.starts_with ~prefix:"_" s ->
             let open CAst in
@@ -164,8 +164,8 @@ and pp_constr_expr_r printer = function
             in
             let conditional_parens expr =
               if parens_needed then
-                parens (fun printer -> pp_constr_expr printer expr) printer
-              else pp_constr_expr printer expr
+                parens (fun printer -> pp_constr_expr expr printer) printer
+              else pp_constr_expr expr printer
             in
             conditional_parens h;
             loop (String.sub s 1 (String.length s - 1)) t
@@ -185,13 +185,13 @@ and pp_constr_expr_r printer = function
       write "forall " printer;
       spaced (fun expr printer -> pp_local_binder_expr printer expr) xs printer;
       write ", " printer;
-      pp_constr_expr printer ty
+      pp_constr_expr ty printer
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
-  | expr, None, None -> pp_constr_expr printer expr
+  | expr, None, None -> pp_constr_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_local_binder_expr printer = function
@@ -209,7 +209,7 @@ and pp_local_binder_expr printer = function
         (fun printer ->
           spaced (fun x printer -> pp_lname x printer) names printer;
           write " : " printer;
-          pp_constr_expr printer ty)
+          pp_constr_expr ty printer)
         printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -221,12 +221,12 @@ and pp_branch_expr printer = function
           commad (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
         patterns printer;
       write " => " printer;
-      pp_constr_expr printer expr
+      pp_constr_expr expr printer
 
 let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
       write " : " printer;
-      pp_constr_expr printer expr
+      pp_constr_expr expr printer
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       List.iter
         (fun arg ->
@@ -237,11 +237,11 @@ let pp_definition_expr printer = function
       | None -> ()
       | Some ty ->
           write " : " printer;
-          pp_constr_expr printer ty);
+          pp_constr_expr ty printer);
       write " :=" printer;
       newline printer;
       increase_indent printer;
-      pp_constr_expr printer def_body;
+      pp_constr_expr def_body printer;
       decrease_indent printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -272,11 +272,11 @@ let pp_fixpoint_expr printer = function
         (fun expr printer -> pp_local_binder_expr printer expr)
         binders printer;
       write " : " printer;
-      pp_constr_expr printer rtype;
+      pp_constr_expr rtype printer;
       write " :=" printer;
       newline printer;
       increase_indent printer;
-      pp_constr_expr printer body_def;
+      pp_constr_expr body_def printer;
       write "." printer;
       decrease_indent printer
   | _ -> raise (NotImplemented (contents printer))
@@ -285,7 +285,7 @@ let pp_construtor_expr printer (_, (name, expr)) =
   newline printer;
   write "| " printer;
   pp_lident name printer;
-  pp_constr_expr printer expr
+  pp_constr_expr expr printer
 
 let pp_syntax_modifier printer = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity" printer
@@ -410,7 +410,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
         None ) ->
       write "rewrite " printer;
       if is_left_to_right then write "-> " printer else write "<- " printer;
-      pp_constr_expr printer expr;
+      pp_constr_expr expr printer;
       write "." printer
   | _ -> raise (NotImplemented (contents printer))
 
@@ -466,8 +466,8 @@ let pp_subast printer
        | None -> write "Check " printer
        | _ -> raise (NotImplemented (contents printer)));
        match expr.v with
-       | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
-       | _ -> parens (fun printer -> pp_constr_expr printer expr) printer);
+       | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr expr printer
+       | _ -> parens (fun printer -> pp_constr_expr expr printer) printer);
       write "." printer
   | VernacDefineModule (None, name, [], Check [], []) ->
       write "Module " printer;
@@ -510,7 +510,7 @@ let pp_subast printer
       write "Notation \"" printer;
       pp_lstring notation printer;
       write "\" := " printer;
-      parens (fun printer -> pp_constr_expr printer expr) printer;
+      parens (fun printer -> pp_constr_expr expr printer) printer;
       if List.length modifiers > 0 then pp_modifiers ();
       pp_scope ();
       write "." printer
@@ -519,7 +519,7 @@ let pp_subast printer
       write " " printer;
       pp_lident ident printer;
       write " : " printer;
-      pp_constr_expr printer expr;
+      pp_constr_expr expr printer;
       write "." printer
   | VernacProof (None, None) ->
       write "Proof." printer;
@@ -535,7 +535,7 @@ let pp_subast printer
             (match ty with
             | Some ty ->
                 write " : " printer;
-                pp_constr_expr printer ty
+                pp_constr_expr ty printer
             | None -> ());
             write " :=" printer;
             increase_indent printer;
