@@ -268,17 +268,21 @@ let pp_fixpoint_expr printer = function
         body_def = Some body_def;
         notations = [];
       } ->
-      pp_lident fname printer;
-      space printer;
-      spaced pp_local_binder_expr binders printer;
-      write " : " printer;
-      pp_constr_expr rtype printer;
-      write " :=" printer;
-      newline printer;
-      increase_indent printer;
-      pp_constr_expr body_def printer;
-      write "." printer;
-      decrease_indent printer
+      concat
+        [
+          pp_lident fname;
+          space;
+          spaced pp_local_binder_expr binders;
+          write " : ";
+          pp_constr_expr rtype;
+          write " :=";
+          newline;
+          increase_indent;
+          pp_constr_expr body_def;
+          write ".";
+          decrease_indent;
+        ]
+        printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_construtor_expr printer (_, (name, expr)) =
