@@ -27,10 +27,10 @@ let pp_sign = function
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 let pp_signed (sign, n) = concat [ pp_sign sign; pp_unsigned n ]
 
-let pp_prim_token token printer =
+let pp_prim_token token =
   match token with
-  | Constrexpr.Number n -> pp_signed n printer
-  | Constrexpr.String s -> write s printer
+  | Constrexpr.Number n -> pp_signed n
+  | Constrexpr.String s -> write s
 
 let pp_qualid printer id = write (Libnames.string_of_qualid id) printer
 
