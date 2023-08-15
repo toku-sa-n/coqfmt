@@ -199,8 +199,7 @@ and pp_constr_expr_r = function
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_case_expr expr =
-  match expr with
+and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
