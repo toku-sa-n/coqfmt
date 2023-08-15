@@ -168,8 +168,7 @@ and pp_constr_expr_r = function
               match h.v with Constrexpr.CProdN _ -> true | _ -> false
             in
             let conditional_parens expr =
-              if parens_needed then
-                parens (fun printer -> pp_constr_expr expr printer)
+              if parens_needed then parens (pp_constr_expr expr)
               else pp_constr_expr expr
             in
             concat
