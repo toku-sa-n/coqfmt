@@ -89,7 +89,7 @@ let pp_sort_expr = function
 
 let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 
-and pp_constr_expr_r expr printer =
+and pp_constr_expr_r expr =
   match expr with
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
@@ -99,7 +99,6 @@ and pp_constr_expr_r expr printer =
           space;
           parens (fun printer -> pp_constr_expr inner printer);
         ]
-        printer
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
@@ -119,7 +118,6 @@ and pp_constr_expr_r expr printer =
                      fun printer -> raise (NotImplemented (contents printer)))
                inners);
         ]
-        printer
   | Constrexpr.CCases (_, None, matchees, branches) ->
       concat
         [
@@ -133,9 +131,8 @@ and pp_constr_expr_r expr printer =
                branches);
           write "end";
         ]
-        printer
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
-      concat [ pp_constr_expr v; write " : "; pp_constr_expr t ] printer
+      concat [ pp_constr_expr v; write " : "; pp_constr_expr t ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       concat
         [
@@ -150,8 +147,7 @@ and pp_constr_expr_r expr printer =
           pp_constr_expr f;
           decrease_indent;
         ]
-        printer
-  | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id) printer
+  | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id)
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers printer =
@@ -187,12 +183,10 @@ and pp_constr_expr_r expr printer =
             write (String.sub s 0 1) printer;
             loop (String.sub s 1 (String.length s - 1)) replacers printer
       in
-      loop init_notation init_replacers printer
-  | Constrexpr.CPrim prim -> pp_prim_token prim printer
+      loop init_notation init_replacers
+  | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      concat
-        (List.map (fun x -> concat [ space; pp_local_binder_expr x ]) xs)
-        printer
+      concat (List.map (fun x -> concat [ space; pp_local_binder_expr x ]) xs)
   | Constrexpr.CProdN (xs, ty) ->
       concat
         [
@@ -201,10 +195,9 @@ and pp_constr_expr_r expr printer =
           write ", ";
           pp_constr_expr ty;
         ]
-        printer
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> (fun _ -> ()) printer
-  | Constrexpr.CSort expr -> pp_sort_expr expr printer
-  | _ -> (fun printer -> raise (NotImplemented (contents printer))) printer
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> fun _ -> ()
+  | Constrexpr.CSort expr -> pp_sort_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_case_expr expr =
   match expr with
