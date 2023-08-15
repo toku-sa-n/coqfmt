@@ -93,9 +93,13 @@ and pp_constr_expr_r expr printer =
   match expr with
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      pp_constr_expr outer printer;
-      space printer;
-      parens (fun printer -> pp_constr_expr inner printer) printer
+      concat
+        [
+          pp_constr_expr outer;
+          space;
+          parens (fun printer -> pp_constr_expr inner printer);
+        ]
+        printer
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
