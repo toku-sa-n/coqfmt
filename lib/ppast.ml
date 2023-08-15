@@ -223,10 +223,7 @@ and pp_branch_expr = function
         [
           write "| ";
           bard
-            (fun xs printer ->
-              commad
-                (fun x printer -> pp_cases_pattern_expr x printer)
-                xs printer)
+            (commad (fun x printer -> pp_cases_pattern_expr x printer))
             patterns;
           write " => ";
           pp_constr_expr expr;
