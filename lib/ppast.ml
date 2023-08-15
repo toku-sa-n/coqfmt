@@ -199,10 +199,10 @@ and pp_constr_expr_r expr printer =
   | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
-and pp_case_expr expr printer =
+and pp_case_expr expr =
   match expr with
-  | expr, None, None -> pp_constr_expr expr printer
-  | _ -> raise (NotImplemented (contents printer))
+  | expr, None, None -> pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_local_binder_expr printer = function
   | Constrexpr.CLocalAssum
