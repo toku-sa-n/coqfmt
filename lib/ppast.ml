@@ -127,7 +127,7 @@ and pp_constr_expr_r expr printer =
       newline printer;
       List.iter
         (fun branch ->
-          pp_branch_expr printer branch;
+          pp_branch_expr branch printer;
           newline printer)
         branches;
       write "end" printer
@@ -224,7 +224,8 @@ and pp_local_binder_expr expr printer =
         printer
   | _ -> raise (NotImplemented (contents printer))
 
-and pp_branch_expr printer = function
+and pp_branch_expr expr printer =
+  match expr with
   | CAst.{ v = patterns, expr; loc = _ } ->
       write "| " printer;
       bard
