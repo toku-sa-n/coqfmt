@@ -3,11 +3,11 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
-let pp_id printer id = write (Names.Id.to_string id) printer
-let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
+let pp_id id printer = write (Names.Id.to_string id) printer
+let pp_lident printer CAst.{ v; loc = _ } = pp_id v printer
 
 let pp_name printer = function
-  | Names.Name name -> pp_id printer name
+  | Names.Name name -> pp_id name printer
   | Names.Anonymous -> raise (NotImplemented (contents printer))
 
 let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
@@ -315,7 +315,7 @@ let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr printer = function
-  | Namegen.IntroIdentifier name -> pp_id printer name
+  | Namegen.IntroIdentifier name -> pp_id name printer
   | _ -> raise (NotImplemented (contents printer))
 
 let rec pp_or_and_intro_pattern_expr printer = function
