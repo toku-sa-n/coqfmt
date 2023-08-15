@@ -4,3 +4,10 @@ Require Export Nat  ( succ,
   ,
 
   add).
+
+Require Export Nat  ( succ)
+
+ Nat( pred
+  )
+
+  Nat(add).
