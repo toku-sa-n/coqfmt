@@ -217,16 +217,21 @@ and pp_local_binder_expr = function
       parens (concat [ spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_branch_expr expr printer =
+and pp_branch_expr expr =
   match expr with
   | CAst.{ v = patterns, expr; loc = _ } ->
-      write "| " printer;
-      bard
-        (fun xs printer ->
-          commad (fun x printer -> pp_cases_pattern_expr x printer) xs printer)
-        patterns printer;
-      write " => " printer;
-      pp_constr_expr expr printer
+      concat
+        [
+          write "| ";
+          bard
+            (fun xs printer ->
+              commad
+                (fun x printer -> pp_cases_pattern_expr x printer)
+                xs printer)
+            patterns;
+          write " => ";
+          pp_constr_expr expr;
+        ]
 
 let pp_definition_expr printer = function
   | Vernacexpr.ProveBody ([], expr) ->
