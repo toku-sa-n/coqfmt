@@ -227,7 +227,8 @@ and pp_branch_expr = function
           pp_constr_expr expr;
         ]
 
-let pp_definition_expr printer = function
+let pp_definition_expr expr printer =
+  match expr with
   | Vernacexpr.ProveBody ([], expr) ->
       write " : " printer;
       pp_constr_expr expr printer
@@ -482,7 +483,7 @@ let pp_subast printer
       pp_definition_object_kind kind printer;
       space printer;
       pp_lname name printer;
-      pp_definition_expr printer expr;
+      pp_definition_expr expr printer;
       write "." printer
   | VernacEndSegment name ->
       decrease_indent printer;
