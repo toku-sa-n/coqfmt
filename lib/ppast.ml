@@ -13,7 +13,8 @@ let pp_name = function
 let pp_lname CAst.{ v; loc = _ } = pp_name v
 let pp_lstring CAst.{ v; loc = _ } = write v
 
-let pp_definition_object_kind printer = function
+let pp_definition_object_kind expr printer =
+  match expr with
   | Decls.Example -> write "Example" printer
   | Decls.Definition -> write "Definition" printer
   | _ -> raise (NotImplemented (contents printer))
@@ -465,7 +466,7 @@ let pp_subast printer
       write "." printer;
       increase_indent printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
-      pp_definition_object_kind printer kind;
+      pp_definition_object_kind kind printer;
       space printer;
       pp_lname name printer;
       pp_definition_expr printer expr;
