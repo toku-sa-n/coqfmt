@@ -232,9 +232,9 @@ let pp_definition_expr expr printer =
   | Vernacexpr.ProveBody ([], expr) ->
       concat [ write " : "; pp_constr_expr expr ] printer
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
-      List.iter
-        (fun arg -> concat [ space; pp_local_binder_expr arg ] printer)
-        args;
+      concat
+        (List.map (fun arg -> concat [ space; pp_local_binder_expr arg ]) args)
+        printer;
       (match return_ty with
       | None -> ()
       | Some ty ->
