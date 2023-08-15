@@ -22,11 +22,11 @@ let pp_sign = function
   | NumTok.SPlus -> fun _ -> ()
   | NumTok.SMinus -> write "-"
 
-let pp_unsigned printer n = write (NumTok.Unsigned.sprint n) printer
+let pp_unsigned n printer = write (NumTok.Unsigned.sprint n) printer
 
 let pp_signed printer (sign, n) =
   pp_sign sign printer;
-  pp_unsigned printer n
+  pp_unsigned n printer
 
 let pp_prim_token printer = function
   | Constrexpr.Number n -> pp_signed printer n
