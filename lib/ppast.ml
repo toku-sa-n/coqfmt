@@ -253,8 +253,7 @@ let pp_proof_end = function
       concat [ clear_bullets; write "Qed." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_theorem_kind expr =
-  match expr with
+let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
