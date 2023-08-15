@@ -317,8 +317,7 @@ let pp_intro_pattern_naming_expr = function
   | Namegen.IntroIdentifier name -> pp_id name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_or_and_intro_pattern_expr expr =
-  match expr with
+let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
       brackets (fun printer ->
