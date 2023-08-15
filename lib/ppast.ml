@@ -257,7 +257,7 @@ let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_fixpoint_expr expr printer =
+let pp_fixpoint_expr expr =
   match expr with
   | Vernacexpr.
       {
@@ -283,8 +283,7 @@ let pp_fixpoint_expr expr printer =
           write ".";
           decrease_indent;
         ]
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_construtor_expr printer (_, (name, expr)) =
   newline printer;
