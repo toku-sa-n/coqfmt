@@ -327,12 +327,12 @@ let rec pp_or_and_intro_pattern_expr = function
               | 0, [] -> space printer
               | 0, xs ->
                   spaced
-                    (fun x printer -> pp_intro_pattern_expr printer x.v)
+                    (fun x printer -> pp_intro_pattern_expr x.v printer)
                     xs printer
               | _, xs ->
                   write "| " printer;
                   spaced
-                    (fun x printer -> pp_intro_pattern_expr printer x.v)
+                    (fun x printer -> pp_intro_pattern_expr x.v printer)
                     xs printer)
             patterns)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -341,7 +341,8 @@ and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_intro_pattern_expr printer = function
+and pp_intro_pattern_expr expr printer =
+  match expr with
   | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr expr printer
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
@@ -392,7 +393,7 @@ let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   | Tacexpr.TacIntroPattern (false, exprs) ->
       write "intros " printer;
       spaced
-        (fun expr printer -> pp_intro_pattern_expr printer expr.v)
+        (fun expr printer -> pp_intro_pattern_expr expr.v printer)
         exprs printer;
       write "." printer
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr printer
