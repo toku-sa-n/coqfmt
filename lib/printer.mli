@@ -4,7 +4,7 @@ type t
 val create : unit -> t
 (** Create a new printer. *)
 
-val write : t -> string -> unit
+val write : string -> t -> unit
 (** Write out the given string. *)
 
 val space : t -> unit
@@ -22,31 +22,31 @@ val increase_indent : t -> unit
 val decrease_indent : t -> unit
 (** Decrease the indent level. *)
 
-val write_before_indent : t -> string -> unit
+val write_before_indent : string -> t -> unit
 (** Write out the given string before the indent spaces. Mostly for writing bullets. *)
 
-val bullet_appears : t -> Proof_bullet.t -> unit
+val bullet_appears : Proof_bullet.t -> t -> unit
 (** Call this function when a bullet appears. *)
 
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
 
-val parens : t -> (unit -> unit) -> unit
+val parens : (unit -> unit) -> t -> unit
 (** Write out parentheses around the given function. *)
 
-val brackets : t -> (unit -> unit) -> unit
+val brackets : (unit -> unit) -> t -> unit
 (** Write out brackets around the given function. *)
 
 val with_seps : sep:(unit -> unit) -> ('a -> unit) -> 'a list -> unit
 (** Arrange a series of elements with [~sep] as the delimiter  *)
 
-val commad : t -> ('a -> unit) -> 'a list -> unit
+val commad : ('a -> unit) -> 'a list -> t -> unit
 (** Write out a comma-separated list of elements. *)
 
-val spaced : t -> ('a -> unit) -> 'a list -> unit
+val spaced : ('a -> unit) -> 'a list -> t -> unit
 (** Write out a space-separated list of elements. *)
 
-val bard : t -> ('a -> unit) -> 'a list -> unit
+val bard : ('a -> unit) -> 'a list -> t -> unit
 (** Write out a bar-separated list of elements. *)
 
 val contents : t -> string

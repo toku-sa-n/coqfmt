@@ -21,13 +21,13 @@ let calculate_indent t =
   (* 2 for the bullet and a space after it. *)
   t.indent_spaces + ((tab_size + 2) * List.length t.bullets)
 
-let write t s =
+let write s t =
   if t.printed_newline then
     String.make (calculate_indent t) ' ' |> Buffer.add_string t.buffer;
   Buffer.add_string t.buffer s;
   t.printed_newline <- false
 
-let space t = write t " "
+let space = write " "
 
 let newline t =
   Buffer.add_char t.buffer '\n';
@@ -40,12 +40,12 @@ let blankline t =
 let increase_indent t = t.indent_spaces <- t.indent_spaces + tab_size
 let decrease_indent t = t.indent_spaces <- t.indent_spaces - tab_size
 
-let write_before_indent t s =
+let write_before_indent s t =
   t.indent_spaces <- t.indent_spaces - String.length s;
-  write t s;
+  write s t;
   t.indent_spaces <- t.indent_spaces + String.length s
 
-let bullet_appears t bullet =
+let bullet_appears bullet t =
   let rec update_bullet = function
     | [] -> [ bullet ]
     | h :: _ when h = bullet -> [ bullet ]
@@ -55,15 +55,15 @@ let bullet_appears t bullet =
 
 let clear_bullets t = t.bullets <- []
 
-let parens t f =
-  write t "(";
+let parens f t =
+  write "(" t;
   f ();
-  write t ")"
+  write ")" t
 
-let brackets t f =
-  write t "[";
+let brackets f t =
+  write "[" t;
   f ();
-  write t "]"
+  write "]" t
 
 let with_seps ~sep f xs =
   List.iteri
@@ -75,7 +75,7 @@ let with_seps ~sep f xs =
           f x)
     xs
 
-let commad printer = with_seps ~sep:(fun () -> write printer ", ")
-let spaced printer = with_seps ~sep:(fun () -> space printer)
-let bard printer = with_seps ~sep:(fun () -> write printer " | ")
+let commad f xs printer = with_seps ~sep:(fun () -> write ", " printer) f xs
+let spaced f xs printer = with_seps ~sep:(fun () -> space printer) f xs
+let bard f xs printer = with_seps ~sep:(fun () -> write " | " printer) f xs
 let contents t = Buffer.contents t.buffer
