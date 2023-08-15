@@ -33,8 +33,7 @@ let pp_prim_token = function
 
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
-let rec pp_cases_pattern_expr CAst.{ v; loc = _ } printer =
-  pp_cases_pattern_expr_r v printer
+let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
 
 and pp_cases_pattern_expr_r expr printer =
   match expr with
