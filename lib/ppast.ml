@@ -27,7 +27,8 @@ let pp_sign = function
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 let pp_signed (sign, n) = concat [ pp_sign sign; pp_unsigned n ]
 
-let pp_prim_token printer = function
+let pp_prim_token token printer =
+  match token with
   | Constrexpr.Number n -> pp_signed n printer
   | Constrexpr.String s -> write s printer
 
@@ -73,7 +74,7 @@ and pp_cases_pattern_expr_r printer = function
         (pp_cases_pattern_expr printer)
         exprs;
       write suffix printer
-  | Constrexpr.CPatPrim token -> pp_prim_token printer token
+  | Constrexpr.CPatPrim token -> pp_prim_token token printer
   | Constrexpr.CPatOr xs ->
       parens (fun () -> bard (pp_cases_pattern_expr printer) xs printer) printer
   | _ -> raise (NotImplemented (contents printer))
@@ -172,7 +173,7 @@ and pp_constr_expr_r printer = function
             loop (String.sub s 1 (String.length s - 1)) replacers
       in
       loop init_notation init_replacers
-  | Constrexpr.CPrim prim -> pp_prim_token printer prim
+  | Constrexpr.CPrim prim -> pp_prim_token prim printer
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       List.iter
         (fun x ->
