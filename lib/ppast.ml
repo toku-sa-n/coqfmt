@@ -248,8 +248,7 @@ let pp_definition_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_proof_end expr =
-  match expr with
+let pp_proof_end = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
       concat [ clear_bullets; write "Qed." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
