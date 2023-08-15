@@ -79,7 +79,8 @@ and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatOr xs -> parens (bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_sort_expr printer = function
+let pp_sort_expr expr printer =
+  match expr with
   | Glob_term.UAnonymous { rigid = true } -> write "Type" printer
   | Glob_term.UAnonymous { rigid = false } ->
       raise (NotImplemented (contents printer))
@@ -186,7 +187,7 @@ and pp_constr_expr_r printer = function
       write ", " printer;
       pp_constr_expr printer ty
   | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
-  | Constrexpr.CSort expr -> pp_sort_expr printer expr
+  | Constrexpr.CSort expr -> pp_sort_expr expr printer
   | _ -> raise (NotImplemented (contents printer))
 
 and pp_case_expr printer = function
