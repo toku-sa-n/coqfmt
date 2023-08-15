@@ -325,15 +325,10 @@ let rec pp_or_and_intro_pattern_expr = function
             (fun i pattern ->
               match (i, pattern) with
               | 0, [] -> space printer
-              | 0, xs ->
-                  spaced
-                    (fun x printer -> pp_intro_pattern_expr x.v printer)
-                    xs printer
+              | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs printer
               | _, xs ->
                   write "| " printer;
-                  spaced
-                    (fun x printer -> pp_intro_pattern_expr x.v printer)
-                    xs printer)
+                  spaced (fun x -> pp_intro_pattern_expr x.v) xs printer)
             patterns)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
