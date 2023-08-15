@@ -359,8 +359,7 @@ let pp_induction_clause expr printer =
       let pp_as_list = function
         | None -> ()
         | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
-            write " as " printer;
-            pp_or_and_intro_pattern_expr v printer
+            concat [ write " as "; pp_or_and_intro_pattern_expr v ] printer
         | _ -> raise (NotImplemented (contents printer))
       in
       let pp_eqn = function
