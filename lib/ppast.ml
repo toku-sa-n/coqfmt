@@ -13,11 +13,11 @@ let pp_name = function
 let pp_lname CAst.{ v; loc = _ } = pp_name v
 let pp_lstring CAst.{ v; loc = _ } = write v
 
-let pp_definition_object_kind expr printer =
+let pp_definition_object_kind expr =
   match expr with
-  | Decls.Example -> write "Example" printer
-  | Decls.Definition -> write "Definition" printer
-  | _ -> raise (NotImplemented (contents printer))
+  | Decls.Example -> write "Example"
+  | Decls.Definition -> write "Definition"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sign printer = function
   | NumTok.SPlus -> ()
