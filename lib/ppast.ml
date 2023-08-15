@@ -230,8 +230,7 @@ and pp_branch_expr = function
 let pp_definition_expr expr printer =
   match expr with
   | Vernacexpr.ProveBody ([], expr) ->
-      write " : " printer;
-      pp_constr_expr expr printer
+      concat [ write " : "; pp_constr_expr expr ] printer
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       List.iter
         (fun arg ->
