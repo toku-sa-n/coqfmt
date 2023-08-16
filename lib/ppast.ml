@@ -113,10 +113,9 @@ and pp_constr_expr_r = function
           commad pp_case_expr matchees;
           write " with";
           newline;
-          sequence
-            (List.map
-               (fun branch -> sequence [ pp_branch_expr branch; newline ])
-               branches);
+          map_sequence
+            (fun branch -> sequence [ pp_branch_expr branch; newline ])
+            branches;
           write "end";
         ]
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
