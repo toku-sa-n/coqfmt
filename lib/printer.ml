@@ -63,11 +63,7 @@ let brackets f = sequence [ write "["; f; write "]" ]
 let with_seps ~sep f xs printer =
   List.iteri
     (fun i x ->
-      match i with
-      | 0 -> f x printer
-      | _ ->
-          sep printer;
-          f x printer)
+      match i with 0 -> f x printer | _ -> sequence [ sep; f x ] printer)
     xs
 
 let commad f = with_seps ~sep:(write ", ") f
