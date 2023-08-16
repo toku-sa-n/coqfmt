@@ -667,13 +667,16 @@ let pp_ast ast =
   let rec loop = function
     | [] -> ()
     | [ x ] ->
-        pp_subast x printer;
-        (* Given that codes are usually stored in files, it is better to append
-           a `\n` at the end if the code is not empty. *)
-        newline printer
+        concat
+          [
+            pp_subast x;
+            (* Given that codes are usually stored in files, it is better to
+               append a `\n` at the end if the code is not empty. *)
+            newline;
+          ]
+          printer
     | head :: next :: tail ->
-        pp_subast head printer;
-        separator head next printer;
+        concat [ pp_subast head; separator head next ] printer;
         loop (next :: tail)
   in
   loop ast;
