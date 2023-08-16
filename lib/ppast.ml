@@ -378,9 +378,9 @@ let pp_raw_atomic_tactic_expr (expr : Tacexpr.raw_atomic_tactic_expr) printer =
   let open CAst in
   match expr with
   | Tacexpr.TacInductionDestruct (false, false, clause_list) ->
-      write "destruct " printer;
-      pp_induction_clause_list clause_list printer;
-      write "." printer
+      concat
+        [ write "destruct "; pp_induction_clause_list clause_list; write "." ]
+        printer
   | Tacexpr.TacIntroPattern
       (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
       write "intros." printer
