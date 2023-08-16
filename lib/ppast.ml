@@ -560,8 +560,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args printer
   | VernacEndProof proof_end ->
-      decrease_indent printer;
-      pp_proof_end proof_end printer
+      concat [ decrease_indent; pp_proof_end proof_end ] printer
   | VernacBullet bullet ->
       bullet_appears bullet printer;
       pp_proof_bullet bullet printer
