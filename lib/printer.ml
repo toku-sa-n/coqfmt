@@ -78,7 +78,7 @@ let with_seps ~sep f xs printer =
           f x printer)
     xs
 
-let commad f xs = with_seps ~sep:(write ", ") f xs
-let spaced f xs = with_seps ~sep:space f xs
-let bard f xs = with_seps ~sep:(write " | ") f xs
+let commad f = with_seps ~sep:(write ", ") f
+let spaced f = with_seps ~sep:space f
+let bard f = with_seps ~sep:(write " | ") f
 let contents t = Buffer.contents t.buffer
