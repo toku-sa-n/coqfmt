@@ -280,6 +280,12 @@ let pp_construtor_expr = function
   | ( (Vernacexpr.NoCoercion, Vernacexpr.NoInstance),
       (name, CAst.{ v = Constrexpr.CHole _; loc = _ }) ) ->
       sequence [ newline; write "| "; pp_lident name ]
+  | ( (Vernacexpr.NoCoercion, Vernacexpr.NoInstance),
+      (name, (CAst.{ v = Constrexpr.CRef _; loc = _ } as expr)) ) ->
+      sequence
+        [
+          newline; write "| "; pp_lident name; write " : "; pp_constr_expr expr;
+        ]
   | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) ->
       sequence
         [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ]
