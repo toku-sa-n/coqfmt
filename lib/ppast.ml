@@ -487,9 +487,9 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         parens
           (fun printer ->
             commad
-              (fun modifier printer ->
+              (fun modifier ->
                 let open CAst in
-                pp_syntax_modifier modifier.v printer)
+                pp_syntax_modifier modifier.v)
               modifiers printer)
           printer
       in
