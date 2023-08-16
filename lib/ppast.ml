@@ -636,11 +636,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
              filtered_import)
       in
 
-      pp_dirpath printer;
-      write "Require" printer;
-      pp_categories printer;
-      pp_name_and_filter printer;
-      write "." printer
+      concat
+        [
+          pp_dirpath;
+          write "Require";
+          pp_categories;
+          pp_name_and_filter;
+          write ".";
+        ]
+        printer
   | _ -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
