@@ -180,8 +180,7 @@ and pp_constr_expr_r = function
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      sequence
-        (List.map (fun x -> sequence [ space; pp_local_binder_expr x ]) xs)
+      map_sequence (fun x -> sequence [ space; pp_local_binder_expr x ]) xs
   | Constrexpr.CProdN (xs, ty) ->
       sequence
         [
