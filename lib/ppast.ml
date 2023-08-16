@@ -488,10 +488,10 @@ let pp_import_filter_expr import_filter_expr =
         ]
 
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
-    printer =
+    =
   let open Vernacexpr in
   match expr with
-  | VernacAbort -> concat [ decrease_indent; write "Abort." ] printer
+  | VernacAbort -> concat [ decrease_indent; write "Abort." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       concat
         [
@@ -504,11 +504,8 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           | _ -> parens (pp_constr_expr expr));
           write ".";
         ]
-        printer
   | VernacDefineModule (None, name, [], Check [], []) ->
-      concat
-        [ write "Module "; pp_lident name; write "."; increase_indent ]
-        printer
+      concat [ write "Module "; pp_lident name; write "."; increase_indent ]
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       concat
         [
@@ -518,13 +515,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_definition_expr expr;
           write ".";
         ]
-        printer
   | VernacEndSegment name ->
-      concat
-        [ decrease_indent; write "End "; pp_lident name; write "." ]
-        printer
+      concat [ decrease_indent; write "End "; pp_lident name; write "." ]
   | VernacFixpoint (NoDischarge, [ expr ]) ->
-      concat [ write "Fixpoint "; pp_fixpoint_expr expr ] printer
+      concat [ write "Fixpoint "; pp_fixpoint_expr expr ]
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
       let pp_modifiers printer =
         concat
@@ -556,7 +550,6 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_scope;
           write ".";
         ]
-        printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       concat
         [
@@ -567,9 +560,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_constr_expr expr;
           write ".";
         ]
-        printer
-  | VernacProof (None, None) ->
-      concat [ write "Proof."; increase_indent ] printer
+  | VernacProof (None, None) -> concat [ write "Proof."; increase_indent ]
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
@@ -588,27 +579,25 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                 concat (List.map (fun x -> pp_construtor_expr x) constructors);
                 decrease_indent;
               ]
-              printer
-        | _ -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
       concat
         [
           write "Inductive ";
           with_seps
             ~sep:(concat [ newline; write "with " ])
-            (fun inductive _ -> pp_single_inductive inductive)
+            (fun inductive -> pp_single_inductive inductive)
             inductives;
           write ".";
         ]
-        printer
   (* FIXME: Support other plugins, like ltac2. *)
-  | VernacExtend (_, args) -> pp_ltac args printer
+  | VernacExtend (_, args) -> pp_ltac args
   | VernacEndProof proof_end ->
-      concat [ decrease_indent; pp_proof_end proof_end ] printer
+      concat [ decrease_indent; pp_proof_end proof_end ]
   | VernacBullet bullet ->
-      concat [ bullet_appears bullet; pp_proof_bullet bullet ] printer
-  | VernacSubproof None -> concat [ write "{"; increase_indent ] printer
-  | VernacEndSubproof -> concat [ decrease_indent; write "}" ] printer
+      concat [ bullet_appears bullet; pp_proof_bullet bullet ]
+  | VernacSubproof None -> concat [ write "{"; increase_indent ]
+  | VernacEndSubproof -> concat [ decrease_indent; write "}" ]
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
       let pp_dirpath printer =
         (match dirpath with
@@ -644,8 +633,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_name_and_filter;
           write ".";
         ]
-        printer
-  | _ -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let separator printer current next =
   let open Vernacexpr in
