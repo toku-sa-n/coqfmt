@@ -370,8 +370,7 @@ let pp_induction_clause = function
       concat [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause_list expr =
-  match expr with
+let pp_induction_clause_list = function
   | [ clause ], None -> pp_induction_clause clause
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
