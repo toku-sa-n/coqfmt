@@ -485,12 +485,11 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       let pp_modifiers printer =
         space printer;
         parens
-          (fun printer ->
-            commad
-              (fun modifier ->
-                let open CAst in
-                pp_syntax_modifier modifier.v)
-              modifiers printer)
+          (commad
+             (fun modifier ->
+               let open CAst in
+               pp_syntax_modifier modifier.v)
+             modifiers)
           printer
       in
       let pp_scope () =
