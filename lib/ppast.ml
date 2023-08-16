@@ -600,16 +600,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       in
 
       let pp_name_and_filter =
-        sequence
-          (List.map
-             (fun (modname, import_filter_expr) ->
-               sequence
-                 [
-                   space;
-                   pp_qualid modname;
-                   pp_import_filter_expr import_filter_expr;
-                 ])
-             filtered_import)
+        map_sequence
+          (fun (modname, import_filter_expr) ->
+            sequence
+              [
+                space;
+                pp_qualid modname;
+                pp_import_filter_expr import_filter_expr;
+              ])
+          filtered_import
       in
 
       sequence
