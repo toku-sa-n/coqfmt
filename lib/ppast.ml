@@ -514,12 +514,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
         printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
-      pp_theorem_kind kind printer;
-      write " " printer;
-      pp_lident ident printer;
-      write " : " printer;
-      pp_constr_expr expr printer;
-      write "." printer
+      concat
+        [
+          pp_theorem_kind kind;
+          write " ";
+          pp_lident ident;
+          write " : ";
+          pp_constr_expr expr;
+          write ".";
+        ]
+        printer
   | VernacProof (None, None) ->
       write "Proof." printer;
       increase_indent printer
