@@ -3,6 +3,7 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
+let nop _ = ()
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 
@@ -18,10 +19,7 @@ let pp_definition_object_kind = function
   | Decls.Definition -> write "Definition"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_sign = function
-  | NumTok.SPlus -> fun _ -> ()
-  | NumTok.SMinus -> write "-"
-
+let pp_sign = function NumTok.SPlus -> nop | NumTok.SMinus -> write "-"
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
 let pp_signed (sign, n) = sequence [ pp_sign sign; pp_unsigned n ]
 
@@ -139,7 +137,7 @@ and pp_constr_expr_r = function
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers =
         match (notation, replacers) with
-        | "", [] -> fun _ -> ()
+        | "", [] -> nop
         | "", _ -> fun _ -> failwith "Not all relpacers are consumed."
         | s, [ x ] when String.starts_with ~prefix:"_" s ->
             sequence
@@ -189,7 +187,7 @@ and pp_constr_expr_r = function
           write ", ";
           pp_constr_expr ty;
         ]
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> fun _ -> ()
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -232,7 +230,7 @@ let pp_definition_expr = function
             (fun arg -> sequence [ space; pp_local_binder_expr arg ])
             args;
           (match return_ty with
-          | None -> fun _ -> ()
+          | None -> nop
           | Some ty -> sequence [ write " : "; pp_constr_expr ty ]);
           write " :=";
           newline;
@@ -345,13 +343,13 @@ let pp_destruction_arg = function
 let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
       let pp_as_list = function
-        | None -> fun _ -> ()
+        | None -> nop
         | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
             sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
       let pp_eqn = function
-        | None -> fun _ -> ()
+        | None -> nop
         | Some x ->
             let open CAst in
             sequence [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
@@ -420,7 +418,7 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
 let pp_ltac =
   map_sequence (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
-      | None -> fun _ -> ()
+      | None -> nop
       | Some t -> pp_raw_tactic_expr t)
 
 let pp_proof_bullet = function
@@ -434,7 +432,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
   sequence
     [
       space;
-      (if negative then write "-" else fun _ -> ());
+      (if negative then write "-" else nop);
       parens (commad (fun import_cat -> write import_cat.v) import_cats);
     ]
 
@@ -445,7 +443,7 @@ let pp_export_with_cats = function
           space;
           write "Export";
           (match import_categories with
-          | None -> fun _ -> ()
+          | None -> nop
           | Some x -> pp_import_categories x);
         ]
   | Vernacexpr.Import, import_categories ->
@@ -454,13 +452,13 @@ let pp_export_with_cats = function
           space;
           write "Import";
           (match import_categories with
-          | None -> fun _ -> ()
+          | None -> nop
           | Some x -> pp_import_categories x);
         ]
 
 let pp_import_filter_expr import_filter_expr =
   match import_filter_expr with
-  | Vernacexpr.ImportAll -> fun _ -> ()
+  | Vernacexpr.ImportAll -> nop
   | Vernacexpr.ImportNames names ->
       sequence
         [
@@ -519,7 +517,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
          overridden by `coq-core`'s one which does not have it. *)
       let pp_scope =
         match scope with
-        | None -> fun _ -> ()
+        | None -> nop
         | Some scope -> sequence [ write " : "; write scope ]
       in
       sequence
@@ -528,7 +526,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_lstring notation;
           write "\" := ";
           parens (fun printer -> pp_constr_expr expr printer);
-          (if List.length modifiers > 0 then pp_modifiers else fun _ -> ());
+          (if List.length modifiers > 0 then pp_modifiers else nop);
           pp_scope;
           write ".";
         ]
@@ -555,7 +553,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                 pp_lident name;
                 (match ty with
                 | Some ty -> sequence [ write " : "; pp_constr_expr ty ]
-                | None -> fun _ -> ());
+                | None -> nop);
                 write " :=";
                 increase_indent;
                 map_sequence (fun x -> pp_construtor_expr x) constructors;
@@ -583,14 +581,14 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
       let pp_dirpath printer =
         (match dirpath with
-        | None -> fun _ -> ()
+        | None -> nop
         | Some dirpath -> sequence [ write "From "; pp_qualid dirpath; space ])
           printer
       in
 
       let pp_categories =
         match export_with_cats with
-        | None -> fun _ -> ()
+        | None -> nop
         | Some x -> pp_export_with_cats x
       in
 
@@ -640,7 +638,7 @@ let separator current next =
   | VernacEndSegment _, _
   | VernacEndProof _, _ ->
       blankline
-  | VernacBullet _, _ -> fun _ -> ()
+  | VernacBullet _, _ -> nop
   | _, _ -> newline
 
 let pp_ast ast =
