@@ -423,13 +423,12 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
   | _ -> None
 
 let pp_ltac args =
-  sequence
-    (List.map
-       (fun arg ->
-         match raw_tactic_expr_of_raw_generic_argument arg with
-         | None -> fun _ -> ()
-         | Some t -> pp_raw_tactic_expr t)
-       args)
+  map_sequence
+    (fun arg ->
+      match raw_tactic_expr_of_raw_generic_argument arg with
+      | None -> fun _ -> ()
+      | Some t -> pp_raw_tactic_expr t)
+    args
 
 let pp_proof_bullet = function
   | Proof_bullet.Dash 1 -> write_before_indent "- "
