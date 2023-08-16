@@ -228,10 +228,9 @@ let pp_definition_expr = function
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       sequence
         [
-          sequence
-            (List.map
-               (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-               args);
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
           (match return_ty with
           | None -> fun _ -> ()
           | Some ty -> sequence [ write " : "; pp_constr_expr ty ]);
