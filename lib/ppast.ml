@@ -635,7 +635,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let separator current next printer =
+let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
@@ -644,7 +644,7 @@ let separator current next printer =
   | VernacNotation _, VernacNotation _
   | VernacDefineModule _, _
   | _, VernacEndSegment _ ->
-      newline printer
+      newline
   | VernacCheckMayEval _, _
   | _, VernacCheckMayEval _
   | VernacNotation _, _
@@ -658,9 +658,9 @@ let separator current next printer =
   | _, VernacDefineModule _
   | VernacEndSegment _, _
   | VernacEndProof _, _ ->
-      blankline printer
-  | VernacBullet _, _ -> ()
-  | _, _ -> newline printer
+      blankline
+  | VernacBullet _, _ -> fun _ -> ()
+  | _, _ -> newline
 
 let pp_ast ast =
   let printer = create () in
