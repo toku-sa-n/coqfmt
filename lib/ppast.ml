@@ -314,20 +314,15 @@ let pp_intro_pattern_naming_expr = function
 let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
-      brackets
-        (sequence
-           (List.mapi
-              (fun i pattern ->
-                match (i, pattern) with
-                | 0, [] -> space
-                | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs
-                | _, xs ->
-                    sequence
-                      [
-                        write "| ";
-                        spaced (fun x -> pp_intro_pattern_expr x.v) xs;
-                      ])
-              patterns))
+      let pp_patterns i pattern =
+        match (i, pattern) with
+        | 0, [] -> space
+        | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs
+        | _, xs ->
+            sequence
+              [ write "| "; spaced (fun x -> pp_intro_pattern_expr x.v) xs ]
+      in
+      brackets (sequence (List.mapi pp_patterns patterns))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_action_expr = function
