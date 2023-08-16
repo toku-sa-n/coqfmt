@@ -428,7 +428,7 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
 
-let pp_ltac printer args =
+let pp_ltac args printer =
   List.iter
     (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
@@ -541,7 +541,7 @@ let pp_subast printer
         inductives printer;
       write "." printer
   (* FIXME: Support other plugins, like ltac2. *)
-  | VernacExtend (_, args) -> pp_ltac printer args
+  | VernacExtend (_, args) -> pp_ltac args printer
   | VernacEndProof proof_end ->
       decrease_indent printer;
       pp_proof_end proof_end printer
