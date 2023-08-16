@@ -556,7 +556,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                 | None -> nop);
                 write " :=";
                 increase_indent;
-                map_sequence (fun x -> pp_construtor_expr x) constructors;
+                map_sequence pp_construtor_expr constructors;
                 decrease_indent;
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
