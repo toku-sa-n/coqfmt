@@ -572,7 +572,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ("From " ^ dirpath ^ " ") printer)
         dirpath;
       write "Require" printer;
-      let pp_import_categories { negative; import_cats } printer =
+      let pp_import_categories { negative; import_cats } =
         concat
           [
             write " ";
@@ -583,9 +583,9 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                    CAst.with_val (fun x -> write x printer) import_cat)
                  import_cats);
           ]
-          printer
         (* TODO Better way to compose printers? *)
       in
+
       Option.iter
         (function
           | Export, import_categories ->
