@@ -586,7 +586,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       in
 
       (match export_with_cats with
-      | None -> ()
+      | None -> fun _ -> ()
       | Some (Export, import_categories) ->
           concat
             [
@@ -596,17 +596,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
               | None -> fun _ -> ()
               | Some x -> pp_import_categories x);
             ]
-            printer
       | Some (Import, import_categories) ->
-          (concat
-             [
-               space;
-               write "Import";
-               (match import_categories with
-               | None -> fun _ -> ()
-               | Some x -> pp_import_categories x);
-             ])
-            printer);
+          concat
+            [
+              space;
+              write "Import";
+              (match import_categories with
+              | None -> fun _ -> ()
+              | Some x -> pp_import_categories x);
+            ])
+        printer;
       List.iter
         (fun (modname, import_filter_expr) ->
           let modname = Libnames.string_of_qualid modname in
