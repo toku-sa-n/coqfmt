@@ -568,8 +568,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
       Option.iter
         (fun dirpath ->
-          let dirpath = Libnames.string_of_qualid dirpath in
-          write ("From " ^ dirpath ^ " ") printer)
+          concat [ write "From "; pp_qualid dirpath; space ] printer)
         dirpath;
       write "Require" printer;
       let pp_import_categories { negative; import_cats } =
