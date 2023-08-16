@@ -483,13 +483,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       concat [ write "Fixpoint "; pp_fixpoint_expr expr ] printer
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
       let pp_modifiers printer =
-        space printer;
-        parens
-          (commad
-             (fun modifier ->
-               let open CAst in
-               pp_syntax_modifier modifier.v)
-             modifiers)
+        concat
+          [
+            space;
+            parens
+              (commad
+                 (fun modifier ->
+                   let open CAst in
+                   pp_syntax_modifier modifier.v)
+                 modifiers);
+          ]
           printer
       in
       let pp_scope () =
