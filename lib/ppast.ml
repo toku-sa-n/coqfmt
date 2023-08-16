@@ -443,6 +443,39 @@ let pp_proof_bullet = function
   | Proof_bullet.Star 1 -> write_before_indent "* "
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_import_categories { Vernacexpr.negative; import_cats } =
+  concat
+    [
+      write " ";
+      (if negative then write "-" else fun _ -> ());
+      parens
+        (commad
+           (fun import_cat printer ->
+             CAst.with_val (fun x -> write x printer) import_cat)
+           import_cats);
+    ]
+(* TODO Better way to compose printers? *)
+
+let pp_export_with_cats = function
+  | Vernacexpr.Export, import_categories ->
+      concat
+        [
+          space;
+          write "Export";
+          (match import_categories with
+          | None -> fun _ -> ()
+          | Some x -> pp_import_categories x);
+        ]
+  | Vernacexpr.Import, import_categories ->
+      concat
+        [
+          space;
+          write "Import";
+          (match import_categories with
+          | None -> fun _ -> ()
+          | Some x -> pp_import_categories x);
+        ]
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     printer =
   let open Vernacexpr in
@@ -571,40 +604,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       | Some dirpath -> concat [ write "From "; pp_qualid dirpath; space ])
         printer;
       write "Require" printer;
-      let pp_import_categories { negative; import_cats } =
-        concat
-          [
-            write " ";
-            (if negative then write "-" else fun _ -> ());
-            parens
-              (commad
-                 (fun import_cat printer ->
-                   CAst.with_val (fun x -> write x printer) import_cat)
-                 import_cats);
-          ]
-        (* TODO Better way to compose printers? *)
-      in
 
       (match export_with_cats with
       | None -> fun _ -> ()
-      | Some (Export, import_categories) ->
-          concat
-            [
-              space;
-              write "Export";
-              (match import_categories with
-              | None -> fun _ -> ()
-              | Some x -> pp_import_categories x);
-            ]
-      | Some (Import, import_categories) ->
-          concat
-            [
-              space;
-              write "Import";
-              (match import_categories with
-              | None -> fun _ -> ()
-              | Some x -> pp_import_categories x);
-            ])
+      | Some x -> pp_export_with_cats x)
         printer;
       concat
         (List.map
