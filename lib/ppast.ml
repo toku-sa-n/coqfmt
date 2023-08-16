@@ -409,7 +409,7 @@ let pp_gen_tactic_expr_r = function
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) printer =
   pp_gen_tactic_expr_r v printer
 
 let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
@@ -432,7 +432,7 @@ let pp_ltac printer args =
     (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
       | None -> ()
-      | Some t -> pp_raw_tactic_expr printer t)
+      | Some t -> pp_raw_tactic_expr t printer)
     args
 
 let pp_proof_bullet printer = function
