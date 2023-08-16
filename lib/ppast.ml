@@ -562,8 +562,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacEndProof proof_end ->
       concat [ decrease_indent; pp_proof_end proof_end ] printer
   | VernacBullet bullet ->
-      bullet_appears bullet printer;
-      pp_proof_bullet bullet printer
+      concat [ bullet_appears bullet; pp_proof_bullet bullet ] printer
   | VernacSubproof None ->
       write "{" printer;
       increase_indent printer
