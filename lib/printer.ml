@@ -57,16 +57,8 @@ let bullet_appears bullet t =
   t.bullets <- update_bullet (List.rev t.bullets) |> List.rev
 
 let clear_bullets t = t.bullets <- []
-
-let parens f t =
-  write "(" t;
-  f t;
-  write ")" t
-
-let brackets f t =
-  write "[" t;
-  f t;
-  write "]" t
+let parens f = sequence [ write "("; f; write ")" ]
+let brackets f = sequence [ write "["; f; write "]" ]
 
 let with_seps ~sep f xs printer =
   List.iteri
