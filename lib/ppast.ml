@@ -525,8 +525,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
         printer
   | VernacProof (None, None) ->
-      write "Proof." printer;
-      increase_indent printer
+      concat [ write "Proof."; increase_indent ] printer
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
