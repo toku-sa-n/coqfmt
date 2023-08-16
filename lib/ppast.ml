@@ -619,8 +619,8 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                   pp_qualid modname;
                   parens
                     (commad
-                       (fun (filter_name, _) printer ->
-                         write (Libnames.string_of_qualid filter_name) printer)
+                       (fun (filter_name, _) ->
+                         write (Libnames.string_of_qualid filter_name))
                        names);
                 ]
                 printer)
