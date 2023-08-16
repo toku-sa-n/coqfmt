@@ -447,7 +447,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
   let open CAst in
   sequence
     [
-      write " ";
+      space;
       (if negative then write "-" else fun _ -> ());
       parens (commad (fun import_cat -> write import_cat.v) import_cats);
     ]
