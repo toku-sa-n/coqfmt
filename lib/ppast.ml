@@ -47,11 +47,8 @@ and pp_cases_pattern_expr_r = function
       sequence
         [
           pp_qualid outer;
-          sequence
-            (List.concat
-               (List.map
-                  (fun value -> [ space; conditional_parens value ])
-                  values));
+          List.map (fun value -> [ space; conditional_parens value ]) values
+          |> List.concat |> sequence;
         ]
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
