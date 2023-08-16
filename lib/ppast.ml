@@ -547,14 +547,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
               printer
         | _ -> raise (NotImplemented (contents printer))
       in
-      write "Inductive " printer;
-      with_seps
-        ~sep:(fun printer ->
-          newline printer;
-          write "with " printer)
-        (fun inductive _ -> pp_single_inductive inductive)
-        inductives printer;
-      write "." printer
+      concat
+        [
+          write "Inductive ";
+          with_seps
+            ~sep:(fun printer -> concat [ newline; write "with " ] printer)
+            (fun inductive _ -> pp_single_inductive inductive)
+            inductives;
+          write ".";
+        ]
+        printer
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args printer
   | VernacEndProof proof_end ->
