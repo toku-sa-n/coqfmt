@@ -572,7 +572,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ("From " ^ dirpath ^ " ") printer)
         dirpath;
       write "Require" printer;
-      let pp_import_categories { negative; import_cats } =
+      let pp_import_categories { negative; import_cats } printer =
         write " " printer;
         if negative then write "-" printer;
         parens
@@ -589,11 +589,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           | Export, import_categories ->
               space printer;
               write "Export" printer;
-              Option.iter pp_import_categories import_categories
+              Option.iter
+                (fun x -> pp_import_categories x printer)
+                import_categories
           | Import, import_categories ->
               space printer;
               write "Import" printer;
-              Option.iter pp_import_categories import_categories)
+              Option.iter
+                (fun x -> pp_import_categories x printer)
+                import_categories)
         export_with_cats;
       List.iter
         (fun (modname, import_filter_expr) ->
