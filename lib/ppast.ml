@@ -132,7 +132,7 @@ and pp_constr_expr_r = function
           pp_constr_expr f;
           decrease_indent;
         ]
-  | Constrexpr.CRef (id, None) -> write (Libnames.string_of_qualid id)
+  | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
       let rec loop notation replacers =
@@ -178,7 +178,7 @@ and pp_constr_expr_r = function
       loop init_notation init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      map_sequence (fun x -> sequence [ space; pp_local_binder_expr x ]) xs
+      spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
       sequence
         [
@@ -276,8 +276,24 @@ let pp_fixpoint_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_construtor_expr (_, (name, expr)) =
-  sequence [ newline; write "| "; pp_lident name; pp_constr_expr expr ]
+let pp_construtor_expr = function
+  | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
+      let open CAst in
+      match expr.v with
+      | Constrexpr.CHole _ -> sequence [ newline; write "| "; pp_lident name ]
+      | Constrexpr.CRef _ ->
+          sequence
+            [
+              newline;
+              write "| ";
+              pp_lident name;
+              write " : ";
+              pp_constr_expr expr;
+            ]
+      | _ ->
+          sequence
+            [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ])
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
