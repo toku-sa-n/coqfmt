@@ -437,12 +437,12 @@ let pp_ltac args =
          | Some t -> pp_raw_tactic_expr t)
        args)
 
-let pp_proof_bullet expr printer =
+let pp_proof_bullet expr =
   match expr with
-  | Proof_bullet.Dash 1 -> write_before_indent "- " printer
-  | Proof_bullet.Plus 1 -> write_before_indent "+ " printer
-  | Proof_bullet.Star 1 -> write_before_indent "* " printer
-  | _ -> raise (NotImplemented (contents printer))
+  | Proof_bullet.Dash 1 -> write_before_indent "- "
+  | Proof_bullet.Plus 1 -> write_before_indent "+ "
+  | Proof_bullet.Star 1 -> write_before_indent "* "
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_subast printer
     CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
