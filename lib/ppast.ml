@@ -566,8 +566,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write "Inductive ";
           with_seps
             ~sep:(sequence [ newline; write "with " ])
-            (fun inductive -> pp_single_inductive inductive)
-            inductives;
+            pp_single_inductive inductives;
           write ".";
         ]
   (* FIXME: Support other plugins, like ltac2. *)
