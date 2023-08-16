@@ -606,27 +606,28 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
               | Some x -> pp_import_categories x);
             ])
         printer;
-      List.iter
-        (fun (modname, import_filter_expr) ->
-          concat
-            [
-              space;
-              (match import_filter_expr with
-              | ImportAll -> pp_qualid modname
-              | ImportNames names ->
-                  concat
-                    [
-                      (* FIXME: The Coq parser will raise an exception here if
-                         Export/Import was omitted *)
-                      pp_qualid modname;
-                      parens
-                        (commad
-                           (fun (filter_name, _) -> pp_qualid filter_name)
-                           names);
-                    ]);
-            ]
-            printer)
-        filtered_import;
+      concat
+        (List.map
+           (fun (modname, import_filter_expr) ->
+             concat
+               [
+                 space;
+                 (match import_filter_expr with
+                 | ImportAll -> pp_qualid modname
+                 | ImportNames names ->
+                     concat
+                       [
+                         (* FIXME: The Coq parser will raise an exception here
+                            if Export/Import was omitted *)
+                         pp_qualid modname;
+                         parens
+                           (commad
+                              (fun (filter_name, _) -> pp_qualid filter_name)
+                              names);
+                       ]);
+               ])
+           filtered_import)
+        printer;
       write "." printer
   | _ -> raise (NotImplemented (contents printer))
 
