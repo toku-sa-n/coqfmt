@@ -455,7 +455,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
        | _ -> raise (NotImplemented (contents printer)));
        match expr.v with
        | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr expr printer
-       | _ -> parens (fun printer -> pp_constr_expr expr printer) printer);
+       | _ -> parens (pp_constr_expr expr) printer);
       write "." printer
   | VernacDefineModule (None, name, [], Check [], []) ->
       write "Module " printer;
