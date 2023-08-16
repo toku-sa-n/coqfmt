@@ -17,6 +17,8 @@ let create () =
     bullets = [];
   }
 
+let sequence xs printer = List.iter (fun x -> x printer) xs
+
 let calculate_indent t =
   (* 2 for the bullet and a space after it. *)
   t.indent_spaces + ((tab_size + 2) * List.length t.bullets)

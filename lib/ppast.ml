@@ -3,8 +3,6 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
-(* TODO: Move this function into the appropriate module. *)
-let sequence xs printer = List.iter (fun x -> x printer) xs
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 

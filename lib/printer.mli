@@ -4,6 +4,9 @@ type t
 val create : unit -> t
 (** Create a new printer. *)
 
+val sequence : (t -> unit) list -> t -> unit
+(** Sequencially apply printers from the head of the list. *)
+
 val write : string -> t -> unit
 (** Write out the given string. *)
 
