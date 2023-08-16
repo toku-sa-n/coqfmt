@@ -61,10 +61,11 @@ let parens f = sequence [ write "("; f; write ")" ]
 let brackets f = sequence [ write "["; f; write "]" ]
 
 let with_seps ~sep f xs printer =
-  List.iteri
-    (fun i x ->
-      match i with 0 -> f x printer | _ -> sequence [ sep; f x ] printer)
-    xs
+  sequence
+    (List.mapi
+       (fun i x -> match i with 0 -> f x | _ -> sequence [ sep; f x ])
+       xs)
+    printer
 
 let commad f = with_seps ~sep:(write ", ") f
 let spaced f = with_seps ~sep:space f
