@@ -612,11 +612,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                  Export/Import was omitted *)
               write modname printer;
               parens
-                (fun printer ->
-                  commad
-                    (fun (filter_name, _) printer ->
-                      write (Libnames.string_of_qualid filter_name) printer)
-                    names printer)
+                (commad
+                   (fun (filter_name, _) printer ->
+                     write (Libnames.string_of_qualid filter_name) printer)
+                   names)
                 printer)
         filtered_import;
       write "." printer
