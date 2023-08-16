@@ -476,6 +476,17 @@ let pp_export_with_cats = function
           | Some x -> pp_import_categories x);
         ]
 
+let pp_import_filter_expr import_filter_expr =
+  match import_filter_expr with
+  | Vernacexpr.ImportAll -> fun _ -> ()
+  | Vernacexpr.ImportNames names ->
+      concat
+        [
+          (* FIXME: The Coq parser will raise an exception here if Export/Import
+             was omitted *)
+          parens (commad (fun (filter_name, _) -> pp_qualid filter_name) names);
+        ]
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     printer =
   let open Vernacexpr in
@@ -623,18 +634,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                [
                  space;
                  pp_qualid modname;
-                 (match import_filter_expr with
-                 | ImportAll -> fun _ -> ()
-                 | ImportNames names ->
-                     concat
-                       [
-                         (* FIXME: The Coq parser will raise an exception here
-                            if Export/Import was omitted *)
-                         parens
-                           (commad
-                              (fun (filter_name, _) -> pp_qualid filter_name)
-                              names);
-                       ]);
+                 pp_import_filter_expr import_filter_expr;
                ])
            filtered_import)
         printer;
