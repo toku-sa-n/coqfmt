@@ -412,6 +412,7 @@ let pp_gen_tactic_expr_r = function
 let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
   pp_gen_tactic_expr_r v
 
+(* FIXME: This function should be in another module. *)
 let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
     =
   (* XXX: I'm not sure if this way is correct. See
