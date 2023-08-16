@@ -385,11 +385,15 @@ let pp_raw_atomic_tactic_expr (expr : Tacexpr.raw_atomic_tactic_expr) printer =
       (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
       write "intros." printer
   | Tacexpr.TacIntroPattern (false, exprs) ->
-      write "intros " printer;
-      spaced
-        (fun expr printer -> pp_intro_pattern_expr expr.v printer)
-        exprs printer;
-      write "." printer
+      concat
+        [
+          write "intros ";
+          spaced
+            (fun expr printer -> pp_intro_pattern_expr expr.v printer)
+            exprs;
+          write ".";
+        ]
+        printer
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr printer
   | Tacexpr.TacRewrite
       ( false,
