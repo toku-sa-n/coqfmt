@@ -374,7 +374,7 @@ let pp_induction_clause_list = function
   | [ clause ], None -> pp_induction_clause clause
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
+let pp_raw_atomic_tactic_expr (expr : Tacexpr.raw_atomic_tactic_expr) printer =
   let open CAst in
   match expr with
   | Tacexpr.TacInductionDestruct (false, false, clause_list) ->
@@ -406,7 +406,7 @@ let pp_gen_tactic_expr_r (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r)
     printer =
   match expr with
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg printer
-  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr printer atom
+  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
