@@ -480,8 +480,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         [ decrease_indent; write "End "; pp_lident name; write "." ]
         printer
   | VernacFixpoint (NoDischarge, [ expr ]) ->
-      write "Fixpoint " printer;
-      pp_fixpoint_expr expr printer
+      concat [ write "Fixpoint "; pp_fixpoint_expr expr ] printer
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
       let pp_modifiers () =
         space printer;
