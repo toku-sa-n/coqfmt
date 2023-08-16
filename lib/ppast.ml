@@ -599,30 +599,37 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacSubproof None -> concat [ write "{"; increase_indent ] printer
   | VernacEndSubproof -> concat [ decrease_indent; write "}" ] printer
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
-      (match dirpath with
-      | None -> fun _ -> ()
-      | Some dirpath -> concat [ write "From "; pp_qualid dirpath; space ])
-        printer;
-      write "Require" printer;
+      let pp_dirpath printer =
+        (match dirpath with
+        | None -> fun _ -> ()
+        | Some dirpath -> concat [ write "From "; pp_qualid dirpath; space ])
+          printer
+      in
 
-      (match export_with_cats with
-      | None -> fun _ -> ()
-      | Some x -> pp_export_with_cats x)
-        printer;
+      let pp_categories =
+        match export_with_cats with
+        | None -> fun _ -> ()
+        | Some x -> pp_export_with_cats x
+      in
+
+      pp_dirpath printer;
+      write "Require" printer;
+      pp_categories printer;
+
       concat
         (List.map
            (fun (modname, import_filter_expr) ->
              concat
                [
                  space;
+                 pp_qualid modname;
                  (match import_filter_expr with
-                 | ImportAll -> pp_qualid modname
+                 | ImportAll -> fun _ -> ()
                  | ImportNames names ->
                      concat
                        [
                          (* FIXME: The Coq parser will raise an exception here
                             if Export/Import was omitted *)
-                         pp_qualid modname;
                          parens
                            (commad
                               (fun (filter_name, _) -> pp_qualid filter_name)
