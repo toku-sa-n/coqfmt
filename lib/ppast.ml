@@ -437,8 +437,7 @@ let pp_ltac args =
          | Some t -> pp_raw_tactic_expr t)
        args)
 
-let pp_proof_bullet expr =
-  match expr with
+let pp_proof_bullet = function
   | Proof_bullet.Dash 1 -> write_before_indent "- "
   | Proof_bullet.Plus 1 -> write_before_indent "+ "
   | Proof_bullet.Star 1 -> write_before_indent "* "
