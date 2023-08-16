@@ -533,16 +533,18 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
               ty,
               Vernacexpr.Constructors constructors ),
             [] ) ->
-            pp_lident name printer;
-            (match ty with
-            | Some ty ->
-                write " : " printer;
-                pp_constr_expr ty printer
-            | None -> ());
-            write " :=" printer;
-            increase_indent printer;
-            List.iter (fun x -> pp_construtor_expr x printer) constructors;
-            decrease_indent printer
+            concat
+              [
+                pp_lident name;
+                (match ty with
+                | Some ty -> concat [ write " : "; pp_constr_expr ty ]
+                | None -> fun _ -> ());
+                write " :=";
+                increase_indent;
+                concat (List.map (fun x -> pp_construtor_expr x) constructors);
+                decrease_indent;
+              ]
+              printer
         | _ -> raise (NotImplemented (contents printer))
       in
       write "Inductive " printer;
