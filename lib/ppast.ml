@@ -443,8 +443,8 @@ let pp_proof_bullet = function
   | Proof_bullet.Star 1 -> write_before_indent "* "
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_subast printer
-    CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
+let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
+    printer =
   let open Vernacexpr in
   match expr with
   | VernacAbort ->
@@ -638,12 +638,12 @@ let pp_ast ast =
   let rec loop = function
     | [] -> ()
     | [ x ] ->
-        pp_subast printer x;
+        pp_subast x printer;
         (* Given that codes are usually stored in files, it is better to append
            a `\n` at the end if the code is not empty. *)
         newline printer
     | head :: next :: tail ->
-        pp_subast printer head;
+        pp_subast head printer;
         separator printer head next;
         loop (next :: tail)
   in
