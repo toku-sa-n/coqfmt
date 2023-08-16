@@ -585,8 +585,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         (* TODO Better way to compose printers? *)
       in
 
-      Option.iter
-        (function
+      (match export_with_cats with
+      | None -> ()
+      | Some x -> (
+          match x with
           | Export, import_categories ->
               concat
                 [
@@ -606,8 +608,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                    | None -> fun _ -> ()
                    | Some x -> pp_import_categories x);
                  ])
-                printer)
-        export_with_cats;
+                printer));
       List.iter
         (fun (modname, import_filter_expr) ->
           let modname = Libnames.string_of_qualid modname in
