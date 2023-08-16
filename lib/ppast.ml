@@ -551,7 +551,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         [
           write "Inductive ";
           with_seps
-            ~sep:(fun printer -> concat [ newline; write "with " ] printer)
+            ~sep:(concat [ newline; write "with " ])
             (fun inductive _ -> pp_single_inductive inductive)
             inductives;
           write ".";
