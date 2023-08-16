@@ -422,13 +422,11 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
 
-let pp_ltac args =
-  map_sequence
-    (fun arg ->
+let pp_ltac =
+  map_sequence (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
       | None -> fun _ -> ()
       | Some t -> pp_raw_tactic_expr t)
-    args
 
 let pp_proof_bullet = function
   | Proof_bullet.Dash 1 -> write_before_indent "- "
