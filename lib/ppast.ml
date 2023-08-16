@@ -502,13 +502,17 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         | None -> fun _ -> ()
         | Some scope -> concat [ write " : "; write scope ]
       in
-      write "Notation \"" printer;
-      pp_lstring notation printer;
-      write "\" := " printer;
-      parens (fun printer -> pp_constr_expr expr printer) printer;
-      if List.length modifiers > 0 then pp_modifiers printer;
-      pp_scope printer;
-      write "." printer
+      concat
+        [
+          write "Notation \"";
+          pp_lstring notation;
+          write "\" := ";
+          parens (fun printer -> pp_constr_expr expr printer);
+          (if List.length modifiers > 0 then pp_modifiers else fun _ -> ());
+          pp_scope;
+          write ".";
+        ]
+        printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind kind printer;
       write " " printer;
