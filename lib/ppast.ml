@@ -525,7 +525,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write "Notation \"";
           pp_lstring notation;
           write "\" := ";
-          parens (fun printer -> pp_constr_expr expr printer);
+          parens (pp_constr_expr expr);
           (if List.length modifiers > 0 then pp_modifiers else nop);
           pp_scope;
           write ".";
