@@ -386,9 +386,7 @@ let pp_raw_atomic_tactic_expr = function
       concat
         [
           write "intros ";
-          spaced
-            (fun expr printer -> pp_intro_pattern_expr expr.v printer)
-            exprs;
+          spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
           write ".";
         ]
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr
