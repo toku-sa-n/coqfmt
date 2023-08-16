@@ -277,18 +277,22 @@ let pp_fixpoint_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_construtor_expr = function
-  | ( (Vernacexpr.NoCoercion, Vernacexpr.NoInstance),
-      (name, CAst.{ v = Constrexpr.CHole _; loc = _ }) ) ->
-      sequence [ newline; write "| "; pp_lident name ]
-  | ( (Vernacexpr.NoCoercion, Vernacexpr.NoInstance),
-      (name, (CAst.{ v = Constrexpr.CRef _; loc = _ } as expr)) ) ->
-      sequence
-        [
-          newline; write "| "; pp_lident name; write " : "; pp_constr_expr expr;
-        ]
-  | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) ->
-      sequence
-        [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ]
+  | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
+      let open CAst in
+      match expr.v with
+      | Constrexpr.CHole _ -> sequence [ newline; write "| "; pp_lident name ]
+      | Constrexpr.CRef _ ->
+          sequence
+            [
+              newline;
+              write "| ";
+              pp_lident name;
+              write " : ";
+              pp_constr_expr expr;
+            ]
+      | _ ->
+          sequence
+            [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_syntax_modifier = function
