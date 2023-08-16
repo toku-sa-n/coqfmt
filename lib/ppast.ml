@@ -495,10 +495,12 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           ]
           printer
       in
-      let pp_scope printer =
-        Option.iter
-          (fun scope -> concat [ write " : "; write scope ] printer)
-          scope
+      (* We cannot use `Option.value` here because the `Option` module is
+         overridden by `coq-core`'s one which does not have it. *)
+      let pp_scope =
+        match scope with
+        | None -> fun _ -> ()
+        | Some scope -> concat [ write " : "; write scope ]
       in
       write "Notation \"" printer;
       pp_lstring notation printer;
