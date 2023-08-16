@@ -587,12 +587,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
 
       Option.iter
         (function
-          | Export, import_categories -> (
-              space printer;
-              write "Export" printer;
-              match import_categories with
-              | None -> ()
-              | Some x -> pp_import_categories x printer)
+          | Export, import_categories ->
+              concat
+                [
+                  space;
+                  write "Export";
+                  (match import_categories with
+                  | None -> fun _ -> ()
+                  | Some x -> pp_import_categories x);
+                ]
+                printer
           | Import, import_categories ->
               (concat
                  [
