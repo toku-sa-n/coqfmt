@@ -623,21 +623,23 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         | Some x -> pp_export_with_cats x
       in
 
+      let pp_name_and_filter =
+        concat
+          (List.map
+             (fun (modname, import_filter_expr) ->
+               concat
+                 [
+                   space;
+                   pp_qualid modname;
+                   pp_import_filter_expr import_filter_expr;
+                 ])
+             filtered_import)
+      in
+
       pp_dirpath printer;
       write "Require" printer;
       pp_categories printer;
-
-      concat
-        (List.map
-           (fun (modname, import_filter_expr) ->
-             concat
-               [
-                 space;
-                 pp_qualid modname;
-                 pp_import_filter_expr import_filter_expr;
-               ])
-           filtered_import)
-        printer;
+      pp_name_and_filter printer;
       write "." printer
   | _ -> raise (NotImplemented (contents printer))
 
