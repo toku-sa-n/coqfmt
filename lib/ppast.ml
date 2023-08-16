@@ -444,14 +444,14 @@ let pp_proof_bullet = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_import_categories { Vernacexpr.negative; import_cats } =
+  let open CAst in
   sequence
     [
       write " ";
       (if negative then write "-" else fun _ -> ());
       parens
         (commad
-           (fun import_cat printer ->
-             CAst.with_val (fun x -> write x printer) import_cat)
+           (fun import_cat printer -> write import_cat.v printer)
            import_cats);
     ]
 (* TODO Better way to compose printers? *)
