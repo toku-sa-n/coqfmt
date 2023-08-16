@@ -449,14 +449,18 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   match expr with
   | VernacAbort -> concat [ decrease_indent; write "Abort." ] printer
   | VernacCheckMayEval (check_or_compute, None, expr) ->
-      ((match check_or_compute with
-       | Some (CbvVm None) -> write "Compute " printer
-       | None -> write "Check " printer
-       | _ -> raise (NotImplemented (contents printer)));
-       match expr.v with
-       | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr expr printer
-       | _ -> parens (pp_constr_expr expr) printer);
-      write "." printer
+      concat
+        [
+          (match check_or_compute with
+          | Some (CbvVm None) -> write "Compute "
+          | None -> write "Check "
+          | _ -> fun printer -> raise (NotImplemented (contents printer)));
+          (match expr.v with
+          | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr expr
+          | _ -> parens (pp_constr_expr expr));
+          write ".";
+        ]
+        printer
   | VernacDefineModule (None, name, [], Check [], []) ->
       write "Module " printer;
       pp_lident name printer;
