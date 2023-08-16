@@ -564,9 +564,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacBullet bullet ->
       concat [ bullet_appears bullet; pp_proof_bullet bullet ] printer
   | VernacSubproof None -> concat [ write "{"; increase_indent ] printer
-  | VernacEndSubproof ->
-      decrease_indent printer;
-      write "}" printer
+  | VernacEndSubproof -> concat [ decrease_indent; write "}" ] printer
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
       Option.iter
         (fun dirpath ->
