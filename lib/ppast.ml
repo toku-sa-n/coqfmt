@@ -482,7 +482,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       concat [ write "Fixpoint "; pp_fixpoint_expr expr ] printer
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
-      let pp_modifiers () =
+      let pp_modifiers printer =
         space printer;
         parens
           (fun printer ->
@@ -504,7 +504,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       pp_lstring notation printer;
       write "\" := " printer;
       parens (fun printer -> pp_constr_expr expr printer) printer;
-      if List.length modifiers > 0 then pp_modifiers ();
+      if List.length modifiers > 0 then pp_modifiers printer;
       pp_scope ();
       write "." printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
