@@ -495,7 +495,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           ]
           printer
       in
-      let pp_scope () =
+      let pp_scope printer =
         Option.iter
           (fun scope ->
             write " : " printer;
@@ -507,7 +507,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       write "\" := " printer;
       parens (fun printer -> pp_constr_expr expr printer) printer;
       if List.length modifiers > 0 then pp_modifiers printer;
-      pp_scope ();
+      pp_scope printer;
       write "." printer
   | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
       pp_theorem_kind kind printer;
