@@ -497,9 +497,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       in
       let pp_scope printer =
         Option.iter
-          (fun scope ->
-            write " : " printer;
-            write scope printer)
+          (fun scope -> concat [ write " : "; write scope ] printer)
           scope
       in
       write "Notation \"" printer;
