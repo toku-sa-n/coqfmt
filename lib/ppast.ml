@@ -566,10 +566,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacSubproof None -> concat [ write "{"; increase_indent ] printer
   | VernacEndSubproof -> concat [ decrease_indent; write "}" ] printer
   | VernacRequire (dirpath, export_with_cats, filtered_import) ->
-      Option.iter
-        (fun dirpath ->
-          concat [ write "From "; pp_qualid dirpath; space ] printer)
-        dirpath;
+      (match dirpath with
+      | None -> fun _ -> ()
+      | Some dirpath -> concat [ write "From "; pp_qualid dirpath; space ])
+        printer;
       write "Require" printer;
       let pp_import_categories { negative; import_cats } =
         concat
