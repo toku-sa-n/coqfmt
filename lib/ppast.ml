@@ -400,10 +400,14 @@ let pp_raw_atomic_tactic_expr (expr : Tacexpr.raw_atomic_tactic_expr) printer =
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
         Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
         None ) ->
-      write "rewrite " printer;
-      if is_left_to_right then write "-> " printer else write "<- " printer;
-      pp_constr_expr expr printer;
-      write "." printer
+      concat
+        [
+          write "rewrite ";
+          (if is_left_to_right then write "-> " else write "<- ");
+          pp_constr_expr expr;
+          write ".";
+        ]
+        printer
   | _ -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r)
