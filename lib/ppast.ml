@@ -409,8 +409,8 @@ let pp_gen_tactic_expr_r = function
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) printer =
-  pp_gen_tactic_expr_r v printer
+let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+  pp_gen_tactic_expr_r v
 
 let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
     =
