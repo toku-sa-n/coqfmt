@@ -577,11 +577,11 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           [
             write " ";
             (if negative then write "-" else fun _ -> ());
-            parens (fun printer ->
-                commad
-                  (fun import_cat printer ->
-                    CAst.with_val (fun x -> write x printer) import_cat)
-                  import_cats printer);
+            parens
+              (commad
+                 (fun import_cat printer ->
+                   CAst.with_val (fun x -> write x printer) import_cat)
+                 import_cats);
           ]
           printer
         (* TODO Better way to compose printers? *)
