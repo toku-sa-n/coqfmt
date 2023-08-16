@@ -18,6 +18,7 @@ let create () =
   }
 
 let sequence xs printer = List.iter (fun x -> x printer) xs
+let map_sequence f xs printer = sequence (List.map f xs) printer
 
 let calculate_indent t =
   (* 2 for the bullet and a space after it. *)

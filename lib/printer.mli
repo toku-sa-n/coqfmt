@@ -7,6 +7,9 @@ val create : unit -> t
 val sequence : (t -> unit) list -> t -> unit
 (** Sequencially apply printers from the head of the list. *)
 
+val map_sequence : ('a -> t -> unit) -> 'a list -> t -> unit
+(** Map a function to a list and apply printers sequencially. *)
+
 val write : string -> t -> unit
 (** Write out the given string. *)
 
