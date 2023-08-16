@@ -370,10 +370,10 @@ let pp_induction_clause = function
       concat [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause_list expr printer =
+let pp_induction_clause_list expr =
   match expr with
-  | [ clause ], None -> pp_induction_clause clause printer
-  | _ -> raise (NotImplemented (contents printer))
+  | [ clause ], None -> pp_induction_clause clause
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
   let open CAst in
