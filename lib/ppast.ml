@@ -449,10 +449,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
     [
       write " ";
       (if negative then write "-" else fun _ -> ());
-      parens
-        (commad
-           (fun import_cat printer -> write import_cat.v printer)
-           import_cats);
+      parens (commad (fun import_cat -> write import_cat.v) import_cats);
     ]
 (* TODO Better way to compose printers? *)
 
