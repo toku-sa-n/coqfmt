@@ -99,13 +99,12 @@ and pp_constr_expr_r = function
       sequence
         [
           pp_constr_expr outer;
-          sequence
-            (List.map
-               (function
-                 | inner, None -> sequence [ space; conditional_parens inner ]
-                 | _, Some _ ->
-                     fun printer -> raise (NotImplemented (contents printer)))
-               inners);
+          map_sequence
+            (function
+              | inner, None -> sequence [ space; conditional_parens inner ]
+              | _, Some _ ->
+                  fun printer -> raise (NotImplemented (contents printer)))
+            inners;
         ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
