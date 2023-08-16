@@ -466,11 +466,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         [ write "Module "; pp_lident name; write "."; increase_indent ]
         printer
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
-      pp_definition_object_kind kind printer;
-      space printer;
-      pp_lname name printer;
-      pp_definition_expr expr printer;
-      write "." printer
+      concat
+        [
+          pp_definition_object_kind kind;
+          space;
+          pp_lname name;
+          pp_definition_expr expr;
+          write ".";
+        ]
+        printer
   | VernacEndSegment name ->
       decrease_indent printer;
       write "End " printer;
