@@ -635,7 +635,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let separator printer current next =
+let separator current next printer =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
@@ -673,7 +673,7 @@ let pp_ast ast =
         newline printer
     | head :: next :: tail ->
         pp_subast head printer;
-        separator printer head next;
+        separator head next printer;
         loop (next :: tail)
   in
   loop ast;
