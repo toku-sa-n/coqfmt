@@ -258,7 +258,7 @@ let pp_fixpoint_expr = function
       } ->
       let pp_return_type =
         match rtype.v with
-        | Constrexpr.CHole (None, _, _) -> nop
+        | Constrexpr.CHole (None, IntroAnonymous, _) -> nop
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
       sequence
