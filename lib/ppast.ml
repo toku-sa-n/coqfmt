@@ -217,8 +217,15 @@ and pp_branch_expr = function
         ]
 
 let pp_definition_expr = function
-  | Vernacexpr.ProveBody ([], expr) ->
-      sequence [ write " : "; pp_constr_expr expr ]
+  | Vernacexpr.ProveBody (args, expr) ->
+      sequence
+        [
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
+          write " : ";
+          pp_constr_expr expr;
+        ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       sequence
         [
@@ -555,12 +562,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_scope;
           write ".";
         ]
-  | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
+  | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       sequence
         [
           pp_theorem_kind kind;
           write " ";
           pp_lident ident;
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
           write " : ";
           pp_constr_expr expr;
           write ".";
