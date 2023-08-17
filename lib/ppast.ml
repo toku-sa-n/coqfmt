@@ -642,7 +642,8 @@ let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
-  | VernacStartTheoremProof _, tactic when is_tactic tactic ->
+  | (VernacStartTheoremProof _, tactic | VernacDefinition _, tactic)
+    when is_tactic tactic ->
       sequence [ newline; increase_indent ]
   | _, VernacProof _
   | VernacCheckMayEval _, VernacCheckMayEval _
