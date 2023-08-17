@@ -77,6 +77,7 @@ let pp_sort_expr = function
   | Glob_term.UAnonymous { rigid = true } -> write "Type"
   | Glob_term.UAnonymous { rigid = false } ->
       fun printer -> raise (NotImplemented (contents printer))
+  | Glob_term.UNamed [ (Constrexpr.CProp, 0) ] -> write "Prop"
   | Glob_term.UNamed [ (Constrexpr.CSet, 0) ] -> write "Set"
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
