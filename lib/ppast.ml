@@ -431,6 +431,15 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
 
+let is_tactic = function
+  | Vernacexpr.VernacExtend (_, args)
+    when List.exists
+           (fun x ->
+             raw_tactic_expr_of_raw_generic_argument x |> Option.has_some)
+           args ->
+      true
+  | _ -> false
+
 let pp_ltac =
   map_sequence (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
@@ -633,6 +642,9 @@ let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
+  | (VernacStartTheoremProof _, tactic | VernacDefinition _, tactic)
+    when is_tactic tactic ->
+      sequence [ newline; increase_indent ]
   | _, VernacProof _
   | VernacCheckMayEval _, VernacCheckMayEval _
   | VernacNotation _, VernacNotation _
