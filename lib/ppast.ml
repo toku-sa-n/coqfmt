@@ -237,9 +237,20 @@ let pp_definition_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_proof_end = function
+  | Vernacexpr.Proved (Vernacexpr.Opaque, Some ident) ->
+      sequence
+        [ clear_bullets; write "Save"; space; pp_lident ident; write "." ]
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
       sequence [ clear_bullets; write "Qed." ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Vernacexpr.Proved (Vernacexpr.Transparent, ident) -> (
+      match ident with
+      | Some ident ->
+          sequence
+            [
+              clear_bullets; write "Defined"; space; pp_lident ident; write ".";
+            ]
+      | None -> sequence [ clear_bullets; write "Defined." ])
+  | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
 let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
