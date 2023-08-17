@@ -199,11 +199,7 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.
-          {
-            v = Constrexpr.CHole (Some (BinderType _), IntroAnonymous, None);
-            loc = _;
-          } ) ->
+        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous, None); loc = _ } ) ->
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
@@ -260,13 +256,17 @@ let pp_fixpoint_expr = function
         body_def = Some body_def;
         notations = [];
       } ->
+      let pp_return_type =
+        match rtype.v with
+        | Constrexpr.CHole _ -> nop
+        | _ -> sequence [ write " : "; pp_constr_expr rtype ]
+      in
       sequence
         [
           pp_lident fname;
           space;
           spaced pp_local_binder_expr binders;
-          write " : ";
-          pp_constr_expr rtype;
+          pp_return_type;
           write " :=";
           newline;
           increase_indent;
