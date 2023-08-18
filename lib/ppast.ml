@@ -73,11 +73,16 @@ and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatOr xs -> parens (bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_sort_name_expr = function
+  | Constrexpr.CProp -> write "Prop"
+  | Constrexpr.CSet -> write "Set"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_sort_expr = function
   | Glob_term.UAnonymous { rigid = true } -> write "Type"
   | Glob_term.UAnonymous { rigid = false } ->
       fun printer -> raise (NotImplemented (contents printer))
-  | Glob_term.UNamed [ (Constrexpr.CSet, 0) ] -> write "Set"
+  | Glob_term.UNamed [ (sort, 0) ] -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
