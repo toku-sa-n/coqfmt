@@ -242,14 +242,11 @@ let pp_proof_end = function
         [ clear_bullets; write "Save"; space; pp_lident ident; write "." ]
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
       sequence [ clear_bullets; write "Qed." ]
-  | Vernacexpr.Proved (Vernacexpr.Transparent, ident) -> (
-      match ident with
-      | Some ident ->
-          sequence
-            [
-              clear_bullets; write "Defined"; space; pp_lident ident; write ".";
-            ]
-      | None -> sequence [ clear_bullets; write "Defined." ])
+  | Vernacexpr.Proved (Vernacexpr.Transparent, Some ident) ->
+      sequence
+        [ clear_bullets; write "Defined"; space; pp_lident ident; write "." ]
+  | Vernacexpr.Proved (Vernacexpr.Transparent, None) ->
+      sequence [ clear_bullets; write "Defined." ]
   | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
 let pp_theorem_kind = function
