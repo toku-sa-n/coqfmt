@@ -398,9 +398,13 @@ let pp_induction_clause_list = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacInductionDestruct (false, false, clause_list) ->
+  | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
-        [ write "destruct "; pp_induction_clause_list clause_list; write "." ]
+        [
+          (if is_induction then write "induction " else write "destruct ");
+          pp_induction_clause_list clause_list;
+          write ".";
+        ]
   | Tacexpr.TacIntroPattern
       (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
       write "intros."
