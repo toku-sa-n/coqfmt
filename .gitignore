@@ -33,4 +33,4 @@ _opam/
 *.vo
 *.vok
 *.vos
-test/require-test/bar.output.v
+test/require-test/Bar.output.v
