@@ -45,8 +45,12 @@ jobs:
       - name: Build
         run: opam exec -- dune build
 
-      - name: Run tests
+      - name: Run tests with dune
         run: opam exec -- dune test
+
+      - name: Run `Require` test
+        run: ./test.sh
+        working-directory: ./test/require-test
 
   prettier:
     runs-on: ubuntu-latest
