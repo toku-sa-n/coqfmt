@@ -1,1 +1,1 @@
-From X Require Export Bar.
+From X Require Export foo.
