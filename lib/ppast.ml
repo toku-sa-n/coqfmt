@@ -185,13 +185,28 @@ and pp_constr_expr_r = function
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
-      sequence
-        [
-          write "forall ";
-          spaced pp_local_binder_expr xs;
-          write ", ";
-          pp_constr_expr ty;
-        ]
+      let hor =
+        sequence
+          [
+            write "forall ";
+            spaced pp_local_binder_expr xs;
+            write ", ";
+            pp_constr_expr ty;
+          ]
+      in
+      let ver =
+        sequence
+          [
+            write "forall ";
+            spaced pp_local_binder_expr xs;
+            write ",";
+            newline;
+            increase_indent;
+            pp_constr_expr ty;
+            decrease_indent;
+          ]
+      in
+      hor <-|> ver
   | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -580,18 +595,38 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
-      sequence
-        [
-          pp_theorem_kind kind;
-          write " ";
-          pp_lident ident;
-          map_sequence
-            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-            args;
-          write " : ";
-          pp_constr_expr expr;
-          write ".";
-        ]
+      let hor =
+        sequence
+          [
+            pp_theorem_kind kind;
+            write " ";
+            pp_lident ident;
+            map_sequence
+              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+              args;
+            write " : ";
+            pp_constr_expr expr;
+            write ".";
+          ]
+      in
+      let ver =
+        sequence
+          [
+            pp_theorem_kind kind;
+            write " ";
+            pp_lident ident;
+            map_sequence
+              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+              args;
+            write " :";
+            newline;
+            increase_indent;
+            pp_constr_expr expr;
+            write ".";
+            decrease_indent;
+          ]
+      in
+      hor <-|> ver
   | VernacProof (None, None) -> sequence [ write "Proof."; increase_indent ]
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
