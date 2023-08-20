@@ -90,3 +90,12 @@ jobs:
 
       - name: Compile Coq files
         run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
+
+  eighty_columns_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: List formatted Coq files that have a line longer than 80 characters
+        run: find ./test/coq_files/**/out.v -printf '%p ' -exec wc -L {} \;|awk '$2 > 80 {print $1;error=1} END{exit error}'
