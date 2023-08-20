@@ -103,4 +103,4 @@ jobs:
       - name: List formatted Coq files that have a line longer than 80 characters
         run: |
           shopt -s globstar
-          find ./test/coq_files/**/out.v -printf '%p ' -exec wc -L {} \;|awk '$2 > 80 {print $1;error=1} END {exit error}'
+          find ./test/coq_files/**/out.v -exec wc -L {} \;|awk '$1 > 80 {print $2;error=1} END {exit error}'
