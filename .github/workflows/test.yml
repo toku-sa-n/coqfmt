@@ -104,7 +104,7 @@ jobs:
         run: |
           shopt -s globstar
           find ./test/coq_files/**/out.v -exec wc -L {} \;|awk '$1 > 80 {print $2;error=1} END {exit error}'
-          
+
   docker:
     runs-on: ubuntu-latest
 
