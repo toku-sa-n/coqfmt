@@ -88,19 +88,23 @@ let commad f = with_seps ~sep:(write ", ") f
 let spaced f = with_seps ~sep:space f
 let bard f = with_seps ~sep:(write " | ") f
 
-let ( <-|> ) horizontal vertical printer =
-  let hor_buffer = Buffer.create 16 in
-  Buffer.add_string hor_buffer (Buffer.contents printer.buffer);
+let copy_printer_by_value t =
+  let buffer = Buffer.create 16 in
+  let () = Buffer.add_string buffer (Buffer.contents t.buffer) in
+  {
+    buffer;
+    indent_spaces = t.indent_spaces;
+    columns = t.columns;
+    printed_newline = t.printed_newline;
+    hard_fail_on_exceeding_column_limit = t.hard_fail_on_exceeding_column_limit;
+    bullets = t.bullets;
+  }
 
-  (* OCaml copies values by reference, but we need to copy by value. *)
+let ( <-|> ) horizontal vertical printer =
   let hor_printer =
     {
-      buffer = hor_buffer;
-      indent_spaces = printer.indent_spaces;
-      columns = printer.columns;
-      printed_newline = printer.printed_newline;
+      (copy_printer_by_value printer) with
       hard_fail_on_exceeding_column_limit = true;
-      bullets = printer.bullets;
     }
   in
 
