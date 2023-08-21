@@ -403,8 +403,9 @@ let pp_induction_clause_list = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacAssert (false, true, Some None, Some _, _) ->
-      write "assert (H : 1 = 1)."
+  | Tacexpr.TacAssert (false, true, Some None, Some expr, _) ->
+      sequence
+        [ write "assert ("; pp_intro_pattern_expr expr.v; write " : 1 = 1)." ]
   | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
         [
