@@ -185,28 +185,18 @@ and pp_constr_expr_r = function
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
-      let hor =
-        sequence
-          [
-            write "forall ";
-            spaced pp_local_binder_expr xs;
-            write ", ";
-            pp_constr_expr ty;
-          ]
-      in
+      let hor = sequence [ space; pp_constr_expr ty ] in
       let ver =
         sequence
-          [
-            write "forall ";
-            spaced pp_local_binder_expr xs;
-            write ",";
-            newline;
-            increase_indent;
-            pp_constr_expr ty;
-            decrease_indent;
-          ]
+          [ newline; increase_indent; pp_constr_expr ty; decrease_indent ]
       in
-      hor <-|> ver
+      sequence
+        [
+          write "forall ";
+          spaced pp_local_binder_expr xs;
+          write ",";
+          hor <-|> ver;
+        ]
   | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
