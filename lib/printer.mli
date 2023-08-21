@@ -55,5 +55,9 @@ val spaced : ('a -> t -> unit) -> 'a list -> t -> unit
 val bard : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a bar-separated list of elements. *)
 
+val ( <-|> ) : (t -> unit) -> (t -> unit) -> t -> unit
+(** Try running the first printer. If the result fits in the columns limit, use
+  the result, and if not, runs the second printer. *)
+
 val contents : t -> string
 (** Get the contents of the printer. *)
