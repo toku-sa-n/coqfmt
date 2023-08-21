@@ -99,6 +99,14 @@ let copy_printer_by_value t =
     bullets = t.bullets;
   }
 
+let overwrite_printer src dst =
+  Buffer.clear dst.buffer;
+  Buffer.add_string dst.buffer (Buffer.contents src.buffer);
+  dst.indent_spaces <- src.indent_spaces;
+  dst.columns <- src.columns;
+  dst.printed_newline <- src.printed_newline;
+  dst.bullets <- src.bullets
+
 let ( <-|> ) horizontal vertical printer =
   let hor_printer =
     {
@@ -109,12 +117,7 @@ let ( <-|> ) horizontal vertical printer =
 
   try
     horizontal hor_printer;
-    Buffer.clear printer.buffer;
-    Buffer.add_string printer.buffer (Buffer.contents hor_printer.buffer);
-    printer.indent_spaces <- hor_printer.indent_spaces;
-    printer.columns <- hor_printer.columns;
-    printer.printed_newline <- hor_printer.printed_newline;
-    printer.bullets <- hor_printer.bullets
+    overwrite_printer hor_printer printer
   with Exceeded_column_limit ->
     if printer.hard_fail_on_exceeding_column_limit then
       raise Exceeded_column_limit
