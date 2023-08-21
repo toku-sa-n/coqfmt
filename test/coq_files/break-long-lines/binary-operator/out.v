@@ -1,6 +1,9 @@
 Theorem foo :
-  123456789123456789 = 123456789123456789 
-    -> 123456789123456789 = 123456789123456789.
+  forall (my_first_parameter my_second_parameter : nat),
+    my_first_parameter = my_second_parameter
+      -> my_first_parameter = my_second_parameter.
 Proof.
-  reflexivity
+  intros my_first_parameter my_second_parameter H.
+  rewrite -> H.
+  reflexivity.
 Qed.
