@@ -1,11 +1,16 @@
 type t = {
   buffer : Buffer.t;
   mutable indent_spaces : int;
+  mutable columns : int;
   mutable printed_newline : bool;
+  hard_fail_on_exceeding_column_limit : bool;
   mutable bullets : Proof_bullet.t list;
 }
 
+exception Exceeded_column_limit
+
 let tab_size = 2
+let columns_limit = 80
 
 (* {{The doc} https://v2.ocaml.org/api/Buffer.html} says to allocate 16 buffers
    if unsure. *)
@@ -13,7 +18,9 @@ let create () =
   {
     buffer = Buffer.create 16;
     indent_spaces = 0;
+    columns = 0;
     printed_newline = false;
+    hard_fail_on_exceeding_column_limit = false;
     bullets = [];
   }
 
@@ -25,16 +32,23 @@ let calculate_indent t =
   t.indent_spaces + ((tab_size + 2) * List.length t.bullets)
 
 let write s t =
-  if t.printed_newline then
-    String.make (calculate_indent t) ' ' |> Buffer.add_string t.buffer;
-  Buffer.add_string t.buffer s;
-  t.printed_newline <- false
+  let string_to_push =
+    if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
+  in
+  let new_columns = t.columns + String.length string_to_push in
+  if t.hard_fail_on_exceeding_column_limit && new_columns > columns_limit then
+    raise Exceeded_column_limit;
+
+  Buffer.add_string t.buffer string_to_push;
+  t.printed_newline <- false;
+  t.columns <- new_columns
 
 let space = write " "
 
 let newline t =
   Buffer.add_char t.buffer '\n';
-  t.printed_newline <- true
+  t.printed_newline <- true;
+  t.columns <- 0
 
 let blankline t =
   newline t;
@@ -72,4 +86,41 @@ let with_seps ~sep f xs =
 let commad f = with_seps ~sep:(write ", ") f
 let spaced f = with_seps ~sep:space f
 let bard f = with_seps ~sep:(write " | ") f
+
+let copy_printer_by_value t =
+  let buffer = Buffer.create 16 in
+  let () = Buffer.add_string buffer (Buffer.contents t.buffer) in
+  {
+    buffer;
+    indent_spaces = t.indent_spaces;
+    columns = t.columns;
+    printed_newline = t.printed_newline;
+    hard_fail_on_exceeding_column_limit = t.hard_fail_on_exceeding_column_limit;
+    bullets = t.bullets;
+  }
+
+let overwrite_printer src dst =
+  Buffer.clear dst.buffer;
+  Buffer.add_string dst.buffer (Buffer.contents src.buffer);
+  dst.indent_spaces <- src.indent_spaces;
+  dst.columns <- src.columns;
+  dst.printed_newline <- src.printed_newline;
+  dst.bullets <- src.bullets
+
+let ( <-|> ) horizontal vertical printer =
+  let hor_printer =
+    {
+      (copy_printer_by_value printer) with
+      hard_fail_on_exceeding_column_limit = true;
+    }
+  in
+
+  try
+    horizontal hor_printer;
+    overwrite_printer hor_printer printer
+  with Exceeded_column_limit ->
+    if printer.hard_fail_on_exceeding_column_limit then
+      raise Exceeded_column_limit
+    else vertical printer
+
 let contents t = Buffer.contents t.buffer
