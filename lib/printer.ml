@@ -33,7 +33,6 @@ let calculate_indent t =
 
 let write s t =
   let string_to_push =
-    (* TODO: Is this efficient? *)
     if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
   in
   let new_columns = t.columns + String.length string_to_push in
