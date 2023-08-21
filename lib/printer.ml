@@ -58,7 +58,8 @@ let increase_indent t = t.indent_spaces <- t.indent_spaces + tab_size
 
 let decrease_indent t =
   t.indent_spaces <- t.indent_spaces - tab_size;
-  assert (t.indent_spaces >= 0)
+  if t.indent_spaces < 0 then
+    failwith ("indent_spaces<0 : " ^ Buffer.contents t.buffer)
 
 let write_before_indent s t =
   t.indent_spaces <- t.indent_spaces - String.length s;
