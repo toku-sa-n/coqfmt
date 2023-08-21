@@ -267,6 +267,7 @@ let pp_proof_end = function
   | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
 let pp_theorem_kind = function
+  | Decls.Lemma -> write "Lemma"
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
