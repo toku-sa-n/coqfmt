@@ -1,6 +1,6 @@
-Inductive foo: Type :=
+Inductive foo : Type :=
   | bar
   | baz
-with hoge: Type :=
+with hoge : Type :=
   | fuga
   | piyo.

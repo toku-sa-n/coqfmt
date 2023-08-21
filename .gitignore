@@ -27,3 +27,10 @@ setup.log
 
 # Local OPAM switch
 _opam/
+
+*.aux
+*.glob
+*.vo
+*.vok
+*.vos
+test/require-test/Bar.output.v

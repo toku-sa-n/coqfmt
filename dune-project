@@ -21,10 +21,12 @@
  (description "Coqfmt formats the given Coq source code in a uniform style.")
  (depends
   alcotest
-  cmdliner
-  coq ; FIXME: We should not specify Coq as a dependency as users may have
-      ; already installed it. However, removing it and installing Coq via
-      ; opam causes a build error on CI.
+  ; FIXME: We should not specify Coq but `coq-core` as a dependency as users may
+  ; have already installed it. However, removing it and installing Coq via opam
+  ; causes a build error on CI.
+  (coq
+   (= 8.17.1))
+  coq-serapi
   dune
   dune-build-info
   ocaml))
