@@ -60,6 +60,8 @@ let decrease_indent t =
   t.indent_spaces <- t.indent_spaces - tab_size;
   assert (t.indent_spaces >= 0)
 
+let indented f = sequence [ increase_indent; f; decrease_indent ]
+
 let write_before_indent s t =
   t.indent_spaces <- t.indent_spaces - String.length s;
   write s t;
