@@ -1,9 +1,9 @@
-Definition allzero (n m : nat) :=
+Definition allzero (m n : nat) :=
   match m with
   | O =>
     match n with
     | O => true
-    | S _ => false
+    | _ => false
     end
   | _ => false
   end.
