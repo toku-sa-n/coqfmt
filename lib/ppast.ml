@@ -580,25 +580,19 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
       parens (commad (fun import_cat -> write import_cat.v) import_cats);
     ]
 
-let pp_export_with_cats = function
-  | Vernacexpr.Export, import_categories ->
-      sequence
-        [
-          space;
-          write "Export";
-          (match import_categories with
-          | None -> nop
-          | Some x -> pp_import_categories x);
-        ]
-  | Vernacexpr.Import, import_categories ->
-      sequence
-        [
-          space;
-          write "Import";
-          (match import_categories with
-          | None -> nop
-          | Some x -> pp_import_categories x);
-        ]
+let pp_export_flag = function
+  | Vernacexpr.Export -> write "Export"
+  | Vernacexpr.Import -> write "Import"
+
+let pp_export_with_cats (flag, import_categories) =
+  sequence
+    [
+      space;
+      pp_export_flag flag;
+      (match import_categories with
+      | None -> nop
+      | Some x -> pp_import_categories x);
+    ]
 
 let pp_import_filter_expr import_filter_expr =
   match import_filter_expr with
