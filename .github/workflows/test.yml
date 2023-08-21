@@ -104,3 +104,15 @@ jobs:
         run: |
           shopt -s globstar
           find ./test/coq_files/**/out.v -exec wc -L {} \;|awk '$1 > 80 {print $2;error=1} END {exit error}'
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t coqfmt .
+
+      - name: Run Docker image
+        run: docker run --rm coqfmt --version
