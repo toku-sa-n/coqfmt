@@ -477,7 +477,51 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "constr" ] ];
+        rems;
+      ]
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "uconstr" ] ];
+        rems;
+      ] ->
+      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
+  | _ -> None
+
 let pp_gen_tactic_expr_r = function
+  | Tacexpr.TacAlias (alias, init_replacers) ->
+      (* FIXME: Needs refactoring. *)
+      let id = Names.KerName.label alias |> Names.Label.to_string in
+      let init xs = List.rev xs |> List.tl |> List.rev in
+
+      (* The last element is Coq's internal ID and we don't need it. *)
+      let init_idents = String.split_on_char '_' id |> init in
+      let spaced' fs =
+        List.mapi
+          (fun i f -> match i with 0 -> f | _ -> sequence [ space; f ])
+          fs
+        |> sequence
+      in
+      let rec loop idents replacers =
+        match (idents, replacers) with
+        | "#" :: _, [] -> failwith "Too few replacers."
+        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
+            match constr_expr_of_raw_generic_argument args with
+            | None -> loop t_ids t_reps
+            | Some h_reps -> pp_constr_expr h_reps :: loop t_ids t_reps)
+        | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
+        | [], [] -> []
+        | [], _ -> failwith "Too many replacers."
+        | h_id :: t_id, _ -> write h_id :: loop t_id replacers
+      in
+      sequence [ loop init_idents init_replacers |> spaced'; write "." ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
