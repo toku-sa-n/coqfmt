@@ -746,7 +746,11 @@ let separator current next =
     when is_tactic tactic ->
       sequence [ newline; increase_indent ]
   | _, VernacProof _
-  | VernacCheckMayEval _, VernacCheckMayEval _
+  (* `Compute` *)
+  | ( VernacCheckMayEval (Some (CbvVm None), _, _),
+      VernacCheckMayEval (Some (CbvVm None), _, _) )
+  (* `Check` *)
+  | VernacCheckMayEval (None, _, _), VernacCheckMayEval (None, _, _)
   | VernacNotation _, VernacNotation _
   | VernacDefineModule _, _
   | _, VernacEndSegment _ ->
