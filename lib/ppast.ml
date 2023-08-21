@@ -585,30 +585,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
-      let hor =
-        sequence
-          [
-            pp_theorem_kind kind;
-            write " ";
-            pp_lident ident;
-            map_sequence
-              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-              args;
-            write " : ";
-            pp_constr_expr expr;
-            write ".";
-          ]
-      in
+      let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
         sequence
           [
-            pp_theorem_kind kind;
-            write " ";
-            pp_lident ident;
-            map_sequence
-              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-              args;
-            write " :";
             newline;
             increase_indent;
             pp_constr_expr expr;
@@ -616,7 +596,17 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
             decrease_indent;
           ]
       in
-      hor <-|> ver
+      sequence
+        [
+          pp_theorem_kind kind;
+          space;
+          pp_lident ident;
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
+          write " :";
+          hor <-|> ver;
+        ]
   | VernacProof (None, None) -> sequence [ write "Proof."; increase_indent ]
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
