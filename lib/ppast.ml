@@ -138,6 +138,7 @@ and pp_constr_expr_r = function
           decrease_indent;
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
+  (* FIXME: Needs refactoring. *)
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) -> (
       let open CAst in
