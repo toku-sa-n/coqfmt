@@ -129,13 +129,15 @@ and pp_constr_expr_r = function
           write "if ";
           pp_constr_expr cond;
           newline;
-          increase_indent;
-          write "then ";
-          pp_constr_expr t;
-          newline;
-          write "else ";
-          pp_constr_expr f;
-          decrease_indent;
+          indented
+            (sequence
+               [
+                 write "then ";
+                 pp_constr_expr t;
+                 newline;
+                 write "else ";
+                 pp_constr_expr f;
+               ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   (* FIXME: Needs refactoring. *)
@@ -174,11 +176,7 @@ and pp_constr_expr_r = function
               [
                 conditional_parens l;
                 newline;
-                increase_indent;
-                write op;
-                space;
-                pp_constr_expr r;
-                decrease_indent;
+                indented (sequence [ write op; space; pp_constr_expr r ]);
               ]
           in
           hor <-|> ver
@@ -212,10 +210,7 @@ and pp_constr_expr_r = function
       spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
       let hor = sequence [ space; pp_constr_expr ty ] in
-      let ver =
-        sequence
-          [ newline; increase_indent; pp_constr_expr ty; decrease_indent ]
-      in
+      let ver = sequence [ newline; indented (pp_constr_expr ty) ] in
       sequence
         [
           write "forall ";
@@ -255,10 +250,7 @@ and pp_branch_expr = function
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
       let hor = sequence [ space; pp_constr_expr expr ] in
-      let ver =
-        sequence
-          [ newline; increase_indent; pp_constr_expr expr; decrease_indent ]
-      in
+      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
       sequence
         [
           map_sequence
@@ -278,9 +270,7 @@ let pp_definition_expr = function
           | Some ty -> sequence [ write " : "; pp_constr_expr ty ]);
           write " :=";
           newline;
-          increase_indent;
-          pp_constr_expr def_body;
-          decrease_indent;
+          indented (pp_constr_expr def_body);
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -326,10 +316,7 @@ let pp_fixpoint_expr = function
           pp_return_type;
           write " :=";
           newline;
-          increase_indent;
-          pp_constr_expr body_def;
-          write ".";
-          decrease_indent;
+          indented (sequence [ pp_constr_expr body_def; write "." ]);
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -667,13 +654,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
         sequence
-          [
-            newline;
-            increase_indent;
-            pp_constr_expr expr;
-            write ".";
-            decrease_indent;
-          ]
+          [ newline; indented (sequence [ pp_constr_expr expr; write "." ]) ]
       in
       sequence
         [
@@ -701,9 +682,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
                 | Some ty -> sequence [ write " : "; pp_constr_expr ty ]
                 | None -> nop);
                 write " :=";
-                increase_indent;
-                map_sequence pp_construtor_expr constructors;
-                decrease_indent;
+                indented (map_sequence pp_construtor_expr constructors);
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
