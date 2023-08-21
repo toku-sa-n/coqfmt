@@ -3,6 +3,8 @@ type t = {
   mutable indent_spaces : int;
   mutable columns : int;
   mutable printed_newline : bool;
+  (* TODO: Rename this as it is used not only for detecting the columns limit,
+     but also the appearances of newlines. *)
   hard_fail_on_exceeding_column_limit : bool;
   mutable bullets : Proof_bullet.t list;
 }
@@ -46,6 +48,7 @@ let write s t =
 let space = write " "
 
 let newline t =
+  if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true;
   t.columns <- 0
