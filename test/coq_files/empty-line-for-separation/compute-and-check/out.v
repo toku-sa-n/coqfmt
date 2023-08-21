@@ -4,5 +4,8 @@ Definition foo :=
 Compute foo.
 Compute foo.
 
+Check foo.
+Check foo.
+
 Definition bar :=
   2.
