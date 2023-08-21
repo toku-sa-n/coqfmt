@@ -228,14 +228,30 @@ and pp_branch_expr = function
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
-      sequence
-        [
-          map_sequence
-            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-            args;
-          write " : ";
-          pp_constr_expr expr;
-        ]
+      let hor =
+        sequence
+          [
+            map_sequence
+              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+              args;
+            write " : ";
+            pp_constr_expr expr;
+          ]
+      in
+      let ver =
+        sequence
+          [
+            map_sequence
+              (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+              args;
+            write " :";
+            newline;
+            increase_indent;
+            pp_constr_expr expr;
+            decrease_indent;
+          ]
+      in
+      hor <-|> ver
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       sequence
         [
