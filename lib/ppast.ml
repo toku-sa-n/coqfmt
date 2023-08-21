@@ -465,6 +465,7 @@ let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
 
 let pp_gen_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
+      (* FIXME: Needs refactoring. *)
       let id = Names.KerName.label alias |> Names.Label.to_string in
       let init xs = List.rev xs |> List.tl |> List.rev in
 
