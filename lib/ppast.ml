@@ -244,28 +244,18 @@ and pp_local_binder_expr = function
 
 and pp_branch_expr = function
   | CAst.{ v = patterns, expr; loc = _ } ->
-      let hor =
-        sequence
-          [
-            write "| ";
-            bard (commad pp_cases_pattern_expr) patterns;
-            write " => ";
-            pp_constr_expr expr;
-          ]
-      in
+      let hor = sequence [ space; pp_constr_expr expr ] in
       let ver =
         sequence
-          [
-            write "| ";
-            bard (commad pp_cases_pattern_expr) patterns;
-            write " =>";
-            newline;
-            increase_indent;
-            pp_constr_expr expr;
-            decrease_indent;
-          ]
+          [ newline; increase_indent; pp_constr_expr expr; decrease_indent ]
       in
-      hor <-|> ver
+      sequence
+        [
+          write "| ";
+          bard (commad pp_cases_pattern_expr) patterns;
+          write " =>";
+          hor <-|> ver;
+        ]
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
