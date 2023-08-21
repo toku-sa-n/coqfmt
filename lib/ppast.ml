@@ -228,13 +228,18 @@ and pp_branch_expr = function
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
+      let hor = sequence [ space; pp_constr_expr expr ] in
+      let ver =
+        sequence
+          [ newline; increase_indent; pp_constr_expr expr; decrease_indent ]
+      in
       sequence
         [
           map_sequence
             (fun arg -> sequence [ space; pp_local_binder_expr arg ])
             args;
-          write " : ";
-          pp_constr_expr expr;
+          write " :";
+          hor <-|> ver;
         ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       sequence
@@ -267,6 +272,7 @@ let pp_proof_end = function
   | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
 let pp_theorem_kind = function
+  | Decls.Lemma -> write "Lemma"
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
