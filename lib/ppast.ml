@@ -211,12 +211,14 @@ and pp_local_binder_expr = function
 
 and pp_branch_expr = function
   | CAst.{ v = patterns, expr; loc = _ } ->
+      let hor = sequence [ space; pp_constr_expr expr ] in
+      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
       sequence
         [
           write "| ";
           bard (commad pp_cases_pattern_expr) patterns;
-          write " => ";
-          pp_constr_expr expr;
+          write " =>";
+          hor <-|> ver;
         ]
 
 let pp_definition_expr = function
