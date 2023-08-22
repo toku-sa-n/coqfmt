@@ -74,6 +74,19 @@ jobs:
 
       - uses: ocaml/setup-ocaml/lint-fmt@v2
 
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: "4.14.1"
+          dune-cache: true
+
+      - uses: ocaml/setup-ocaml/deploy-doc@v2
+
   test_coq_files:
     runs-on: ubuntu-latest
 
