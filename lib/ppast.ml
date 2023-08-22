@@ -165,7 +165,7 @@ and pp_constr_expr_r = function
           let op =
             match String.split_on_char '_' init_notation with
             | [ _; op; _ ] -> String.trim op
-            | _ -> failwith "Could'nt parse the notation"
+            | _ -> failwith "Couldn't parse the notation"
           in
           let hor =
             sequence
