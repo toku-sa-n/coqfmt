@@ -565,7 +565,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
   match expr with
-  | VernacAbort -> sequence [ decrease_indent; write "Abort." ]
+  | VernacAbort -> sequence [ decrease_indent; clear_bullets; write "Abort." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       sequence
         [
