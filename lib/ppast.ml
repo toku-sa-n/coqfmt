@@ -140,7 +140,6 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
-  (* FIXME: Needs refactoring. *)
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) ->
       let open CAst in
