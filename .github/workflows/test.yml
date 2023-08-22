@@ -74,30 +74,6 @@ jobs:
 
       - uses: ocaml/setup-ocaml/lint-fmt@v2
 
-  doc:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: ocaml/setup-ocaml@v2
-        with:
-          ocaml-compiler: "4.14.1"
-          dune-cache: true
-
-      - name: Install dependencies
-        run: opam install --deps-only .
-
-      - name: Build documentation
-        run: opam exec -- dune build @doc
-
-      - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_build/default/_doc/_html
-          publish_branch: gh-pages
-
   test_coq_files:
     runs-on: ubuntu-latest
 
@@ -109,7 +85,11 @@ jobs:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/deploy-doc@v2
+      - name: Install Coq
+        run: opam install coq
+
+      - name: Compile Coq files
+        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
 
   eighty_columns_check:
     runs-on: ubuntu-latest
