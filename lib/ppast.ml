@@ -180,21 +180,7 @@ and pp_constr_expr_r = function
               ]
           in
           hor <-|> ver
-      | _ ->
-          let pop_string s = String.sub s 1 (String.length s - 1) in
-          let rec loop notation replacers =
-            match (notation, replacers) with
-            | "", [] -> nop
-            | "", _ -> fun _ -> failwith "Not all relpacers are consumed."
-            | s, [ x ] when String.starts_with ~prefix:"_" s ->
-                sequence [ pp_constr_expr x; loop (pop_string s) [] ]
-            | s, h :: t when String.starts_with ~prefix:"_" s ->
-                sequence [ conditional_parens h; loop (pop_string s) t ]
-            | s, _ ->
-                sequence
-                  [ write (String.sub s 0 1); loop (pop_string s) replacers ]
-          in
-          loop init_notation init_replacers)
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       spaced pp_local_binder_expr xs
