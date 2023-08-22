@@ -18,6 +18,10 @@ Just input your Coq code from stdin. Coqfmt will print the formatted code to std
 
 See `coqfmt --help` for more detail.
 
+## Don't like the formatted code?
+
+Open an issue, please! We're still figuring out what the best style is.
+
 ## License
 
 Copyright (C) 2023 Hiroki Tokunaga

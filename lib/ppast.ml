@@ -140,9 +140,8 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
-  (* FIXME: Needs refactoring. *)
   | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) -> (
+      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) ->
       let open CAst in
       (* CProdN denotes a `forall foo, ... ` value. This value needs to be
          enclosed by parentheses if it is not on the rightmost position,
@@ -160,51 +159,24 @@ and pp_constr_expr_r = function
         if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
-      match init_replacers with
-      | [ l; r ] ->
-          let op =
-            match String.split_on_char '_' init_notation with
-            | [ _; op; _ ] -> String.trim op
-            | _ -> failwith "Couldn't parse the notation"
-          in
-          let hor =
-            sequence
-              [ conditional_parens l; space; write op; space; pp_constr_expr r ]
-          in
-          let ver =
-            sequence
-              [
-                conditional_parens l;
-                newline;
-                indented (sequence [ write op; space; pp_constr_expr r ]);
-              ]
-          in
-          hor <-|> ver
-      | _ ->
-          let rec loop notation replacers =
-            match (notation, replacers) with
-            | "", [] -> nop
-            | "", _ -> fun _ -> failwith "Not all relpacers are consumed."
-            | s, [ x ] when String.starts_with ~prefix:"_" s ->
-                sequence
-                  [
-                    pp_constr_expr x;
-                    loop (String.sub s 1 (String.length s - 1)) [];
-                  ]
-            | s, h :: t when String.starts_with ~prefix:"_" s ->
-                sequence
-                  [
-                    conditional_parens h;
-                    loop (String.sub s 1 (String.length s - 1)) t;
-                  ]
-            | s, _ ->
-                sequence
-                  [
-                    write (String.sub s 0 1);
-                    loop (String.sub s 1 (String.length s - 1)) replacers;
-                  ]
-          in
-          loop init_notation init_replacers)
+      let op =
+        match String.split_on_char '_' init_notation with
+        | [ _; op; _ ] -> String.trim op
+        | _ -> failwith "Couldn't parse the notation"
+      in
+      let hor =
+        sequence
+          [ conditional_parens l; space; write op; space; pp_constr_expr r ]
+      in
+      let ver =
+        sequence
+          [
+            conditional_parens l;
+            newline;
+            indented (sequence [ write op; space; pp_constr_expr r ]);
+          ]
+      in
+      hor <-|> ver
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       spaced pp_local_binder_expr xs
