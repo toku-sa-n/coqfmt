@@ -31,6 +31,8 @@ val decrease_indent : t -> unit
 val indented : (t -> unit) -> t -> unit
 (** Write out the given function with increased indent level. *)
 
+val ( |=> ) : (t -> unit) -> (t -> unit) -> t -> unit
+
 val write_before_indent : string -> t -> unit
 (** Write out the given string before the indent spaces. Mostly for writing bullets. *)
 

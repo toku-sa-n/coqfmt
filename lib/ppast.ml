@@ -3,6 +3,8 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
+type fixity = LeftFixity | RightFixity | UnknownFixity
+
 let nop _ = ()
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
@@ -141,7 +143,7 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) ->
+      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) as op ->
       let open CAst in
       (* CProdN denotes a `forall foo, ... ` value. This value needs to be
          enclosed by parentheses if it is not on the rightmost position,
@@ -159,22 +161,84 @@ and pp_constr_expr_r = function
         if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
-      let op =
-        match String.split_on_char '_' init_notation with
+
+      let op_level = function
+        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
+            Some (Notation.level_of_notation notation)
+        | _ -> None
+      in
+
+      let fixity = function
+        | Constrexpr.CNotation (None, _, ([ l; r ], [], [], [])) ->
+            Some
+              (if op_level op = op_level l.v then LeftFixity
+               else if op_level op = op_level r.v then RightFixity
+               else UnknownFixity)
+        | _ -> None
+      in
+
+      let op_str notation =
+        match String.split_on_char '_' notation with
         | [ _; op; _ ] -> String.trim op
         | _ -> failwith "Couldn't parse the notation"
       in
-      let hor =
-        sequence
-          [ conditional_parens l; space; write op; space; pp_constr_expr r ]
+
+      let printers_left_assoc =
+        let rec collect expr =
+          match expr.v with
+          | Constrexpr.CNotation
+              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
+            when op_level op = op_level l.v ->
+              conditional_parens r :: write (op_str notation) :: collect l
+          | _ -> [ conditional_parens expr ]
+        in
+
+        pp_constr_expr r :: write (op_str init_notation) :: collect l
+        |> List.rev
       in
+
+      let printers_right_assoc =
+        let rec collect expr =
+          match expr.v with
+          | Constrexpr.CNotation
+              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
+            when op_level op = op_level r.v ->
+              conditional_parens l :: write (op_str notation) :: collect r
+          | _ -> [ pp_constr_expr expr ]
+        in
+
+        conditional_parens l :: write (op_str init_notation) :: collect r
+      in
+
+      let printers =
+        match fixity op with
+        | Some LeftFixity -> printers_left_assoc
+        | Some RightFixity | Some UnknownFixity | None -> printers_right_assoc
+      in
+
+      (* TODO: Refactor. *)
+      let spaced' fs =
+        List.mapi
+          (fun i f -> match i with 0 -> f | _ -> sequence [ space; f ])
+          fs
+        |> sequence
+      in
+
+      let hor = spaced' printers in
       let ver =
-        sequence
-          [
-            conditional_parens l;
-            newline;
-            indented (sequence [ write op; space; pp_constr_expr r ]);
-          ]
+        let rec f = function
+          | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
+          | o :: r :: rems ->
+              sequence [ sequence [ o; space ] |=> r; newline; f rems ]
+          | _ -> failwith ""
+        in
+
+        let pretty_ops = function
+          | h :: t -> sequence [ h; newline; indented (f t) ]
+          | _ -> failwith "Too short list"
+        in
+
+        pretty_ops printers
       in
       hor <-|> ver
   | Constrexpr.CPrim prim -> pp_prim_token prim
