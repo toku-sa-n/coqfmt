@@ -1,6 +1,6 @@
 Theorem foo :
   forall (tokyo osaka sapporo kobe fukuoka nagoya : nat),
-    tokyo = osako
+    tokyo = osaka
       -> osaka = sapporo
       -> sapporo = kobe
       -> kobe = fukuoka
