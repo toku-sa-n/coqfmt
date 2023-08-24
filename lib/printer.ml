@@ -91,7 +91,7 @@ let with_seps ~sep f xs =
 
 let map_commad f = with_seps ~sep:(write ", ") f
 let map_spaced f = with_seps ~sep:space f
-let bard f = with_seps ~sep:(write " | ") f
+let map_bard f = with_seps ~sep:(write " | ") f
 
 let copy_printer_by_value t =
   let buffer = Buffer.create 16 in

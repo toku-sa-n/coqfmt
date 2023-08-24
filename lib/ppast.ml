@@ -70,7 +70,7 @@ and pp_cases_pattern_expr_r = function
           write suffix;
         ]
   | Constrexpr.CPatPrim token -> pp_prim_token token
-  | Constrexpr.CPatOr xs -> parens (bard pp_cases_pattern_expr xs)
+  | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_name_expr = function
@@ -216,7 +216,7 @@ and pp_branch_expr = function
       sequence
         [
           write "| ";
-          bard (map_commad pp_cases_pattern_expr) patterns;
+          map_bard (map_commad pp_cases_pattern_expr) patterns;
           write " =>";
           hor <-|> ver;
         ]
