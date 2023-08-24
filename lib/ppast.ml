@@ -183,20 +183,6 @@ and pp_constr_expr_r = function
         | _ -> failwith "Couldn't parse the notation"
       in
 
-      let printers_left_assoc =
-        let rec collect expr =
-          match expr.v with
-          | Constrexpr.CNotation
-              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
-            when op_level op = op_level l.v ->
-              conditional_parens r :: write (op_str notation) :: collect l
-          | _ -> [ conditional_parens expr ]
-        in
-
-        pp_constr_expr r :: write (op_str init_notation) :: collect l
-        |> List.rev
-      in
-
       let printers_right_assoc =
         let rec collect expr =
           match expr.v with
@@ -212,7 +198,7 @@ and pp_constr_expr_r = function
 
       let printers =
         match fixity op with
-        | Some LeftFixity -> printers_left_assoc
+        | Some LeftFixity -> printers_right_assoc
         | Some RightFixity | Some UnknownFixity | None -> printers_right_assoc
       in
 
