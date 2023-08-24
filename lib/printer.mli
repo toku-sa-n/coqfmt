@@ -52,7 +52,7 @@ val with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a comma-separated list of elements. *)
 
-val spaced : ('a -> t -> unit) -> 'a list -> t -> unit
+val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a space-separated list of elements. *)
 
 val bard : ('a -> t -> unit) -> 'a list -> t -> unit
