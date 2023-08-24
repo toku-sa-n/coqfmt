@@ -202,7 +202,7 @@ and pp_constr_expr_r = function
           match expr.v with
           | Constrexpr.CNotation
               (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
-            when op_level op = op_level r.v ->
+            when op_level op = op_level expr.v ->
               conditional_parens l :: write (op_str notation) :: collect r
           | _ -> [ pp_constr_expr expr ]
         in
