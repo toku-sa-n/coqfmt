@@ -3,8 +3,6 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
-type fixity = LeftFixity | RightFixity | UnknownFixity
-
 let nop _ = ()
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
@@ -168,15 +166,6 @@ and pp_constr_expr_r = function
         | _ -> None
       in
 
-      let fixity = function
-        | Constrexpr.CNotation (None, _, ([ l; r ], [], [], [])) ->
-            Some
-              (if op_level op = op_level l.v then LeftFixity
-               else if op_level op = op_level r.v then RightFixity
-               else UnknownFixity)
-        | _ -> None
-      in
-
       let op_str notation =
         match String.split_on_char '_' notation with
         | [ _; op; _ ] -> String.trim op
@@ -196,11 +185,7 @@ and pp_constr_expr_r = function
         conditional_parens l :: write (op_str init_notation) :: collect r
       in
 
-      let printers =
-        match fixity op with
-        | Some LeftFixity -> printers_right_assoc
-        | Some RightFixity | Some UnknownFixity | None -> printers_right_assoc
-      in
+      let printers = printers_right_assoc in
 
       (* TODO: Refactor. *)
       let spaced' fs =
