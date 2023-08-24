@@ -113,7 +113,7 @@ and pp_constr_expr_r = function
       sequence
         [
           write "match ";
-          commad pp_case_expr matchees;
+          map_commad pp_case_expr matchees;
           write " with";
           newline;
           map_sequence
@@ -216,7 +216,7 @@ and pp_branch_expr = function
       sequence
         [
           write "| ";
-          bard (commad pp_cases_pattern_expr) patterns;
+          bard (map_commad pp_cases_pattern_expr) patterns;
           write " =>";
           hor <-|> ver;
         ]
@@ -533,7 +533,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
     [
       space;
       (if negative then write "-" else nop);
-      parens (commad (fun import_cat -> write import_cat.v) import_cats);
+      parens (map_commad (fun import_cat -> write import_cat.v) import_cats);
     ]
 
 let pp_export_flag = function
@@ -558,7 +558,8 @@ let pp_import_filter_expr import_filter_expr =
         [
           (* FIXME: The Coq parser will raise an exception here if Export/Import
              was omitted *)
-          parens (commad (fun (filter_name, _) -> pp_qualid filter_name) names);
+          parens
+            (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
         ]
 
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
@@ -599,7 +600,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           [
             space;
             parens
-              (commad
+              (map_commad
                  (fun modifier ->
                    let open CAst in
                    pp_syntax_modifier modifier.v)

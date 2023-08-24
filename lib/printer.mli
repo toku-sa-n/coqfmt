@@ -49,7 +49,7 @@ val brackets : (t -> unit) -> t -> unit
 val with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 (** Arrange a series of elements with [~sep] as the delimiter  *)
 
-val commad : ('a -> t -> unit) -> 'a list -> t -> unit
+val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Write out a comma-separated list of elements. *)
 
 val spaced : ('a -> t -> unit) -> 'a list -> t -> unit

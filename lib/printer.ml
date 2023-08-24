@@ -89,7 +89,7 @@ let with_seps ~sep f xs =
        (fun i x -> match i with 0 -> f x | _ -> sequence [ sep; f x ])
        xs)
 
-let commad f = with_seps ~sep:(write ", ") f
+let map_commad f = with_seps ~sep:(write ", ") f
 let spaced f = with_seps ~sep:space f
 let bard f = with_seps ~sep:(write " | ") f
 
