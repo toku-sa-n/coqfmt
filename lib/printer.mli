@@ -49,14 +49,17 @@ val brackets : (t -> unit) -> t -> unit
 val with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 (** Arrange a series of elements with [~sep] as the delimiter  *)
 
-val commad : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Write out a comma-separated list of elements. *)
+val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
+(** Map the elements of the given list to printers and run them
+  comma-separatedly. *)
 
-val spaced : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Write out a space-separated list of elements. *)
+val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
+(** Map the elements of the given list to printers and run them
+  space-separatedly. *)
 
-val bard : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Write out a bar-separated list of elements. *)
+val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
+(** Map the elements of the given list to printers and run them
+  bar-separatedly. *)
 
 val ( <-|> ) : (t -> unit) -> (t -> unit) -> t -> unit
 (** Try running the first printer. If the result fits in the columns limit, use
