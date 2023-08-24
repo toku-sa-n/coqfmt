@@ -172,7 +172,7 @@ and pp_constr_expr_r = function
         | _ -> failwith "Couldn't parse the notation"
       in
 
-      let printers_right_assoc =
+      let printers =
         let rec collect expr =
           match expr.v with
           | Constrexpr.CNotation
@@ -184,8 +184,6 @@ and pp_constr_expr_r = function
 
         conditional_parens l :: write (op_str init_notation) :: collect r
       in
-
-      let printers = printers_right_assoc in
 
       (* TODO: Refactor. *)
       let spaced' fs =
