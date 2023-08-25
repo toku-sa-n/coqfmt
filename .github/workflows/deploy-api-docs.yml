@@ -1,4 +1,4 @@
-name: API docs
+name: Deploy API docs
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  docs:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
