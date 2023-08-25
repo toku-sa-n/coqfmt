@@ -540,15 +540,6 @@ let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
 
-let is_tactic = function
-  | Vernacexpr.VernacExtend (_, args)
-    when List.exists
-           (fun x ->
-             raw_tactic_expr_of_raw_generic_argument x |> Option.has_some)
-           args ->
-      true
-  | _ -> false
-
 let pp_ltac =
   map_sequence (fun arg ->
       match raw_tactic_expr_of_raw_generic_argument arg with
@@ -600,7 +591,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
   match expr with
-  | VernacAbort -> sequence [ decrease_indent; clear_bullets; write "Abort." ]
+  | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       sequence
         [
@@ -676,7 +667,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write " :";
           hor <-|> ver;
         ]
-  | VernacProof (None, None) -> sequence [ write "Proof."; increase_indent ]
+  | VernacProof (None, None) -> write "Proof."
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
@@ -705,8 +696,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args
-  | VernacEndProof proof_end ->
-      sequence [ decrease_indent; pp_proof_end proof_end ]
+  | VernacEndProof proof_end -> pp_proof_end proof_end
   | VernacBullet bullet ->
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
   | VernacSubproof None -> sequence [ write "{"; increase_indent ]
@@ -751,9 +741,14 @@ let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
-  | (VernacStartTheoremProof _, tactic | VernacDefinition _, tactic)
-    when is_tactic tactic ->
-      sequence [ newline; increase_indent ]
+  | VernacStartTheoremProof _, VernacAbort
+  | VernacStartTheoremProof _, VernacEndProof _
+  | VernacStartTheoremProof _, VernacProof _
+  | VernacDefinition _, VernacAbort
+  | VernacDefinition _, VernacEndProof _
+  | VernacDefinition _, VernacProof _
+  | VernacProof _, VernacAbort
+  | VernacProof _, VernacEndProof _
   | _, VernacProof _
   (* `Compute` *)
   | ( VernacCheckMayEval (Some (CbvVm None), _, _),
@@ -764,6 +759,12 @@ let separator current next =
   | VernacDefineModule _, _
   | _, VernacEndSegment _ ->
       newline
+  | VernacDefinition (_, _, ProveBody _), _
+  | VernacProof _, _
+  | VernacStartTheoremProof _, _ ->
+      sequence [ newline; increase_indent ]
+  | _, VernacAbort | _, VernacEndProof _ ->
+      sequence [ newline; decrease_indent ]
   | VernacCheckMayEval _, _
   | _, VernacCheckMayEval _
   | VernacNotation _, _
