@@ -66,6 +66,13 @@ let decrease_indent t =
 
 let indented f = sequence [ increase_indent; f; decrease_indent ]
 
+let ( |=> ) hd p t =
+  hd t;
+  let l = t.indent_spaces in
+  t.indent_spaces <- t.columns;
+  p t;
+  t.indent_spaces <- l
+
 let write_before_indent s t =
   t.indent_spaces <- t.indent_spaces - String.length s;
   write s t;
