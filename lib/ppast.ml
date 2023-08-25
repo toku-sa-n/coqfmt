@@ -166,7 +166,9 @@ and pp_constr_expr_r = function
         | _ -> failwith "Couldn't parse the notation"
       in
 
-      let printers =
+      let is_left_assoc = op_level op = op_level l.v in
+
+      let printers_right_assoc =
         let rec collect expr =
           match expr.v with
           | Constrexpr.CNotation
@@ -177,6 +179,24 @@ and pp_constr_expr_r = function
         in
 
         conditional_parens l :: write (op_str init_notation) :: collect r
+      in
+
+      let printers_left_assoc =
+        let rec collect expr =
+          match expr.v with
+          | Constrexpr.CNotation
+              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
+            when op_level op = op_level expr.v ->
+              conditional_parens r :: write (op_str notation) :: collect l
+          | _ -> [ conditional_parens expr ]
+        in
+
+        pp_constr_expr r :: write (op_str init_notation) :: collect l
+        |> List.rev
+      in
+
+      let printers =
+        if is_left_assoc then printers_left_assoc else printers_right_assoc
       in
 
       let hor = spaced printers in
