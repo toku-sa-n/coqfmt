@@ -25,5 +25,5 @@ let test_cases =
   in
   scan_dir_recursively "coq_files" |> List.map dir_to_testcase
 
-let () = Coqfmt.init_coq ()
+let () = Coqfmt.init ()
 let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]
