@@ -185,7 +185,7 @@ and pp_constr_expr_r = function
           | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
           | o :: r :: rems ->
               sequence [ sequence [ o; space ] |=> r; newline; pp_rems rems ]
-          | _ -> failwith ""
+          | _ -> failwith "The length of the list must be odd."
         in
 
         let pp_pos = function
