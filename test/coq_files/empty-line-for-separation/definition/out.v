@@ -1,8 +1,5 @@
-Definition foo :=
-  1.
+Definition foo := 1.
 
-Definition bar :=
-  2.
+Definition bar := 2.
 
-Definition baz :=
-  3.
+Definition baz := 3.

@@ -1,2 +1,1 @@
-Definition add (n : nat) : nat :=
-  n + 1.
+Definition add (n : nat) : nat := n + 1.
