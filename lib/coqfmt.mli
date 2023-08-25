@@ -1,9 +1,9 @@
 (** {1 Initialization} *)
 
-val init_coq : unit -> unit
+val init : unit -> unit
 (** Initialize the Coq environment and the handler of command line arguments.
 
-    This function mult be called once and only once, and in the very early
+    This function must be called once and only once, and in the very early
     stage. *)
 
 (** {1 Format} *)
