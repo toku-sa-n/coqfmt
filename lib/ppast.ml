@@ -179,15 +179,7 @@ and pp_constr_expr_r = function
         conditional_parens l :: write (op_str init_notation) :: collect r
       in
 
-      (* TODO: Refactor. *)
-      let spaced' fs =
-        List.mapi
-          (fun i f -> match i with 0 -> f | _ -> sequence [ space; f ])
-          fs
-        |> sequence
-      in
-
-      let hor = spaced' printers in
+      let hor = spaced printers in
       let ver =
         let rec f = function
           | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
