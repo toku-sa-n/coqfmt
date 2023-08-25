@@ -7,5 +7,5 @@ let input () =
   loop []
 ;;
 
-Coqfmt.Init.init_coq ();
-input () |> Coqfmt.Format.format |> print_string
+Coqfmt.init_coq ();
+input () |> Coqfmt.format |> print_string
