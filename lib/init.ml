@@ -1,7 +1,7 @@
 (* This function follows the instructions written in
    https://coq.github.io/doc/master/api/coq-core/Coqinit/index.html except
    `start_library` as it is called from `Stm.new_doc`. *)
-let init_coq () =
+let init () =
   let _ =
     Coqinit.init_ocaml ();
     Coqinit.parse_arguments
