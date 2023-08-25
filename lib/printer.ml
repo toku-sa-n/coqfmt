@@ -83,15 +83,15 @@ let clear_bullets t = t.bullets <- []
 let parens f = sequence [ write "("; f; write ")" ]
 let brackets f = sequence [ write "["; f; write "]" ]
 
-let with_seps ~sep f xs =
+let map_with_seps ~sep f xs =
   sequence
     (List.mapi
        (fun i x -> match i with 0 -> f x | _ -> sequence [ sep; f x ])
        xs)
 
-let map_commad f = with_seps ~sep:(write ", ") f
-let map_spaced f = with_seps ~sep:space f
-let map_bard f = with_seps ~sep:(write " | ") f
+let map_commad f = map_with_seps ~sep:(write ", ") f
+let map_spaced f = map_with_seps ~sep:space f
+let map_bard f = map_with_seps ~sep:(write " | ") f
 
 let copy_printer_by_value t =
   let buffer = Buffer.create 16 in
