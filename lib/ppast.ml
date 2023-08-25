@@ -42,13 +42,7 @@ and pp_cases_pattern_expr_r = function
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
         | _ -> parens (pp_cases_pattern_expr expr)
       in
-      sequence
-        [
-          pp_qualid outer;
-          map_sequence
-            (fun value -> sequence [ space; conditional_parens value ])
-            values;
-        ]
+      spaced (pp_qualid outer :: List.map conditional_parens values)
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
@@ -91,7 +85,7 @@ let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 and pp_constr_expr_r = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      sequence [ pp_constr_expr outer; space; parens (pp_constr_expr inner) ]
+      spaced [ pp_constr_expr outer; parens (pp_constr_expr inner) ]
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
@@ -173,7 +167,7 @@ and pp_constr_expr_r = function
           [
             conditional_parens l;
             newline;
-            indented (sequence [ write op; space; pp_constr_expr r ]);
+            indented (spaced [ write op; pp_constr_expr r ]);
           ]
       in
       hor <-|> ver
@@ -464,12 +458,6 @@ let pp_gen_tactic_expr_r = function
 
       (* The last element is Coq's internal ID and we don't need it. *)
       let init_idents = String.split_on_char '_' id |> init in
-      let map_spaced' fs =
-        List.mapi
-          (fun i f -> match i with 0 -> f | _ -> sequence [ space; f ])
-          fs
-        |> sequence
-      in
       let rec loop idents replacers =
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
@@ -482,7 +470,7 @@ let pp_gen_tactic_expr_r = function
         | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
-      sequence [ loop init_idents init_replacers |> map_spaced'; write "." ]
+      sequence [ loop init_idents init_replacers |> spaced; write "." ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
