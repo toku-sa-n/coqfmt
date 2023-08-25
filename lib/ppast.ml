@@ -181,19 +181,19 @@ and pp_constr_expr_r = function
 
       let hor = spaced printers in
       let ver =
-        let rec f = function
+        let rec pp_rems = function
           | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
           | o :: r :: rems ->
-              sequence [ sequence [ o; space ] |=> r; newline; f rems ]
+              sequence [ sequence [ o; space ] |=> r; newline; pp_rems rems ]
           | _ -> failwith ""
         in
 
-        let pretty_ops = function
-          | h :: t -> sequence [ h; newline; indented (f t) ]
+        let pp_pos = function
+          | h :: t -> sequence [ h; newline; indented (pp_rems t) ]
           | _ -> failwith "Too short list"
         in
 
-        pretty_ops printers
+        pp_pos printers
       in
       hor <-|> ver
   | Constrexpr.CPrim prim -> pp_prim_token prim
