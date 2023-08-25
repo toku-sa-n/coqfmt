@@ -755,7 +755,8 @@ let separator current next =
   | _, VernacInductive _
   | _, VernacDefineModule _
   | VernacEndSegment _, _
-  | VernacEndProof _, _ ->
+  | VernacEndProof _, _
+  | VernacAbort, _ ->
       blankline
   | VernacBullet _, _ -> nop
   | _, _ -> newline
