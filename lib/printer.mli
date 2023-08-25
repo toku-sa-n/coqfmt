@@ -54,6 +54,9 @@ val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them
   comma-separatedly. *)
 
+val spaced : (t -> unit) list -> t -> unit
+(** Run the given printers space-separatedly. *)
+
 val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them
   space-separatedly. *)
