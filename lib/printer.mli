@@ -47,7 +47,8 @@ val brackets : (t -> unit) -> t -> unit
 (** Write out brackets around the given function. *)
 
 val map_with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
-(** Arrange a series of elements with [~sep] as the delimiter  *)
+(** Map the elements of the given list to printers and run them with [~sep] as
+  the delimiter. *)
 
 val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them
