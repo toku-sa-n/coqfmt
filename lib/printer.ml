@@ -83,13 +83,13 @@ let clear_bullets t = t.bullets <- []
 let parens f = sequence [ write "("; f; write ")" ]
 let brackets f = sequence [ write "["; f; write "]" ]
 
-let map_with_seps ~sep f xs =
+let with_seps ~sep xs =
   sequence
-    (List.mapi
-       (fun i x -> match i with 0 -> f x | _ -> sequence [ sep; f x ])
-       xs)
+    (List.mapi (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ]) xs)
 
+let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
 let map_commad f = map_with_seps ~sep:(write ", ") f
+let spaced = with_seps ~sep:space
 let map_spaced f = map_with_seps ~sep:space f
 let map_bard f = map_with_seps ~sep:(write " | ") f
 
