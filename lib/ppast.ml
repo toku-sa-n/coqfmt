@@ -42,13 +42,7 @@ and pp_cases_pattern_expr_r = function
         | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
         | _ -> parens (pp_cases_pattern_expr expr)
       in
-      sequence
-        [
-          pp_qualid outer;
-          map_sequence
-            (fun value -> sequence [ space; conditional_parens value ])
-            values;
-        ]
+      spaced (pp_qualid outer :: List.map conditional_parens values)
   | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
@@ -64,13 +58,13 @@ and pp_cases_pattern_expr_r = function
       sequence
         [
           write prefix;
-          with_seps
+          map_with_seps
             ~sep:(sequence [ write separator; space ])
             pp_cases_pattern_expr exprs;
           write suffix;
         ]
   | Constrexpr.CPatPrim token -> pp_prim_token token
-  | Constrexpr.CPatOr xs -> parens (bard pp_cases_pattern_expr xs)
+  | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_name_expr = function
@@ -91,7 +85,7 @@ let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 and pp_constr_expr_r = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      sequence [ pp_constr_expr outer; space; parens (pp_constr_expr inner) ]
+      spaced [ pp_constr_expr outer; parens (pp_constr_expr inner) ]
   | Constrexpr.CApp (outer, inners) ->
       let open CAst in
       let conditional_parens expr =
@@ -113,7 +107,7 @@ and pp_constr_expr_r = function
       sequence
         [
           write "match ";
-          commad pp_case_expr matchees;
+          map_commad pp_case_expr matchees;
           write " with";
           newline;
           map_sequence
@@ -140,9 +134,8 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
-  (* FIXME: Needs refactoring. *)
   | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) -> (
+      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) ->
       let open CAst in
       (* CProdN denotes a `forall foo, ... ` value. This value needs to be
          enclosed by parentheses if it is not on the rightmost position,
@@ -160,51 +153,34 @@ and pp_constr_expr_r = function
         if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
-      match init_replacers with
-      | [ l; r ] ->
-          let op =
-            match String.split_on_char '_' init_notation with
-            | [ _; op; _ ] -> String.trim op
-            | _ -> failwith "Couldn't parse the notation"
-          in
-          let hor =
-            sequence
-              [ conditional_parens l; space; write op; space; pp_constr_expr r ]
-          in
-          let ver =
-            sequence
-              [
-                conditional_parens l;
-                newline;
-                indented (sequence [ write op; space; pp_constr_expr r ]);
-              ]
-          in
-          hor <-|> ver
-      | _ ->
-          let pop_string s = String.sub s 1 (String.length s - 1) in
-          let rec loop notation replacers =
-            match (notation, replacers) with
-            | "", [] -> nop
-            | "", _ -> fun _ -> failwith "Not all relpacers are consumed."
-            | s, [ x ] when String.starts_with ~prefix:"_" s ->
-                sequence [ pp_constr_expr x; loop (pop_string s) [] ]
-            | s, h :: t when String.starts_with ~prefix:"_" s ->
-                sequence [ conditional_parens h; loop (pop_string s) t ]
-            | s, _ ->
-                sequence
-                  [ write (String.sub s 0 1); loop (pop_string s) replacers ]
-          in
-          loop init_notation init_replacers)
+      let op =
+        match String.split_on_char '_' init_notation with
+        | [ _; op; _ ] -> String.trim op
+        | _ -> failwith "Couldn't parse the notation"
+      in
+      let hor =
+        sequence
+          [ conditional_parens l; space; write op; space; pp_constr_expr r ]
+      in
+      let ver =
+        sequence
+          [
+            conditional_parens l;
+            newline;
+            indented (spaced [ write op; pp_constr_expr r ]);
+          ]
+      in
+      hor <-|> ver
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      spaced pp_local_binder_expr xs
+      map_spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
       let hor = sequence [ space; pp_constr_expr ty ] in
       let ver = sequence [ newline; indented (pp_constr_expr ty) ] in
       sequence
         [
           write "forall ";
-          spaced pp_local_binder_expr xs;
+          map_spaced pp_local_binder_expr xs;
           write ",";
           hor <-|> ver;
         ]
@@ -224,17 +200,19 @@ and pp_local_binder_expr = function
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
-        (sequence [ spaced pp_lname names; write " : "; pp_constr_expr ty ])
+        (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr = function
   | CAst.{ v = patterns, expr; loc = _ } ->
+      let hor = sequence [ space; pp_constr_expr expr ] in
+      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
       sequence
         [
           write "| ";
-          bard (commad pp_cases_pattern_expr) patterns;
-          write " => ";
-          pp_constr_expr expr;
+          map_bard (map_commad pp_cases_pattern_expr) patterns;
+          write " =>";
+          hor <-|> ver;
         ]
 
 let pp_definition_expr = function
@@ -302,7 +280,7 @@ let pp_fixpoint_expr = function
         [
           pp_lident fname;
           space;
-          spaced pp_local_binder_expr binders;
+          map_spaced pp_local_binder_expr binders;
           pp_return_type;
           write " :=";
           newline;
@@ -365,10 +343,10 @@ let rec pp_or_and_intro_pattern_expr = function
       let pp_patterns i pattern =
         match (i, pattern) with
         | 0, [] -> space
-        | 0, xs -> spaced (fun x -> pp_intro_pattern_expr x.v) xs
+        | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
         | _, xs ->
             sequence
-              [ write "| "; spaced (fun x -> pp_intro_pattern_expr x.v) xs ]
+              [ write "| "; map_spaced (fun x -> pp_intro_pattern_expr x.v) xs ]
       in
       brackets (sequence (List.mapi pp_patterns patterns))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -436,7 +414,7 @@ let pp_raw_atomic_tactic_expr = function
       sequence
         [
           write "intros ";
-          spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
+          map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
           write ".";
         ]
   | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr
@@ -480,12 +458,6 @@ let pp_gen_tactic_expr_r = function
 
       (* The last element is Coq's internal ID and we don't need it. *)
       let init_idents = String.split_on_char '_' id |> init in
-      let spaced' fs =
-        List.mapi
-          (fun i f -> match i with 0 -> f | _ -> sequence [ space; f ])
-          fs
-        |> sequence
-      in
       let rec loop idents replacers =
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
@@ -498,7 +470,7 @@ let pp_gen_tactic_expr_r = function
         | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
-      sequence [ loop init_idents init_replacers |> spaced'; write "." ]
+      sequence [ loop init_idents init_replacers |> spaced; write "." ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -549,7 +521,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
     [
       space;
       (if negative then write "-" else nop);
-      parens (commad (fun import_cat -> write import_cat.v) import_cats);
+      parens (map_commad (fun import_cat -> write import_cat.v) import_cats);
     ]
 
 let pp_export_flag = function
@@ -574,14 +546,15 @@ let pp_import_filter_expr import_filter_expr =
         [
           (* FIXME: The Coq parser will raise an exception here if Export/Import
              was omitted *)
-          parens (commad (fun (filter_name, _) -> pp_qualid filter_name) names);
+          parens
+            (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
         ]
 
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
   match expr with
-  | VernacAbort -> sequence [ decrease_indent; write "Abort." ]
+  | VernacAbort -> sequence [ decrease_indent; clear_bullets; write "Abort." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       sequence
         [
@@ -615,7 +588,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           [
             space;
             parens
-              (commad
+              (map_commad
                  (fun modifier ->
                    let open CAst in
                    pp_syntax_modifier modifier.v)
@@ -679,7 +652,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       sequence
         [
           write "Inductive ";
-          with_seps
+          map_with_seps
             ~sep:(sequence [ newline; write "with " ])
             pp_single_inductive inductives;
           write ".";
@@ -757,7 +730,8 @@ let separator current next =
   | _, VernacInductive _
   | _, VernacDefineModule _
   | VernacEndSegment _, _
-  | VernacEndProof _, _ ->
+  | VernacEndProof _, _
+  | VernacAbort, _ ->
       blankline
   | VernacBullet _, _ -> nop
   | _, _ -> newline

@@ -3,6 +3,8 @@ type t = {
   mutable indent_spaces : int;
   mutable columns : int;
   mutable printed_newline : bool;
+  (* TODO: Rename this as it is used not only for detecting the columns limit,
+     but also the appearances of newlines. *)
   hard_fail_on_exceeding_column_limit : bool;
   mutable bullets : Proof_bullet.t list;
 }
@@ -46,6 +48,7 @@ let write s t =
 let space = write " "
 
 let newline t =
+  if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true;
   t.columns <- 0
@@ -80,15 +83,15 @@ let clear_bullets t = t.bullets <- []
 let parens f = sequence [ write "("; f; write ")" ]
 let brackets f = sequence [ write "["; f; write "]" ]
 
-let with_seps ~sep f xs =
+let with_seps ~sep xs =
   sequence
-    (List.mapi
-       (fun i x -> match i with 0 -> f x | _ -> sequence [ sep; f x ])
-       xs)
+    (List.mapi (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ]) xs)
 
-let commad f = with_seps ~sep:(write ", ") f
-let spaced f = with_seps ~sep:space f
-let bard f = with_seps ~sep:(write " | ") f
+let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
+let map_commad f = map_with_seps ~sep:(write ", ") f
+let spaced = with_seps ~sep:space
+let map_spaced f = map_with_seps ~sep:space f
+let map_bard f = map_with_seps ~sep:(write " | ") f
 
 let copy_printer_by_value t =
   let buffer = Buffer.create 16 in
