@@ -1,5 +1,4 @@
-Definition foo :=
-  1.
+Definition foo := 1.
 
 Compute foo.
 Compute foo.
@@ -7,5 +6,4 @@ Compute foo.
 Check foo.
 Check foo.
 
-Definition bar :=
-  2.
+Definition bar := 2.

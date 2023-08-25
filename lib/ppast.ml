@@ -273,6 +273,8 @@ let pp_definition_expr = function
           hor <-|> ver;
         ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
+      let hor = sequence [ space; pp_constr_expr def_body ] in
+      let ver = sequence [ newline; indented (pp_constr_expr def_body) ] in
       sequence
         [
           map_sequence
@@ -282,8 +284,7 @@ let pp_definition_expr = function
           | None -> nop
           | Some ty -> sequence [ write " : "; pp_constr_expr ty ]);
           write " :=";
-          newline;
-          indented (pp_constr_expr def_body);
+          hor <-|> ver;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 

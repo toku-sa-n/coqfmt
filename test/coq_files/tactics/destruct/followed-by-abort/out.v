@@ -4,5 +4,4 @@ Proof.
     - simpl.
 Abort.
 
-Definition bar :=
-  3.
+Definition bar := 3.
