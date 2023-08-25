@@ -64,7 +64,7 @@ and pp_cases_pattern_expr_r = function
       sequence
         [
           write prefix;
-          with_seps
+          map_with_seps
             ~sep:(sequence [ write separator; space ])
             pp_cases_pattern_expr exprs;
           write suffix;
@@ -664,7 +664,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       sequence
         [
           write "Inductive ";
-          with_seps
+          map_with_seps
             ~sep:(sequence [ newline; write "with " ])
             pp_single_inductive inductives;
           write ".";
