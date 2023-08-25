@@ -135,7 +135,7 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) ->
+      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) as op ->
       let open CAst in
       (* CProdN denotes a `forall foo, ... ` value. This value needs to be
          enclosed by parentheses if it is not on the rightmost position,
@@ -153,22 +153,47 @@ and pp_constr_expr_r = function
         if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
-      let op =
-        match String.split_on_char '_' init_notation with
+
+      let op_level = function
+        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
+            Some (Notation.level_of_notation notation)
+        | _ -> None
+      in
+
+      let op_str notation =
+        match String.split_on_char '_' notation with
         | [ _; op; _ ] -> String.trim op
         | _ -> failwith "Couldn't parse the notation"
       in
-      let hor =
-        sequence
-          [ conditional_parens l; space; write op; space; pp_constr_expr r ]
+
+      let printers =
+        let rec collect expr =
+          match expr.v with
+          | Constrexpr.CNotation
+              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
+            when op_level op = op_level expr.v ->
+              conditional_parens l :: write (op_str notation) :: collect r
+          | _ -> [ pp_constr_expr expr ]
+        in
+
+        conditional_parens l :: write (op_str init_notation) :: collect r
       in
+
+      let hor = spaced printers in
       let ver =
-        sequence
-          [
-            conditional_parens l;
-            newline;
-            indented (spaced [ write op; pp_constr_expr r ]);
-          ]
+        let rec pp_rems = function
+          | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
+          | o :: r :: rems ->
+              sequence [ sequence [ o; space ] |=> r; newline; pp_rems rems ]
+          | _ -> failwith "The length of the list must be odd."
+        in
+
+        let pp_pos = function
+          | h :: t -> sequence [ h; newline; indented (pp_rems t) ]
+          | _ -> failwith "Too short list"
+        in
+
+        pp_pos printers
       in
       hor <-|> ver
   | Constrexpr.CPrim prim -> pp_prim_token prim
