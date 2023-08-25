@@ -1,1 +1,1 @@
-Definition foooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo := 3.
+Definition fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo := 3.
