@@ -155,12 +155,6 @@ and pp_constr_expr_r = function
         else pp_constr_expr expr
       in
 
-      let get_assoc = function
-        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
-            (Notgram_ops.grammar_of_notation notation |> List.hd).notgram_assoc
-        | _ -> None
-      in
-
       let op_level = function
         | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
             Some (Notation.level_of_notation notation)
@@ -172,6 +166,8 @@ and pp_constr_expr_r = function
         | [ _; op; _ ] -> String.trim op
         | _ -> failwith "Couldn't parse the notation"
       in
+
+      let is_left_assoc = op_level op = op_level l.v in
 
       let printers_right_assoc =
         let rec collect expr =
@@ -207,9 +203,7 @@ and pp_constr_expr_r = function
       in
 
       let printers =
-        match get_assoc op with
-        | Some LeftA -> printers_left_assoc
-        | _ -> printers_right_assoc
+        if is_left_assoc then printers_left_assoc else printers_right_assoc
       in
 
       let hor = spaced printers in
