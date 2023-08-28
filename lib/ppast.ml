@@ -793,7 +793,8 @@ let separator current next =
   | VernacCheckMayEval (None, _, _), VernacCheckMayEval (None, _, _)
   | VernacNotation _, VernacNotation _
   | VernacDefineModule _, _
-  | _, VernacEndSegment _ ->
+  | _, VernacEndSegment _
+  | VernacRequire _, VernacRequire _ ->
       newline
   | VernacDefinition (_, _, ProveBody _), _
   | VernacProof _, _
@@ -814,7 +815,8 @@ let separator current next =
   | _, VernacDefineModule _
   | VernacEndSegment _, _
   | VernacEndProof _, _
-  | VernacAbort, _ ->
+  | VernacAbort, _
+  | VernacRequire _, _ ->
       blankline
   | VernacBullet _, _ -> nop
   | _, _ -> newline
