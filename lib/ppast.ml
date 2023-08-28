@@ -417,7 +417,6 @@ let rec pp_or_and_intro_pattern_expr = function
         match (i, pattern) with
         | 0, [] -> nop
         | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
-        | _, [] -> write " | "
         | _, xs ->
             sequence
               [
