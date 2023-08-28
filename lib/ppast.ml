@@ -117,7 +117,15 @@ and pp_constr_expr_r = function
           write "end";
         ]
   | Constrexpr.CCast (v, DEFAULTcast, t) ->
-      sequence [ pp_constr_expr v; write " : "; pp_constr_expr t ]
+      let parens_needed =
+        match v.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
