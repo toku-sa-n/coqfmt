@@ -138,6 +138,12 @@ and pp_constr_expr_r = function
   | Constrexpr.CNotation
       (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) as op ->
       let open CAst in
+      let op_level = function
+        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
+            Some (Notation.level_of_notation notation)
+        | _ -> None
+      in
+
       (* CProdN denotes a `forall foo, ... ` value. This value needs to be
          enclosed by parentheses if it is not on the rightmost position,
          otherwise all expressions will be in the scope of the `forall foo`.
@@ -148,7 +154,9 @@ and pp_constr_expr_r = function
          two have different meanings, and thus lhs' `forall` needs
          parentheses.*)
       let parens_needed expr =
-        match expr.v with Constrexpr.CProdN _ -> true | _ -> false
+        match expr.v with
+        | Constrexpr.CProdN _ -> true
+        | _ -> op_level expr.v > op_level op
       in
 
       (* TODO: `conditional_parens` should be defined in `printer.ml`. *)
@@ -160,12 +168,6 @@ and pp_constr_expr_r = function
       let get_assoc = function
         | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
             (Notgram_ops.grammar_of_notation notation |> List.hd).notgram_assoc
-        | _ -> None
-      in
-
-      let op_level = function
-        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
-            Some (Notation.level_of_notation notation)
         | _ -> None
       in
 
@@ -208,7 +210,7 @@ and pp_constr_expr_r = function
           | _ -> [ conditional_parens expr ]
         in
 
-        let r_needs_parentheses = op_level r.v = op_level op in
+        let r_needs_parentheses = op_level r.v >= op_level op in
         let conditional_parens_r expr =
           if r_needs_parentheses then parens (pp_constr_expr expr)
           else pp_constr_expr expr
