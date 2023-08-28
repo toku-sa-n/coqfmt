@@ -631,17 +631,23 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
-      sequence
-        [
-          (match check_or_compute with
-          | Some (CbvVm None) -> write "Compute "
-          | None -> write "Check "
-          | _ -> fun printer -> raise (NotImplemented (contents printer)));
-          (match expr.v with
-          | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr expr
-          | _ -> parens (pp_constr_expr expr));
-          write ".";
-        ]
+      let pp_name =
+        match check_or_compute with
+        | Some (CbvVm None) -> write "Compute "
+        | None -> write "Check "
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      let parens_needed = function
+        | Constrexpr.CRef _ | Constrexpr.CCast _ -> false
+        | _ -> true
+      in
+      let pp_expr =
+        if parens_needed expr.v then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ pp_name; pp_expr; write "." ]
   | VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; write "."; increase_indent ]
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
