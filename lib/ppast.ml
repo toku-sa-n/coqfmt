@@ -529,6 +529,15 @@ let pp_gen_tactic_expr_r = function
       let id = Names.KerName.label alias |> Names.Label.to_string in
       let init xs = List.rev xs |> List.tl |> List.rev in
 
+      let parens_needed expr =
+        let open CAst in
+        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+      in
+      let conditional_parens expr =
+        if parens_needed expr then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       (* The last element is Coq's internal ID and we don't need it. *)
       let init_idents = String.split_on_char '_' id |> init in
       let rec loop idents replacers =
@@ -537,7 +546,7 @@ let pp_gen_tactic_expr_r = function
         | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
             match constr_expr_of_raw_generic_argument args with
             | None -> loop t_ids t_reps
-            | Some h_reps -> pp_constr_expr h_reps :: loop t_ids t_reps)
+            | Some h_reps -> conditional_parens h_reps :: loop t_ids t_reps)
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
