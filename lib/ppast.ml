@@ -196,7 +196,13 @@ and pp_constr_expr_r = function
           | _ -> [ conditional_parens expr ]
         in
 
-        pp_constr_expr r :: write (op_str init_notation) :: collect l
+        let r_needs_parentheses = op_level r.v = op_level op in
+        let conditional_parens_r expr =
+          if r_needs_parentheses then parens (pp_constr_expr expr)
+          else pp_constr_expr expr
+        in
+
+        conditional_parens_r r :: write (op_str init_notation) :: collect l
         |> List.rev
       in
 
