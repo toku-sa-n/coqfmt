@@ -183,7 +183,17 @@ and pp_constr_expr_r = function
           | _ -> [ pp_constr_expr expr ]
         in
 
-        conditional_parens l :: write (op_str init_notation) :: collect r
+        let l_needs_parentheses expr =
+          match expr.v with
+          | Constrexpr.CProdN _ -> true
+          | _ -> op_level l.v = op_level op
+        in
+        let conditional_parens_l expr =
+          if l_needs_parentheses expr then parens (pp_constr_expr expr)
+          else pp_constr_expr expr
+        in
+
+        conditional_parens_l l :: write (op_str init_notation) :: collect r
       in
 
       let printers_left_assoc =
