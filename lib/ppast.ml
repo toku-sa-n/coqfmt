@@ -150,6 +150,8 @@ and pp_constr_expr_r = function
       let parens_needed expr =
         match expr.v with Constrexpr.CProdN _ -> true | _ -> false
       in
+
+      (* TODO: `conditional_parens` should be defined in `printer.ml`. *)
       let conditional_parens expr =
         if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
