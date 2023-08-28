@@ -415,11 +415,14 @@ let rec pp_or_and_intro_pattern_expr = function
       let open CAst in
       let pp_patterns i pattern =
         match (i, pattern) with
-        | 0, [] -> space
+        | 0, [] -> nop
         | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
+        | _, [] -> write " | "
         | _, xs ->
             sequence
-              [ write "| "; map_spaced (fun x -> pp_intro_pattern_expr x.v) xs ]
+              [
+                write " | "; map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+              ]
       in
       brackets (sequence (List.mapi pp_patterns patterns))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
