@@ -196,7 +196,10 @@ and pp_constr_expr_r = function
         | Ppextend.UnpTerminal s :: t, xs -> sequence [ write s; printers t xs ]
         | Ppextend.UnpBox (_, xs) :: t, _ ->
             printers (List.map snd xs @ t) replacers
-        | Ppextend.UnpCut _ :: t, xs -> sequence [ space; printers t xs ]
+        | Ppextend.UnpCut _ :: t, xs ->
+            let hor = sequence [ space; printers t xs ] in
+            let ver = sequence [ newline; printers t xs ] in
+            hor <-|> ver
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
