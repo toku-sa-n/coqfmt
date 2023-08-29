@@ -159,12 +159,12 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
-      let rec printers unparsings replacers acc =
-        match (unparsings, replacers, acc) with
-        | [], [], acc -> acc
-        | [], _, _ -> failwith "Too many replacers."
-        | Ppextend.UnpMetaVar _ :: _, [], _ -> failwith "Too few replacers."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, acc ->
+      let rec printers unparsings replacers =
+        match (unparsings, replacers) with
+        | [], [] -> nop
+        | [], _ -> failwith "Too many replacers."
+        | Ppextend.UnpMetaVar _ :: _, [] -> failwith "Too few replacers."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -188,21 +188,18 @@ and pp_constr_expr_r = function
               if parens_needed then parens (pp_constr_expr expr)
               else pp_constr_expr expr
             in
-            printers t_u t_r (conditional_parens h :: acc)
-        | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
-            raise (NotImplemented "")
-        | Ppextend.UnpTerminal s :: t, xs, acc ->
-            printers t xs (write (String.trim s) :: acc)
-        | Ppextend.UnpBox (_, xs) :: t, _, acc ->
-            printers (List.map snd xs @ t) replacers acc
-        | Ppextend.UnpCut _ :: t, xs, acc -> printers t xs acc
+
+            sequence [ conditional_parens h; printers t_u t_r ]
+        | Ppextend.UnpBinderMetaVar _ :: _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar _ :: _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpBinderListMetaVar _ :: _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpTerminal s :: t, xs -> sequence [ write s; printers t xs ]
+        | Ppextend.UnpBox (_, xs) :: t, _ ->
+            printers (List.map snd xs @ t) replacers
+        | Ppextend.UnpCut _ :: t, xs -> sequence [ space; printers t xs ]
       in
 
-      spaced
-        (printers printing_rule.notation_printing_unparsing init_replacers []
-        |> List.rev)
+      printers printing_rule.notation_printing_unparsing init_replacers
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
@@ -342,6 +339,7 @@ let pp_construtor_expr = function
 
 let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
+  | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
