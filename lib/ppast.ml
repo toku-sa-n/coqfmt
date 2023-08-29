@@ -144,114 +144,65 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
-  | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), ([ l; r ], [], [], [])) as op ->
+  | Constrexpr.CNotation (scope, notation, (init_replacers, [], [], [])) as op
+    ->
+      let open Ppextend in
       let open CAst in
+      let assoc =
+        (Notgram_ops.grammar_of_notation notation |> List.hd).notgram_assoc
+      in
+
       let op_level = function
-        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
+        | Constrexpr.CNotation (_, notation, _) ->
             Some (Notation.level_of_notation notation)
         | _ -> None
       in
 
-      (* CProdN denotes a `forall foo, ... ` value. This value needs to be
-         enclosed by parentheses if it is not on the rightmost position,
-         otherwise all expressions will be in the scope of the `forall foo`.
+      let printing_rule = Ppextend.find_notation_printing_rule scope notation in
+      let rec printers unparsings replacers acc =
+        match (unparsings, replacers, acc) with
+        | [], [], acc -> acc
+        | [], _, _ -> failwith "Too many replacers."
+        | Ppextend.UnpMetaVar _ :: _, [], _ -> failwith "Too few replacers."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, acc ->
+            (* CProdN denotes a `forall foo, ... ` value. This value needs to be
+               enclosed by parentheses if it is not on the rightmost position,
+               otherwise all expressions will be in the scope of the `forall
+               foo`.
 
-         For example, `(forall x, f x = x) -> (forall x, f x = x)` is valid, but
-         `forall x, f x = x -> forall x, f x = x` will be interpreted as `forall
-         x, (f x = x -> forall x, f x = x).` which is invalid. Certainly, these
-         two have different meanings, and thus lhs' `forall` needs
-         parentheses.*)
-      let parens_needed expr =
-        match expr.v with
-        | Constrexpr.CProdN _ -> true
-        | _ -> op_level expr.v > op_level op
+               For example, `(forall x, f x = x) -> (forall x, f x = x)` is
+               valid, but `forall x, f x = x -> forall x, f x = x` will be
+               interpreted as `forall x, (f x = x -> forall x, f x = x).` which
+               is invalid. Certainly, these two have different meanings, and
+               thus lhs' `forall` needs parentheses.*)
+            let parens_needed =
+              match (h.v, assoc, side) with
+              | Constrexpr.CProdN _, _, _ -> t_u <> []
+              | _, Some LeftA, Some Right | _, Some RightA, Some Left ->
+                  op_level h.v >= op_level op
+              | _, Some LeftA, Some Left | _, Some RightA, Some Right ->
+                  op_level h.v > op_level op
+              | _ -> op_level h.v >= op_level op
+            in
+            let conditional_parens expr =
+              if parens_needed then parens (pp_constr_expr expr)
+              else pp_constr_expr expr
+            in
+            printers t_u t_r (conditional_parens h :: acc)
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar _ :: _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
+            raise (NotImplemented "")
+        | Ppextend.UnpTerminal s :: t, xs, acc ->
+            printers t xs (write (String.trim s) :: acc)
+        | Ppextend.UnpBox (_, xs) :: t, _, acc ->
+            printers (List.map snd xs @ t) replacers acc
+        | Ppextend.UnpCut _ :: t, xs, acc -> printers t xs acc
       in
 
-      (* TODO: `conditional_parens` should be defined in `printer.ml`. *)
-      let conditional_parens expr =
-        if parens_needed expr then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
-      let get_assoc = function
-        | Constrexpr.CNotation (None, notation, ([ _; _ ], [], [], [])) ->
-            (Notgram_ops.grammar_of_notation notation |> List.hd).notgram_assoc
-        | _ -> None
-      in
-
-      let op_str notation =
-        match String.split_on_char '_' notation with
-        | [ _; op; _ ] -> String.trim op
-        | _ -> failwith "Couldn't parse the notation"
-      in
-
-      let printers_right_assoc =
-        let rec collect expr =
-          match expr.v with
-          | Constrexpr.CNotation
-              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
-            when op_level op = op_level expr.v ->
-              conditional_parens l :: write (op_str notation) :: collect r
-          | _ -> [ pp_constr_expr expr ]
-        in
-
-        let l_needs_parentheses expr =
-          match expr.v with
-          | Constrexpr.CProdN _ -> true
-          | _ -> op_level l.v = op_level op
-        in
-        let conditional_parens_l expr =
-          if l_needs_parentheses expr then parens (pp_constr_expr expr)
-          else pp_constr_expr expr
-        in
-
-        conditional_parens_l l :: write (op_str init_notation) :: collect r
-      in
-
-      let printers_left_assoc =
-        let rec collect expr =
-          match expr.v with
-          | Constrexpr.CNotation
-              (None, (InConstrEntry, notation), ([ l; r ], [], [], []))
-            when op_level op = op_level expr.v ->
-              conditional_parens r :: write (op_str notation) :: collect l
-          | _ -> [ conditional_parens expr ]
-        in
-
-        let r_needs_parentheses = op_level r.v >= op_level op in
-        let conditional_parens_r expr =
-          if r_needs_parentheses then parens (pp_constr_expr expr)
-          else pp_constr_expr expr
-        in
-
-        conditional_parens_r r :: write (op_str init_notation) :: collect l
-        |> List.rev
-      in
-
-      let printers =
-        match get_assoc op with
-        | Some LeftA -> printers_left_assoc
-        | _ -> printers_right_assoc
-      in
-
-      let hor = spaced printers in
-      let ver =
-        let rec pp_rems = function
-          | [ o; r ] -> sequence [ sequence [ o; space ] |=> r ]
-          | o :: r :: rems ->
-              sequence [ sequence [ o; space ] |=> r; newline; pp_rems rems ]
-          | _ -> failwith "The length of the list must be odd."
-        in
-
-        let pp_pos = function
-          | h :: t -> sequence [ h; newline; indented (pp_rems t) ]
-          | _ -> failwith "Too short list"
-        in
-
-        pp_pos printers
-      in
-      hor <-|> ver
+      spaced
+        (printers printing_rule.notation_printing_unparsing init_replacers []
+        |> List.rev)
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
