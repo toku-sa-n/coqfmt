@@ -43,7 +43,8 @@ and pp_cases_pattern_expr_r = function
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
-  | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
+  | Constrexpr.CPatNotation (None, (InConstrEntry, notation), (expr1, expr2), [])
+    ->
       (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
       let exprs = expr1 @ List.flatten expr2 in
       let prefix =
