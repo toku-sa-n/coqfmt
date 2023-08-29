@@ -193,14 +193,13 @@ and pp_constr_expr_r = function
         | Ppextend.UnpListMetaVar _ :: _, _, _ -> raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
             raise (NotImplemented "")
-        | Ppextend.UnpTerminal s :: t, xs, acc ->
-            printers t xs (write (String.trim s) :: acc)
+        | Ppextend.UnpTerminal s :: t, xs, acc -> printers t xs (write s :: acc)
         | Ppextend.UnpBox (_, xs) :: t, _, acc ->
             printers (List.map snd xs @ t) replacers acc
-        | Ppextend.UnpCut _ :: t, xs, acc -> printers t xs acc
+        | Ppextend.UnpCut _ :: t, xs, acc -> printers t xs (space :: acc)
       in
 
-      spaced
+      sequence
         (printers printing_rule.notation_printing_unparsing init_replacers []
         |> List.rev)
   | Constrexpr.CPrim prim -> pp_prim_token prim
