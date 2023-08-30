@@ -218,8 +218,14 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], _ -> pp_constr_expr x
-              | [], [] | [], [ _ ] -> nop
+              | [ x ], _ -> sequence [ pp_constr_expr x; printers t [] zs ]
+              | [], _ -> printers t [] zs
+              | xs, [] ->
+                  sequence
+                    [
+                      map_with_seps ~sep:(write "; ") pp_constr_expr xs;
+                      printers t [] zs;
+                    ]
               | x :: xs, sep :: seps ->
                   sequence
                     [
@@ -228,9 +234,8 @@ and pp_constr_expr_r = function
                       space;
                       loop xs seps;
                     ]
-              | _, _ -> failwith "Too many replacers."
             in
-            sequence [ loop elems seps; printers t [] zs ]
+            loop elems seps
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, [] ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
