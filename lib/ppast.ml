@@ -232,7 +232,7 @@ and pp_constr_expr_r = function
           write ",";
           hor <-|> ver;
         ]
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -673,10 +673,10 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
   | VernacSearch
       ( Search
-          [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), _))) ],
+          [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), expr))) ],
         None,
         _ ) ->
-      write "Search (_ + _ = _ + _)."
+      sequence [ write "Search "; parens (pp_constr_expr expr); write "." ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
