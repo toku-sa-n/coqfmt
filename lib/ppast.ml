@@ -209,7 +209,7 @@ and pp_constr_expr_r = function
             sequence [ conditional_parens h; printers t_u t_r t_keys ]
         | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar (_, xs, _) :: t, ys, zs ->
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, zs ->
             let extracter = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut _ -> ";"
@@ -229,7 +229,7 @@ and pp_constr_expr_r = function
                     ]
               | _, _ -> failwith "Too many replacers."
             in
-            sequence [ loop ys xs; printers t ys zs ]
+            sequence [ loop elems seps; printers t elems zs ]
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
             raise (NotImplemented "")
         | Ppextend.UnpTerminal s :: t, xs, keys ->
