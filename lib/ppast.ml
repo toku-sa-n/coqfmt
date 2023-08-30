@@ -719,9 +719,15 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ]
   | VernacSearch (searchable, None, SearchOutside []) ->
       sequence [ write "Search "; parens (pp_searchable searchable); write "." ]
-  | VernacSearch (searchable, None, SearchInside [ _ ]) ->
-      spaced
-        [ write "Search"; pp_searchable searchable; write "inside Prelude." ]
+  | VernacSearch (searchable, None, SearchInside [ range ]) ->
+      sequence
+        [
+          write "Search ";
+          pp_searchable searchable;
+          write " inside ";
+          pp_qualid range;
+          write ".";
+        ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
