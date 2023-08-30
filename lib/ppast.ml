@@ -636,7 +636,16 @@ let pp_import_filter_expr import_filter_expr =
         ]
 
 let pp_search_item = function
-  | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) -> pp_constr_expr expr
+  | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
+      let parens_needed =
+        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      conditional_parens expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_search_request = function
@@ -717,15 +726,16 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_scope;
           write ".";
         ]
-  | VernacSearch (searchable, None, SearchOutside []) ->
-      sequence [ write "Search "; parens (pp_searchable searchable); write "." ]
-  | VernacSearch (searchable, None, SearchInside [ range ]) ->
+  | VernacSearch (searchable, None, search_restriction) ->
       sequence
         [
           write "Search ";
           pp_searchable searchable;
-          write " inside ";
-          pp_qualid range;
+          (match search_restriction with
+          | SearchInside [ range ] ->
+              sequence [ write " inside "; pp_qualid range ]
+          | SearchOutside [] -> nop
+          | _ -> fun printer -> raise (NotImplemented (contents printer)));
           write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
