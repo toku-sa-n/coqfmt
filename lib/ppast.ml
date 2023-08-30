@@ -171,7 +171,8 @@ and pp_constr_expr_r = function
       let rec printers unparsings replacers entry_keys =
         match (unparsings, replacers, entry_keys) with
         | [], [], [] -> nop
-        | [], _, _ -> nop
+        | [], _ :: _, _ -> failwith "Too many replacers."
+        | [], _, _ :: _ -> failwith "Too many entry keys."
         | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
@@ -209,7 +210,7 @@ and pp_constr_expr_r = function
             sequence [ conditional_parens h; printers t_u t_r t_keys ]
         | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, zs ->
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _ :: zs ->
             let get_seps = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut _ -> ";"
@@ -229,7 +230,9 @@ and pp_constr_expr_r = function
                     ]
               | _, _ -> failwith "Too many replacers."
             in
-            sequence [ loop elems seps; printers t elems zs ]
+            sequence [ loop elems seps; printers t [] zs ]
+        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, [] ->
+            raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
             raise (NotImplemented "")
         | Ppextend.UnpTerminal s :: t, xs, keys ->
