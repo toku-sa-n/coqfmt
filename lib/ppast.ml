@@ -129,6 +129,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
+  | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
