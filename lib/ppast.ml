@@ -602,6 +602,12 @@ let pp_import_filter_expr import_filter_expr =
             (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
         ]
 
+let pp_searchable = function
+  | Vernacexpr.Search
+      [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), expr))) ] ->
+      pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
@@ -671,12 +677,8 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_scope;
           write ".";
         ]
-  | VernacSearch
-      ( Search
-          [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), expr))) ],
-        None,
-        SearchOutside [] ) ->
-      sequence [ write "Search "; parens (pp_constr_expr expr); write "." ]
+  | VernacSearch (searchable, None, SearchOutside []) ->
+      sequence [ write "Search "; parens (pp_searchable searchable); write "." ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
