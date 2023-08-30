@@ -210,7 +210,7 @@ and pp_constr_expr_r = function
         | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
         | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, zs ->
-            let extracter = function
+            let get_seps = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut _ -> ";"
               | _ -> failwith "TODO"
@@ -223,7 +223,7 @@ and pp_constr_expr_r = function
                   sequence
                     [
                       pp_constr_expr x;
-                      write (extracter sep);
+                      write (get_seps sep);
                       space;
                       loop xs seps;
                     ]
