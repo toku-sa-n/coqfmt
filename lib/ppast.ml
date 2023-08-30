@@ -148,9 +148,11 @@ and pp_constr_expr_r = function
     ->
       let open Ppextend in
       let open CAst in
-      let assoc =
-        (Notgram_ops.grammar_of_notation notation |> List.hd).notgram_assoc
-      in
+      let notation_info = Notgram_ops.grammar_of_notation notation |> List.hd in
+
+      let assoc = notation_info.notgram_assoc in
+
+      let entry_keys = notation_info.notgram_typs in
 
       let op_level = function
         | Constrexpr.CNotation (_, notation, _) ->
@@ -159,12 +161,11 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
-      let rec printers unparsings replacers =
-        match (unparsings, replacers) with
-        | [], [] -> nop
-        | [], _ -> failwith "Too many replacers."
-        | Ppextend.UnpMetaVar _ :: _, [] -> failwith "Too few replacers."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r ->
+      let rec printers unparsings replacers entry_keys =
+        match (unparsings, replacers, entry_keys) with
+        | [], [], [] -> nop
+        | [], _, _ -> failwith "Too many replacers."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -176,11 +177,16 @@ and pp_constr_expr_r = function
                is invalid. Certainly, these two have different meanings, and
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
-              match (h.v, assoc, side) with
-              | Constrexpr.CProdN _, _, _ -> t_u <> []
-              | _, Some LeftA, Some Right | _, Some RightA, Some Left ->
+              match (h.v, assoc, side, h_keys) with
+              | Constrexpr.CProdN _, _, _, _ -> t_u <> []
+              | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
-              | _, Some LeftA, Some Left | _, Some RightA, Some Right ->
+              | _, Some LeftA, Some Left, _ | _, Some RightA, Some Right, _ ->
+                  op_level h.v > op_level op
+              | ( _,
+                  None,
+                  None,
+                  Extend.ETConstr (_, _, (_, Extend.BorderProd (_, None))) ) ->
                   op_level h.v > op_level op
               | _ -> op_level h.v >= op_level op
             in
@@ -189,20 +195,24 @@ and pp_constr_expr_r = function
               else pp_constr_expr expr
             in
 
-            sequence [ conditional_parens h; printers t_u t_r ]
-        | Ppextend.UnpBinderMetaVar _ :: _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar _ :: _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpBinderListMetaVar _ :: _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpTerminal s :: t, xs -> sequence [ write s; printers t xs ]
-        | Ppextend.UnpBox (_, xs) :: t, _ ->
-            printers (List.map snd xs @ t) replacers
-        | Ppextend.UnpCut _ :: t, xs ->
-            let hor = sequence [ space; printers t xs ] in
-            let ver = sequence [ newline; printers t xs ] in
+            sequence [ conditional_parens h; printers t_u t_r t_keys ]
+        | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar _ :: _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
+            raise (NotImplemented "")
+        | Ppextend.UnpTerminal s :: t, xs, keys ->
+            sequence [ write s; printers t xs keys ]
+        | Ppextend.UnpBox (_, xs) :: t, _, keys ->
+            printers (List.map snd xs @ t) replacers keys
+        | Ppextend.UnpCut _ :: t, xs, keys ->
+            let hor = sequence [ space; printers t xs keys ] in
+            let ver = sequence [ newline; printers t xs keys ] in
             hor <-|> ver
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
+        entry_keys
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
