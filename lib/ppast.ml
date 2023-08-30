@@ -106,8 +106,7 @@ and pp_constr_expr_r = function
             inners;
         ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
-      sequence
-        [ write ".. "; parens (pp_constr_expr expr); space; pp_qualid dots ]
+      spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
         [
