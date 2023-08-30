@@ -602,10 +602,14 @@ let pp_import_filter_expr import_filter_expr =
             (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
         ]
 
-let pp_searchable = function
-  | Vernacexpr.Search
-      [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), expr))) ] ->
+let pp_search_request = function
+  | Vernacexpr.SearchLiteral (SearchSubPattern ((Anywhere, false), expr)) ->
       pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_searchable = function
+  | Vernacexpr.Search [ (true, search_request) ] ->
+      pp_search_request search_request
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
