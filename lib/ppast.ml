@@ -675,7 +675,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
       ( Search
           [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), expr))) ],
         None,
-        _ ) ->
+        SearchOutside _ ) ->
       sequence [ write "Search "; parens (pp_constr_expr expr); write "." ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
