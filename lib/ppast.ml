@@ -129,6 +129,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
+  | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
@@ -265,7 +266,7 @@ and pp_constr_expr_r = function
           write ",";
           hor <-|> ver;
         ]
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
+  | Constrexpr.CHole (None, IntroAnonymous, None) -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -635,6 +636,34 @@ let pp_import_filter_expr import_filter_expr =
             (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
         ]
 
+let pp_search_item = function
+  | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
+      let parens_needed =
+        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      conditional_parens expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_search_request = function
+  | Vernacexpr.SearchLiteral search_item -> pp_search_item search_item
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_searchable = function
+  | Vernacexpr.Search [ (true, search_request) ] ->
+      pp_search_request search_request
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_search_restriction = function
+  | Vernacexpr.SearchInside [ range ] ->
+      sequence [ write " inside "; pp_qualid range ]
+  | Vernacexpr.SearchOutside [] -> nop
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
@@ -702,6 +731,14 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           parens (pp_constr_expr expr);
           (if List.length modifiers > 0 then pp_modifiers else nop);
           pp_scope;
+          write ".";
+        ]
+  | VernacSearch (searchable, None, search_restriction) ->
+      sequence
+        [
+          write "Search ";
+          pp_searchable searchable;
+          pp_search_restriction search_restriction;
           write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
