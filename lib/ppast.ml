@@ -672,7 +672,8 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ".";
         ]
   | VernacSearch
-      ( Search [ (true, SearchLiteral (SearchSubPattern ((Anywhere, _), _))) ],
+      ( Search
+          [ (true, SearchLiteral (SearchSubPattern ((Anywhere, false), _))) ],
         None,
         _ ) ->
       write "Search (_ + _ = _ + _)."
