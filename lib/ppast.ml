@@ -186,7 +186,11 @@ and pp_constr_expr_r = function
               | ( _,
                   None,
                   None,
-                  Extend.ETConstr (_, _, (_, Extend.BorderProd (_, None))) ) ->
+                  Extend.ETConstr
+                    ( Constrexpr.InConstrEntry,
+                      None,
+                      (Extend.NumLevel _, Extend.BorderProd (Right, None)) ) )
+                ->
                   op_level h.v > op_level op
               | _ -> op_level h.v >= op_level op
             in
