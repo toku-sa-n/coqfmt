@@ -218,8 +218,8 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], [] -> pp_constr_expr x
-              | [], [] -> failwith "Too few replacers."
+              | [ x ], _ -> pp_constr_expr x
+              | [], [] | [], [ _ ] -> nop
               | x :: xs, sep :: seps ->
                   sequence
                     [
