@@ -105,8 +105,9 @@ and pp_constr_expr_r = function
                   fun printer -> raise (NotImplemented (contents printer)))
             inners;
         ]
-  | Constrexpr.CAppExpl ((_, None), [ expr ]) ->
-      sequence [ write ".. "; parens (pp_constr_expr expr); write " .." ]
+  | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
+      sequence
+        [ write ".. "; parens (pp_constr_expr expr); space; pp_qualid dots ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
         [
