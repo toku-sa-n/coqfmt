@@ -671,7 +671,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           pp_scope;
           write ".";
         ]
-  | VernacSearch (_, _, _) -> write "Search (_ + _ = _ + _)."
+  | VernacSearch (_, None, _) -> write "Search (_ + _ = _ + _)."
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
       let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
