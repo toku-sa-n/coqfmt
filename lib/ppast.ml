@@ -146,11 +146,16 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
-  | Constrexpr.CNotation (scope, notation, (init_replacers, [], [], [])) as op
-    ->
+  | Constrexpr.CNotation
+      (scope, notation, (init_replacers_nonrec, init_replacers_rec, [], [])) as
+    op ->
       let open Ppextend in
       let open CAst in
       let notation_info = Notgram_ops.grammar_of_notation notation |> List.hd in
+
+      let init_replacers =
+        init_replacers_nonrec @ List.flatten init_replacers_rec
+      in
 
       let assoc = notation_info.notgram_assoc in
 
@@ -166,7 +171,7 @@ and pp_constr_expr_r = function
       let rec printers unparsings replacers entry_keys =
         match (unparsings, replacers, entry_keys) with
         | [], [], [] -> nop
-        | [], _, _ -> failwith "Too many replacers."
+        | [], _, _ -> nop
         | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
@@ -204,7 +209,33 @@ and pp_constr_expr_r = function
             sequence [ conditional_parens h; printers t_u t_r t_keys ]
         | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar _ :: _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar (_, xs, _) :: t, ys, zs ->
+            let extracter = function
+              | Ppextend.UnpTerminal s -> s
+              | Ppextend.UnpCut _ -> ";"
+              | Ppextend.UnpMetaVar _ | Ppextend.UnpBinderMetaVar _
+              | Ppextend.UnpListMetaVar _ | Ppextend.UnpBinderListMetaVar _ ->
+                  failwith "AAA"
+              | _ -> failwith "BBB"
+            in
+            let rec loop elems seps =
+              match (elems, seps) with
+              | [ x ], [] -> pp_constr_expr x
+              | [], [] -> failwith "Too few replacers."
+              | x :: xs, sep :: seps ->
+                  sequence
+                    [
+                      pp_constr_expr x;
+                      write (extracter sep);
+                      space;
+                      loop xs seps;
+                    ]
+              | _, _ -> failwith "Too many replacers."
+            in
+            sequence [ loop ys xs; printers t ys zs ]
+            (* Printf.sprintf "%d %d %d %d" (List.length t) (List.length xs)
+               (List.length ys) (List.length zs) |> failwith *)
+            (* sequence [ write " meta "; printers t ys zs ] *)
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
             raise (NotImplemented "")
         | Ppextend.UnpTerminal s :: t, xs, keys ->
