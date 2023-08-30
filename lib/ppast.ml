@@ -213,10 +213,7 @@ and pp_constr_expr_r = function
             let extracter = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut _ -> ";"
-              | Ppextend.UnpMetaVar _ | Ppextend.UnpBinderMetaVar _
-              | Ppextend.UnpListMetaVar _ | Ppextend.UnpBinderListMetaVar _ ->
-                  failwith "AAA"
-              | _ -> failwith "BBB"
+              | _ -> failwith "TODO"
             in
             let rec loop elems seps =
               match (elems, seps) with
@@ -233,9 +230,6 @@ and pp_constr_expr_r = function
               | _, _ -> failwith "Too many replacers."
             in
             sequence [ loop ys xs; printers t ys zs ]
-            (* Printf.sprintf "%d %d %d %d" (List.length t) (List.length xs)
-               (List.length ys) (List.length zs) |> failwith *)
-            (* sequence [ write " meta "; printers t ys zs ] *)
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
             raise (NotImplemented "")
         | Ppextend.UnpTerminal s :: t, xs, keys ->
