@@ -657,6 +657,12 @@ let pp_searchable = function
       pp_search_request search_request
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_search_restriction = function
+  | Vernacexpr.SearchInside [ range ] ->
+      sequence [ write " inside "; pp_qualid range ]
+  | Vernacexpr.SearchOutside [] -> nop
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
@@ -731,11 +737,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         [
           write "Search ";
           pp_searchable searchable;
-          (match search_restriction with
-          | SearchInside [ range ] ->
-              sequence [ write " inside "; pp_qualid range ]
-          | SearchOutside [] -> nop
-          | _ -> fun printer -> raise (NotImplemented (contents printer)));
+          pp_search_restriction search_restriction;
           write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
