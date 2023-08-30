@@ -213,7 +213,7 @@ and pp_constr_expr_r = function
         | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _ :: zs ->
             let get_seps = function
               | Ppextend.UnpTerminal s -> s
-              | Ppextend.UnpCut _ -> ";"
+              | Ppextend.UnpCut (PpBrk _) -> ";"
               | _ -> failwith "TODO"
             in
             let rec loop elems seps =
