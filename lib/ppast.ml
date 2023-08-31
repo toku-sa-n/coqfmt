@@ -449,6 +449,8 @@ and pp_intro_pattern_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_core_destruction_arg = function
+  | Tactics.ElimOnConstr (expr, Tactypes.NoBindings) ->
+      parens (pp_constr_expr expr)
   | Tactics.ElimOnIdent ident -> pp_lident ident
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
