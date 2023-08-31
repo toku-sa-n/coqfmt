@@ -849,6 +849,7 @@ let separator current next =
   | VernacNotation _, VernacNotation _
   | VernacDefineModule _, _
   | _, VernacEndSegment _
+  | VernacSearch _, VernacSearch _
   | VernacRequire _, VernacRequire _ ->
       newline
   | VernacDefinition (_, _, ProveBody _), _
@@ -867,6 +868,8 @@ let separator current next =
   | _, VernacFixpoint _
   | VernacInductive _, _
   | _, VernacInductive _
+  | VernacSearch _, _
+  | _, VernacSearch _
   | _, VernacDefineModule _
   | VernacEndSegment _, _
   | VernacEndProof _, _
