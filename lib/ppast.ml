@@ -449,7 +449,7 @@ and pp_intro_pattern_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_core_destruction_arg = function
-  | Tactics.ElimOnConstr _ -> write "(x =? y)"
+  | Tactics.ElimOnConstr (_, _) -> write "(x =? y)"
   | Tactics.ElimOnIdent ident -> pp_lident ident
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
