@@ -43,27 +43,29 @@ and pp_cases_pattern_expr_r = function
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
-  | Constrexpr.CPatNotation (None, (InConstrEntry, notation), (expr1, expr2), [])
-    ->
-      (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
-      let exprs = expr1 @ List.flatten expr2 in
-      let prefix =
-        String.split_on_char '_' notation |> List.hd |> String.trim
+  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2), []) ->
+      let printing_rule = Ppextend.find_notation_printing_rule scope notation in
+
+      let rec pp unparsings exprs =
+        match (unparsings, exprs) with
+        | [], _ -> nop
+        | Ppextend.UnpMetaVar _ :: _, [] -> failwith "Too few exprs."
+        | Ppextend.UnpMetaVar _ :: t, h_exprs :: t_exprs ->
+            sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
+        | Ppextend.UnpBinderMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
+        | Ppextend.UnpListMetaVar _ :: t, h_exprs :: t_exprs ->
+            sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, _ -> sequence [ write s; pp t exprs ]
+        | Ppextend.UnpCut _ :: t, _ -> sequence [ space; pp t exprs ]
+        | Ppextend.UnpBox (_, xs) :: t, _ -> pp (List.map snd xs @ t) exprs
       in
-      let suffix =
-        String.split_on_char '_' notation |> List.rev |> List.hd |> String.trim
-      in
-      let separator =
-        String.split_on_char '_' notation |> List.tl |> List.hd |> String.trim
-      in
-      sequence
-        [
-          write prefix;
-          map_with_seps
-            ~sep:(sequence [ write separator; space ])
-            pp_cases_pattern_expr exprs;
-          write suffix;
-        ]
+
+      pp printing_rule.notation_printing_unparsing
+        (exprs_1 @ List.flatten exprs_2)
   | Constrexpr.CPatPrim token -> pp_prim_token token
   | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
