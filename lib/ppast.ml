@@ -52,13 +52,13 @@ and pp_cases_pattern_expr_r = function
         | Ppextend.UnpMetaVar _ :: _, [] -> failwith "Too few exprs."
         | Ppextend.UnpMetaVar _ :: t, h_exprs :: t_exprs ->
             sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
-        | Ppextend.UnpBinderMetaVar _ :: t, _ ->
-            sequence [ write "binder"; pp t exprs ]
+        | Ppextend.UnpBinderMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
         | Ppextend.UnpListMetaVar _ :: t, h_exprs :: t_exprs ->
             sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
-        | Ppextend.UnpBinderListMetaVar _ :: t, _ ->
-            sequence [ write "binder_list"; pp t exprs ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpTerminal s :: t, _ -> sequence [ write s; pp t exprs ]
         | Ppextend.UnpCut _ :: t, _ -> sequence [ space; pp t exprs ]
         | Ppextend.UnpBox (_, xs) :: t, _ -> pp (List.map snd xs @ t) exprs
