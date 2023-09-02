@@ -284,11 +284,16 @@ and pp_local_binder_expr = function
         Constrexpr.Default Explicit,
         CAst.{ v = Constrexpr.CHole (_, IntroAnonymous, None); loc = _ } ) ->
       pp_lname name
-  | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
-      parens
+  | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
+      let wrapper =
+        match kind with
+        | Explicit -> parens
+        | MaxImplicit -> braces
+        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+      in
+
+      wrapper
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
-  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default MaxImplicit, ty) ->
-      braces (sequence [ pp_lname name; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr = function
