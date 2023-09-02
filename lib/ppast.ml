@@ -674,11 +674,11 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
   | VernacArguments
-      ( CAst.{ v = AN _; loc = _ },
+      ( CAst.{ v = AN name; loc = _ },
         [
           RealArg
             {
-              name;
+              name = ty;
               recarg_like = false;
               notation_scope = [];
               implicit_status = MaxImplicit;
@@ -686,7 +686,14 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
         ],
         [],
         [] ) ->
-      sequence [ write "Arguments nil "; braces (pp_name name); write "." ]
+      sequence
+        [
+          write "Arguments ";
+          pp_qualid name;
+          space;
+          braces (pp_name ty);
+          write ".";
+        ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
