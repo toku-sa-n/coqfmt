@@ -885,22 +885,25 @@ let separator current next =
   | VernacBullet _, _ -> nop
   | _, _ -> newline
 
-let pp_ast ast =
-  let printer = create () in
-  let rec loop = function
-    | [] -> ()
-    | [ x ] ->
-        sequence
-          [
-            pp_subast x;
-            (* Given that codes are usually stored in files, it is better to
-               append a `\n` at the end if the code is not empty. *)
-            newline;
-          ]
-          printer
-    | head :: next :: tail ->
-        sequence [ pp_subast head; separator head next ] printer;
-        loop (next :: tail)
-  in
-  loop ast;
-  contents printer
+let pp_ast parser =
+  (* Do not try to pp after parsing everything. After parsing everything, the
+     STM will not be in nested module(s), and things that are valid inside them
+     (e.g., notation declarations inside them) will be invalid, making some
+     functions (e.g., `grammar_of_notation`) raise exceptions. *)
+  match Astparser.next parser with
+  | None -> ""
+  | Some first_ast ->
+      let printer = create () in
+
+      pp_subast first_ast printer;
+
+      let rec loop prev_ast =
+        match Astparser.next parser with
+        | None -> newline printer
+        | Some next_ast ->
+            sequence [ separator prev_ast next_ast; pp_subast next_ast ] printer;
+            loop next_ast
+      in
+
+      let () = loop first_ast in
+      contents printer
