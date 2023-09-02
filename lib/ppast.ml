@@ -150,7 +150,8 @@ and pp_constr_expr_r = function
                  pp_constr_expr f;
                ]);
         ]
-  | Constrexpr.CLambdaN ([ _ ], _) -> write "fun x => x"
+  | Constrexpr.CLambdaN ([ arg ], _) ->
+      sequence [ write "fun "; pp_local_binder_expr arg; write " => x" ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
       (scope, notation, (init_replacers_nonrec, init_replacers_rec, [], [])) as
