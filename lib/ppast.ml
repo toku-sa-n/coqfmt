@@ -886,9 +886,10 @@ let separator current next =
 let pp_ast parser =
   let printer = create () in
 
-  (* Do not try to parse everything at once. Otherwise, after parsing everything
-     the STM will not be in nested module(s), and things that are valid inside
-     them (e.g., notation declarations inside them) will be invalid. *)
+  (* Do not try to pp after parsing everything. After parsing everything, the
+     STM will not be in nested module(s), and things that are valid inside them
+     (e.g., notation declarations inside them) will be invalid, making some
+     functions (e.g., `grammar_of_notation`) raise exceptions. *)
   match Astparser.next parser with
   | None -> ""
   | Some first_ast ->
