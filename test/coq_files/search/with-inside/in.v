@@ -1,2 +1,2 @@
-Search      add
+Search      pred
     inside       Prelude.
