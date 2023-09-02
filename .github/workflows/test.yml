@@ -104,7 +104,7 @@ jobs:
       - name: Compile Coq files
         run: |
           shopt -s globstar
-          find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
+          find ./test/coq_files/**/*.v -print0|xargs -0 -n1 -P8 opam exec -- coqc
 
   eighty_columns_check:
     runs-on: ubuntu-latest
