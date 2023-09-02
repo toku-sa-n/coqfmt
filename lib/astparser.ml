@@ -21,6 +21,12 @@ let make code =
 
   { doc; state; code }
 
+let add_ast t ast =
+  let next_doc, next_state, _ = Stm.add ~doc:t.doc ~ontop:t.state false ast in
+
+  t.doc <- next_doc;
+  t.state <- next_state
+
 let rec next t =
   let prev_ast =
     if t.state = Stateid.initial then None else Stm.get_ast ~doc:t.doc t.state
@@ -32,20 +38,10 @@ let rec next t =
   match (prev_ast, next_ast) with
   | _, None -> None
   | None, Some ast ->
-      let next_doc, next_state, _ =
-        Stm.add ~doc:t.doc ~ontop:t.state false ast
-      in
-      t.doc <- next_doc;
-      t.state <- next_state;
-
+      let () = add_ast t ast in
       Some ast
   | Some prev_ast, Some next_ast ->
-      let next_doc, next_state, _ =
-        Stm.add ~doc:t.doc ~ontop:t.state false next_ast
-      in
-
-      t.doc <- next_doc;
-      t.state <- next_state;
+      let () = add_ast t next_ast in
 
       let skip_this_ast =
         let open CAst in
