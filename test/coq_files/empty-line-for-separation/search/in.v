@@ -1,1 +1,1 @@
-Theorem foo:1=1. Abort. Search rev. Search rev. Theorem foo:1=1. Abort.
+Theorem foo:1=1. Abort. Search eqb. Search eqb. Theorem foo:1=1. Abort.
