@@ -1,1 +1,1 @@
-Definition foo := fun x => x.
+Definition foo := fun (x : nat) => x.
