@@ -1,8 +1,10 @@
+Definition bar := 1.
+
 Theorem foo : 1 = 1.
 Abort.
 
-Search eqb.
-Search eqb.
+Search bar.
+Search bar.
 
 Theorem foo : 1 = 1.
 Abort.
