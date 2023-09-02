@@ -285,6 +285,8 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
       parens
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
+  | Constrexpr.CLocalAssum ([ _ ], Constrexpr.Default MaxImplicit, _) ->
+      write "{X : Type}"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr = function
