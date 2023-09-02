@@ -789,7 +789,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
             pp_single_inductive inductives;
           write ".";
         ]
-  | VernacImport (_, _) -> write "Export Prelude."
+  | VernacImport (_, [ _ ]) -> write "Export Prelude."
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args
   | VernacEndProof proof_end -> pp_proof_end proof_end
