@@ -7,7 +7,7 @@ Fixpoint eqb (n m : nat) : bool :=
 
 Notation "x =? y" := (eqb x y) (at level 70) : nat_scope.
 
-Theorem foo : forall (x y : nat), x =? y.
+Theorem foo : forall (x y : nat), x =? y = true.
 Proof.
   destruct (x =? y).
 Abort.
