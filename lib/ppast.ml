@@ -766,16 +766,28 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   | VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
-              ([], None),
-              ty,
+              (type_params, None),
+              return_type,
               Vernacexpr.Constructors constructors ),
             [] ) ->
+            let pp_type_params =
+              match type_params with
+              | [] -> nop
+              | _ ->
+                  sequence
+                    [ space; map_spaced pp_local_binder_expr type_params ]
+            in
+            let pp_return_type =
+              match return_type with
+              | Some ty -> sequence [ write " : "; pp_constr_expr ty ]
+              | None -> nop
+            in
+
             sequence
               [
                 pp_lident name;
-                (match ty with
-                | Some ty -> sequence [ write " : "; pp_constr_expr ty ]
-                | None -> nop);
+                pp_type_params;
+                pp_return_type;
                 write " :=";
                 indented (map_sequence pp_construtor_expr constructors);
               ]
@@ -789,6 +801,8 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
             pp_single_inductive inductives;
           write ".";
         ]
+  | VernacImport ((flag, None), [ (name, ImportAll) ]) ->
+      sequence [ pp_export_flag flag; space; pp_qualid name; write "." ]
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args
   | VernacEndProof proof_end -> pp_proof_end proof_end
