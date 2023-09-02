@@ -685,13 +685,13 @@ let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | VernacArguments (CAst.{ v = AN name; loc = _ }, [ arg ], [], []) ->
+  | VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
       sequence
         [
           write "Arguments ";
           pp_qualid name;
           space;
-          pp_vernac_argument_status arg;
+          map_spaced pp_vernac_argument_status args;
           write ".";
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
