@@ -1,1 +1,1 @@
-Arguments nil{X}.
+Arguments nil{A}.
