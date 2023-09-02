@@ -884,8 +884,6 @@ let separator current next =
   | _, _ -> newline
 
 let pp_ast parser =
-  let printer = create () in
-
   (* Do not try to pp after parsing everything. After parsing everything, the
      STM will not be in nested module(s), and things that are valid inside them
      (e.g., notation declarations inside them) will be invalid, making some
@@ -893,7 +891,10 @@ let pp_ast parser =
   match Astparser.next parser with
   | None -> ""
   | Some first_ast ->
+      let printer = create () in
+
       pp_subast first_ast printer;
+
       let rec loop prev_ast =
         match Astparser.next parser with
         | None -> newline printer
@@ -901,5 +902,6 @@ let pp_ast parser =
             sequence [ separator prev_ast next_ast; pp_subast next_ast ] printer;
             loop next_ast
       in
+
       let () = loop first_ast in
       contents printer
