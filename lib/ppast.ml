@@ -668,11 +668,31 @@ let pp_search_restriction = function
   | Vernacexpr.SearchOutside [] -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_vernac_argument_status = function
+  | Vernacexpr.RealArg
+      {
+        name = ty;
+        recarg_like = false;
+        notation_scope = [];
+        implicit_status = MaxImplicit;
+      } ->
+      braces (pp_name ty)
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
     =
   let open Vernacexpr in
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
+  | VernacArguments (CAst.{ v = AN name; loc = _ }, [ arg ], [], []) ->
+      sequence
+        [
+          write "Arguments ";
+          pp_qualid name;
+          space;
+          pp_vernac_argument_status arg;
+          write ".";
+        ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with

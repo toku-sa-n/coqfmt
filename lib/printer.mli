@@ -47,6 +47,9 @@ val clear_bullets : t -> unit
 val parens : (t -> unit) -> t -> unit
 (** Write out parentheses around the given function. *)
 
+val braces : (t -> unit) -> t -> unit
+(** Write out braces around the given function. *)
+
 val brackets : (t -> unit) -> t -> unit
 (** Write out brackets around the given function. *)
 
