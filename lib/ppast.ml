@@ -674,7 +674,7 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
   | VernacArguments
-      ( _,
+      ( CAst.{ v = AN _; loc = _ },
         [
           RealArg
             {
