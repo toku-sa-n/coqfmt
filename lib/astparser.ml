@@ -22,20 +22,26 @@ let make code =
   { doc; state; code }
 
 let rec next t =
-  match
+  let prev_ast =
+    if t.state = Stateid.initial then None else Stm.get_ast ~doc:t.doc t.state
+  in
+  let next_ast =
     Stm.parse_sentence ~doc:t.doc ~entry:Pvernac.main_entry t.state t.code
-  with
-  | None -> None
-  | Some ast ->
+  in
+
+  match (prev_ast, next_ast) with
+  | _, None -> None
+  | None, Some ast ->
       let next_doc, next_state, _ =
         Stm.add ~doc:t.doc ~ontop:t.state false ast
       in
-      let prev_ast =
-        if t.state = Stateid.initial then None
-        else
-          match Stm.get_ast ~doc:t.doc t.state with
-          | None -> None
-          | Some ast -> Some ast.v.expr
+      t.doc <- next_doc;
+      t.state <- next_state;
+
+      Some ast
+  | Some prev_ast, Some next_ast ->
+      let next_doc, next_state, _ =
+        Stm.add ~doc:t.doc ~ontop:t.state false next_ast
       in
 
       t.doc <- next_doc;
@@ -44,12 +50,12 @@ let rec next t =
       let skip_this_ast =
         let open CAst in
         let open Vernacexpr in
-        match (prev_ast, ast.v.expr) with
-        | Some (VernacStartTheoremProof _), VernacProof _
-        | Some (VernacDefinition _), VernacProof _ ->
+        match (prev_ast.v.expr, next_ast.v.expr) with
+        | VernacStartTheoremProof _, VernacProof _
+        | VernacDefinition _, VernacProof _ ->
             false
         | _, VernacProof _ -> true
         | _, _ -> false
       in
 
-      if skip_this_ast then next t else Some ast
+      if skip_this_ast then next t else Some next_ast
