@@ -107,6 +107,8 @@ and pp_constr_expr_r = function
                   fun printer -> raise (NotImplemented (contents printer)))
             inners;
         ]
+  | Constrexpr.CAppExpl ((name, None), []) ->
+      sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
       spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
@@ -282,11 +284,16 @@ and pp_local_binder_expr = function
         Constrexpr.Default Explicit,
         CAst.{ v = Constrexpr.CHole (_, IntroAnonymous, None); loc = _ } ) ->
       pp_lname name
-  | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
-      parens
+  | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
+      let wrapper =
+        match kind with
+        | Explicit -> parens
+        | MaxImplicit -> braces
+        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+      in
+
+      wrapper
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
-  | Constrexpr.CLocalAssum ([ name ], Constrexpr.Default MaxImplicit, ty) ->
-      braces (sequence [ pp_lname name; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr = function
@@ -681,18 +688,17 @@ let pp_vernac_argument_status = function
       braces (pp_name ty)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
-    =
+let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | VernacArguments (CAst.{ v = AN name; loc = _ }, [ arg ], [], []) ->
+  | VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
       sequence
         [
           write "Arguments ";
           pp_qualid name;
           space;
-          pp_vernac_argument_status arg;
+          map_spaced pp_vernac_argument_status args;
           write ".";
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
@@ -867,6 +873,17 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
           write ".";
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_control_flag = function
+  | Vernacexpr.ControlFail -> write "Fail"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_subast CAst.{ v = Vernacexpr.{ control; attrs = _; expr }; loc = _ } =
+  let pp_controls = function
+    | [] -> nop
+    | _ -> sequence [ map_spaced pp_control_flag control; space ]
+  in
+  sequence [ pp_controls control; pp_vernac_expr expr ]
 
 let separator current next =
   let open Vernacexpr in
