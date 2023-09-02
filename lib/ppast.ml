@@ -107,9 +107,10 @@ and pp_constr_expr_r = function
                   fun printer -> raise (NotImplemented (contents printer)))
             inners;
         ]
+  | Constrexpr.CAppExpl ((name, None), []) ->
+      sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
       spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
-  | Constrexpr.CAppExpl ((_, None), []) -> write "@nil"
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
         [
