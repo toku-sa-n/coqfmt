@@ -673,7 +673,20 @@ let pp_subast CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ }
   let open Vernacexpr in
   match expr with
   | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | VernacArguments (_, [ RealArg _ ], [], []) -> write "Arguments nil {X}."
+  | VernacArguments
+      ( _,
+        [
+          RealArg
+            {
+              name;
+              recarg_like = false;
+              notation_scope = [];
+              implicit_status = MaxImplicit;
+            };
+        ],
+        [],
+        [] ) ->
+      sequence [ write "Arguments nil "; braces (pp_name name); write "." ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
