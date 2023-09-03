@@ -101,9 +101,6 @@ jobs:
       - name: Install Coq
         run: opam install coq
 
-        # See
-        # https://coq.github.io/doc/v8.11/refman/practical-tools/coq-commands.html#compiled-interfaces-produced-using-vos
-        # for the `-vok` option.
       - name: List Coq files which did not compile
         run: |
           shopt -s globstar
