@@ -498,7 +498,7 @@ let pp_induction_clause_list = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (_, _) ], _) -> write "apply eq."
+  | Tacexpr.TacApply (true, false, [ (None, _) ], _) -> write "apply eq."
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
