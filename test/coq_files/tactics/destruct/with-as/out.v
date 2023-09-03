@@ -10,6 +10,13 @@ Fixpoint bin_to_nat (m : bin) : nat :=
   | B_1 n => 2 * bin_to_nat n + 1
   end.
 
+Fixpoint incr (m : bin) : bin :=
+  match m with
+  | Z => B_1 Z
+  | B_0 n => B_1 n
+  | B_1 n => B_0 (incr n)
+  end.
+
 Theorem bin_to_nat_pres_incrr :
   forall (b : bin), bin_to_nat (incr b) = 1 + bin_to_nat b.
 Proof.
