@@ -97,16 +97,17 @@ and pp_constr_expr_r = function
             parens (pp_constr_expr expr)
         | _ -> pp_constr_expr expr
       in
-      sequence
-        [
-          pp_constr_expr fn;
-          map_sequence
-            (function
-              | inner, None -> sequence [ space; conditional_parens inner ]
-              | _, Some _ ->
-                  fun printer -> raise (NotImplemented (contents printer)))
-            args;
-        ]
+
+      let pp_args =
+        map_sequence
+          (function
+            | inner, None -> sequence [ space; conditional_parens inner ]
+            | _, Some _ ->
+                fun printer -> raise (NotImplemented (contents printer)))
+          args
+      in
+
+      sequence [ pp_constr_expr fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
