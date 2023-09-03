@@ -93,7 +93,7 @@ and pp_constr_expr_r = function
       let open CAst in
       let conditional_parens expr =
         match expr.v with
-        | Constrexpr.CApp _ | Constrexpr.CNotation _ ->
+        | Constrexpr.CApp _ | Constrexpr.CNotation _ | Constrexpr.CLambdaN _ ->
             parens (pp_constr_expr expr)
         | _ -> pp_constr_expr expr
       in
