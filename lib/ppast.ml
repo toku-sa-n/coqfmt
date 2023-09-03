@@ -503,7 +503,10 @@ let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply
       ( true,
         false,
-        [ (None, (expr, ExplicitBindings [ CAst.{ v = _, _; loc = _ } ])) ],
+        [
+          ( None,
+            (expr, ExplicitBindings [ CAst.{ v = NamedHyp _, _; loc = _ } ]) );
+        ],
         [] ) ->
       sequence
         [ write "apply "; pp_constr_expr expr; write " with (m := [c; d])." ]
