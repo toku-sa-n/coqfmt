@@ -9,7 +9,7 @@ let pp_lident CAst.{ v; loc = _ } = pp_id v
 
 let pp_name = function
   | Names.Name name -> pp_id name
-  | Names.Anonymous -> fun printer -> raise (NotImplemented (contents printer))
+  | Names.Anonymous -> write "_"
 
 let pp_lname CAst.{ v; loc = _ } = pp_name v
 let pp_lstring CAst.{ v; loc = _ } = write v
