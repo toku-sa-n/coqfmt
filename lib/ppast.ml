@@ -89,7 +89,7 @@ and pp_constr_expr_r = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
       spaced [ pp_constr_expr outer; parens (pp_constr_expr inner) ]
-  | Constrexpr.CApp (outer, inners) ->
+  | Constrexpr.CApp (fn, args) ->
       let open CAst in
       let conditional_parens expr =
         match expr.v with
@@ -97,16 +97,17 @@ and pp_constr_expr_r = function
             parens (pp_constr_expr expr)
         | _ -> pp_constr_expr expr
       in
-      sequence
-        [
-          pp_constr_expr outer;
-          map_sequence
-            (function
-              | inner, None -> sequence [ space; conditional_parens inner ]
-              | _, Some _ ->
-                  fun printer -> raise (NotImplemented (contents printer)))
-            inners;
-        ]
+
+      let pp_args =
+        map_sequence
+          (function
+            | inner, None -> sequence [ space; conditional_parens inner ]
+            | _, Some _ ->
+                fun printer -> raise (NotImplemented (contents printer)))
+          args
+      in
+
+      sequence [ pp_constr_expr fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
