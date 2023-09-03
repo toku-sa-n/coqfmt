@@ -418,7 +418,9 @@ let pp_syntax_modifier = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_arg = function
-  | Tacexpr.TacCall ast -> sequence [ pp_qualid (fst ast.v); write "." ]
+  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } ->
+      sequence [ pp_qualid v; write "." ]
+  | Tacexpr.TacCall _ -> write "transitivity [c; d]."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
