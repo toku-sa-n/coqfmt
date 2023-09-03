@@ -419,6 +419,7 @@ let pp_syntax_modifier = function
 
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.Reference _ -> write "m"
   | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } ->
       sequence [ pp_qualid v; write "." ]
   | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
