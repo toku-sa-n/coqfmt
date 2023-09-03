@@ -506,8 +506,8 @@ let pp_raw_atomic_tactic_expr = function
         [
           ( None,
             ( expr,
-              ExplicitBindings [ CAst.{ v = NamedHyp replaced, _; loc = _ } ] )
-          );
+              ExplicitBindings
+                [ CAst.{ v = NamedHyp replaced, rep_expr; loc = _ } ] ) );
         ],
         [] ) ->
       sequence
@@ -516,7 +516,9 @@ let pp_raw_atomic_tactic_expr = function
           pp_constr_expr expr;
           write " with (";
           pp_lident replaced;
-          write " := [c; d]).";
+          write " := ";
+          pp_constr_expr rep_expr;
+          write ").";
         ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
