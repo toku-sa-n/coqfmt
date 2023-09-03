@@ -418,7 +418,7 @@ let pp_syntax_modifier = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_gen_tactic_arg = function
-  | Tacexpr.ConstrMayEval _ -> write "[c; d]"
+  | Tacexpr.ConstrMayEval (ConstrTerm _) -> write "[c; d]"
   | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } ->
       sequence [ pp_qualid v; write "." ]
   | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
