@@ -498,28 +498,23 @@ let pp_induction_clause_list = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, NoBindings)) ], []) ->
-      sequence [ write "apply "; pp_constr_expr expr; write "." ]
-  | Tacexpr.TacApply
-      ( true,
-        false,
-        [
-          ( None,
-            ( expr,
-              ExplicitBindings
-                [ CAst.{ v = NamedHyp replaced, rep_expr; loc = _ } ] ) );
-        ],
-        [] ) ->
-      sequence
-        [
-          write "apply ";
-          pp_constr_expr expr;
-          write " with (";
-          pp_lident replaced;
-          write " := ";
-          pp_constr_expr rep_expr;
-          write ").";
-        ]
+  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], []) ->
+      let pp_binding =
+        match binding with
+        | NoBindings -> nop
+        | ExplicitBindings [ CAst.{ v = NamedHyp replaced, rep_expr; loc = _ } ]
+          ->
+            sequence
+              [
+                write " with (";
+                pp_lident replaced;
+                write " := ";
+                pp_constr_expr rep_expr;
+                write ")";
+              ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+      sequence [ write "apply "; pp_constr_expr expr; pp_binding; write "." ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
