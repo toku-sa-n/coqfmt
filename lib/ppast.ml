@@ -500,8 +500,8 @@ let pp_induction_clause_list = function
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, NoBindings)) ], []) ->
       sequence [ write "apply "; pp_constr_expr expr; write "." ]
-  | Tacexpr.TacApply (true, false, [ (None, (expr, ExplicitBindings _)) ], [])
-    ->
+  | Tacexpr.TacApply
+      (true, false, [ (None, (expr, ExplicitBindings [ _ ])) ], []) ->
       sequence
         [ write "apply "; pp_constr_expr expr; write " with (m := [c; d])." ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
