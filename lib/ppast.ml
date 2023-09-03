@@ -150,11 +150,11 @@ and pp_constr_expr_r = function
                  pp_constr_expr f;
                ]);
         ]
-  | Constrexpr.CLambdaN ([ arg ], body) ->
+  | Constrexpr.CLambdaN (args, body) ->
       sequence
         [
           write "fun ";
-          pp_local_binder_expr arg;
+          map_spaced pp_local_binder_expr args;
           write " => ";
           pp_constr_expr body;
         ]
