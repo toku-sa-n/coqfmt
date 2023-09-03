@@ -1,1 +1,1 @@
-Definition foo:=fun _=>0.
+Definition foo:nat->nat:=fun _=>0.

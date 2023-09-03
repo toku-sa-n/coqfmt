@@ -1,1 +1,1 @@
-Arguments pair {X} {Y}.
+Arguments pair {A} {B}.

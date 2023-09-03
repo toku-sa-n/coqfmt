@@ -1,2 +1,2 @@
-Search      rev
+Search      pred
     inside       Prelude.

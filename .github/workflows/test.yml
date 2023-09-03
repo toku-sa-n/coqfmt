@@ -101,8 +101,10 @@ jobs:
       - name: Install Coq
         run: opam install coq
 
-      - name: Compile Coq files
-        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
+      - name: List Coq files which did not compile
+        run: |
+          shopt -s globstar
+          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vio {} > /dev/null && echo "OK" || exit 255'
 
   eighty_columns_check:
     runs-on: ubuntu-latest
