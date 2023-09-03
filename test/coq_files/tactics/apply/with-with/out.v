@@ -1,3 +1,5 @@
+Notation "[ x ; .. ; y ]" := (cons x .. (cons y nil) ..).
+
 Example trans_eq : forall (X : Type) (n m o : X), n = m -> m = o -> n = o.
 Proof.
   intros X n m o eq1 eq2.
