@@ -417,8 +417,13 @@ let pp_syntax_modifier = function
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_gen_tactic_arg = function
-  | Tacexpr.TacCall ast -> sequence [ pp_qualid (fst ast.v); write "." ]
+let rec pp_gen_tactic_arg = function
+  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.Reference name -> pp_qualid name
+  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } ->
+      sequence [ pp_qualid v; write "." ]
+  | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
+      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg; write "." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
