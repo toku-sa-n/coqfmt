@@ -101,10 +101,13 @@ jobs:
       - name: Install Coq
         run: opam install coq
 
+        # See
+        # https://coq.github.io/doc/v8.11/refman/practical-tools/coq-commands.html#compiled-interfaces-produced-using-vos
+        # for the `-vok` option.
       - name: List Coq files which did not compile
         run: |
           shopt -s globstar
-          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vio {} > /dev/null && echo "OK" || exit 255'
+          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vok {} > /dev/null && echo "OK" || exit 255'
 
   eighty_columns_check:
     runs-on: ubuntu-latest
