@@ -439,7 +439,7 @@ let pp_raw_red_expr = function
             rConst = [];
           },
         None ) ->
-      write "simpl."
+      write "simpl"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
@@ -502,6 +502,10 @@ let pp_induction_clause_list = function
   | [ clause ], None -> pp_induction_clause clause
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_hyp_location_expr = function
+  | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], []) ->
       let pp_binding =
@@ -547,7 +551,18 @@ let pp_raw_atomic_tactic_expr = function
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
           write ".";
         ]
-  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr
+  | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
+    ->
+      sequence [ pp_raw_red_expr expr; write "." ]
+  | Tacexpr.TacReduce
+      (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
+      sequence
+        [
+          pp_raw_red_expr expr;
+          write " in ";
+          pp_hyp_location_expr name;
+          write ".";
+        ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
