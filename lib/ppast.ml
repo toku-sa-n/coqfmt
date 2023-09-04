@@ -598,9 +598,20 @@ let pp_gen_tactic_expr_r = function
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
         | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
-            match Conversion.constr_expr_of_raw_generic_argument args with
-            | None -> loop t_ids t_reps
-            | Some h_reps -> conditional_parens h_reps :: loop t_ids t_reps)
+            match
+              ( Conversion.constr_expr_of_raw_generic_argument args,
+                Conversion.destruction_arg_of_raw_generic_argument args,
+                Conversion.intro_pattern_list_of_raw_generic_argument args )
+            with
+            | None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _ ->
+                conditional_parens h_reps :: loop t_ids t_reps
+            | _, Some h_reps, _ ->
+                pp_destruction_arg h_reps :: loop t_ids t_reps
+            | _, _, Some h_reps ->
+                let open CAst in
+                map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
+                :: loop t_ids t_reps)
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
