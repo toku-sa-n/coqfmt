@@ -502,7 +502,9 @@ let pp_induction_clause_list = function
   | [ clause ], None -> pp_induction_clause clause
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_hyp_location_expr (_, _) = write "H"
+let pp_hyp_location_expr = function
+  | _, Locus.InHyp -> write "H"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], []) ->
