@@ -562,24 +562,6 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
-  let open Sexplib.Sexp in
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "constr" ] ];
-        rems;
-      ]
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "uconstr" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
-  | _ -> None
-
 let pp_gen_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
@@ -601,7 +583,7 @@ let pp_gen_tactic_expr_r = function
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
         | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
-            match constr_expr_of_raw_generic_argument args with
+            match Conversion.constr_expr_of_raw_generic_argument args with
             | None -> loop t_ids t_reps
             | Some h_reps -> conditional_parens h_reps :: loop t_ids t_reps)
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps

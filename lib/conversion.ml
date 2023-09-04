@@ -12,3 +12,21 @@ let raw_tactic_expr_of_raw_generic_argument arg =
       ] ->
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
+
+let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "constr" ] ];
+        rems;
+      ]
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "uconstr" ] ];
+        rems;
+      ] ->
+      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
+  | _ -> None
