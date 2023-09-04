@@ -16,6 +16,9 @@ val write : string -> t -> unit
 val space : t -> unit
 (** Write out a space. *)
 
+val dot : t -> unit
+(** Write out a dot. *)
+
 val newline : t -> unit
 (** Write out a newline. *)
 
