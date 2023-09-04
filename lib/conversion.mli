@@ -21,3 +21,5 @@ val destruction_arg_of_raw_generic_argument :
 
 val clause_expr_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Names.Id.t CAst.t Locus.clause_expr option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Names.Id.t CAst.t Locus.clause_expr]. *)
