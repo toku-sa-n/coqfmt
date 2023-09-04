@@ -580,6 +580,43 @@ let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
       Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
   | _ -> None
 
+let constr_expr_list_of_raw_generic_argument arg =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List
+              [
+                Atom "ListArg";
+                List [ Atom "ExtraArg"; Atom "simple_intropattern" ];
+              ];
+          ];
+        List rems;
+      ] ->
+      Some (List.map Serlib_ltac.Ser_tacexpr.intro_pattern_of_sexp rems)
+  | _ -> None
+
+let destruction_arg_of_raw_generic_argument arg =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "destruction_arg" ] ];
+        rems;
+      ] ->
+      let arg_parser = function
+        | List [ _; expr ] ->
+            (Serlib.Ser_constrexpr.constr_expr_of_sexp expr, Tactypes.NoBindings)
+        | _ -> failwith "TODO"
+      in
+      Some (Serlib.Ser_tactics.destruction_arg_of_sexp arg_parser rems)
+  | _ -> None
+
 let pp_gen_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
@@ -601,9 +638,20 @@ let pp_gen_tactic_expr_r = function
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
         | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
-            match constr_expr_of_raw_generic_argument args with
-            | None -> loop t_ids t_reps
-            | Some h_reps -> conditional_parens h_reps :: loop t_ids t_reps)
+            match
+              ( constr_expr_of_raw_generic_argument args,
+                destruction_arg_of_raw_generic_argument args,
+                constr_expr_list_of_raw_generic_argument args )
+            with
+            | None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _ ->
+                conditional_parens h_reps :: loop t_ids t_reps
+            | _, Some h_reps, _ ->
+                pp_destruction_arg h_reps :: loop t_ids t_reps
+            | _, _, Some h_reps ->
+                let open CAst in
+                map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
+                :: loop t_ids t_reps)
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
