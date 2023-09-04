@@ -439,7 +439,7 @@ let pp_raw_red_expr = function
             rConst = [];
           },
         None ) ->
-      write "simpl."
+      write "simpl"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
@@ -549,8 +549,9 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | Tacexpr.TacReduce (expr, { onhyps = Some _; concl_occs = AllOccurrences })
     ->
-      pp_raw_red_expr expr
-  | Tacexpr.TacReduce (_, _) -> write "simpl in H."
+      sequence [ pp_raw_red_expr expr; write "." ]
+  | Tacexpr.TacReduce (expr, _) ->
+      sequence [ pp_raw_red_expr expr; write " in H." ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
