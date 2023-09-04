@@ -347,11 +347,13 @@ let pp_definition_expr = function
 
 let pp_proof_end = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, Some ident) ->
-      sequence [ clear_bullets; write "Save"; space; pp_lident ident; dot ]
+      sequence
+        [ clear_bullets; write "Save"; space; pp_lident ident; write "." ]
   | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
       sequence [ clear_bullets; write "Qed." ]
   | Vernacexpr.Proved (Vernacexpr.Transparent, Some ident) ->
-      sequence [ clear_bullets; write "Defined"; space; pp_lident ident; dot ]
+      sequence
+        [ clear_bullets; write "Defined"; space; pp_lident ident; write "." ]
   | Vernacexpr.Proved (Vernacexpr.Transparent, None) ->
       sequence [ clear_bullets; write "Defined." ]
   | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
@@ -385,7 +387,7 @@ let pp_fixpoint_expr = function
           pp_return_type;
           write " :=";
           newline;
-          indented (sequence [ pp_constr_expr body_def; dot ]);
+          indented (sequence [ pp_constr_expr body_def; write "." ]);
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -418,9 +420,10 @@ let pp_syntax_modifier = function
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
   | Tacexpr.Reference name -> pp_qualid name
-  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> sequence [ pp_qualid v; dot ]
+  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } ->
+      sequence [ pp_qualid v; write "." ]
   | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
-      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg; dot ]
+      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg; write "." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
@@ -504,7 +507,7 @@ let pp_hyp_location_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], []) ->
+  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
       let pp_binding =
         match binding with
         | NoBindings -> nop
@@ -520,7 +523,22 @@ let pp_raw_atomic_tactic_expr = function
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
-      sequence [ write "apply "; pp_constr_expr expr; pp_binding; dot ]
+
+      let pp_in_clause =
+        match in_clause with
+        | [] -> nop
+        | [ (name, None) ] -> sequence [ write " in "; pp_id name.CAst.v ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence
+        [
+          write "apply ";
+          pp_constr_expr expr;
+          pp_binding;
+          pp_in_clause;
+          write ".";
+        ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
@@ -535,7 +553,7 @@ let pp_raw_atomic_tactic_expr = function
         [
           (if is_induction then write "induction " else write "destruct ");
           pp_induction_clause_list clause_list;
-          dot;
+          write ".";
         ]
   | Tacexpr.TacIntroPattern
       (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
@@ -546,15 +564,20 @@ let pp_raw_atomic_tactic_expr = function
         [
           write "intros ";
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
-          dot;
+          write ".";
         ]
   | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
-      sequence [ pp_raw_red_expr expr; dot ]
+      sequence [ pp_raw_red_expr expr; write "." ]
   | Tacexpr.TacReduce
       (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
       sequence
-        [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name; dot ]
+        [
+          pp_raw_red_expr expr;
+          write " in ";
+          pp_hyp_location_expr name;
+          write ".";
+        ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
@@ -565,7 +588,7 @@ let pp_raw_atomic_tactic_expr = function
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
           pp_constr_expr expr;
-          dot;
+          write ".";
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -593,23 +616,28 @@ let pp_gen_tactic_expr_r = function
             match
               ( Conversion.constr_expr_of_raw_generic_argument args,
                 Conversion.destruction_arg_of_raw_generic_argument args,
-                Conversion.intro_pattern_list_of_raw_generic_argument args )
+                Conversion.intro_pattern_list_of_raw_generic_argument args,
+                Conversion.clause_expr_of_raw_generic_argument args )
             with
-            | None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _ ->
+            | None, None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _, _ ->
                 conditional_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _ ->
+            | _, Some h_reps, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps ->
+            | _, _, Some h_reps, _ ->
                 let open CAst in
                 map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
-                :: loop t_ids t_reps)
+                :: loop t_ids t_reps
+            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ } ->
+                pp_hyp_location_expr name :: loop t_ids t_reps
+            | _ ->
+                [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
-      sequence [ loop init_idents init_replacers |> spaced; dot ]
+      sequence [ loop init_idents init_replacers |> spaced; write "." ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -714,7 +742,7 @@ let pp_vernac_expr expr =
           pp_qualid name;
           space;
           map_spaced pp_vernac_argument_status args;
-          dot;
+          write ".";
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
@@ -733,9 +761,9 @@ let pp_vernac_expr expr =
         else pp_constr_expr expr
       in
 
-      sequence [ pp_name; pp_expr; dot ]
+      sequence [ pp_name; pp_expr; write "." ]
   | VernacDefineModule (None, name, [], Check [], []) ->
-      sequence [ write "Module "; pp_lident name; dot; increase_indent ]
+      sequence [ write "Module "; pp_lident name; write "."; increase_indent ]
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       sequence
         [
@@ -743,10 +771,10 @@ let pp_vernac_expr expr =
           space;
           pp_lname name;
           pp_definition_expr expr;
-          dot;
+          write ".";
         ]
   | VernacEndSegment name ->
-      sequence [ decrease_indent; write "End "; pp_lident name; dot ]
+      sequence [ decrease_indent; write "End "; pp_lident name; write "." ]
   | VernacFixpoint (NoDischarge, [ expr ]) ->
       sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
   | VernacNotation (false, expr, (notation, modifiers), scope) ->
@@ -778,7 +806,7 @@ let pp_vernac_expr expr =
           parens (pp_constr_expr expr);
           (if List.length modifiers > 0 then pp_modifiers else nop);
           pp_scope;
-          dot;
+          write ".";
         ]
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
@@ -786,12 +814,13 @@ let pp_vernac_expr expr =
           write "Search ";
           pp_searchable searchable;
           pp_search_restriction search_restriction;
-          dot;
+          write ".";
         ]
   | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
-      let hor = sequence [ space; pp_constr_expr expr; dot ] in
+      let hor = sequence [ space; pp_constr_expr expr; write "." ] in
       let ver =
-        sequence [ newline; indented (sequence [ pp_constr_expr expr; dot ]) ]
+        sequence
+          [ newline; indented (sequence [ pp_constr_expr expr; write "." ]) ]
       in
       sequence
         [
@@ -841,10 +870,10 @@ let pp_vernac_expr expr =
           map_with_seps
             ~sep:(sequence [ newline; write "with " ])
             pp_single_inductive inductives;
-          dot;
+          write ".";
         ]
   | VernacImport ((flag, None), [ (name, ImportAll) ]) ->
-      sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
+      sequence [ pp_export_flag flag; space; pp_qualid name; write "." ]
   (* FIXME: Support other plugins, like ltac2. *)
   | VernacExtend (_, args) -> pp_ltac args
   | VernacEndProof proof_end -> pp_proof_end proof_end
@@ -879,7 +908,13 @@ let pp_vernac_expr expr =
       in
 
       sequence
-        [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
+        [
+          pp_dirpath;
+          write "Require";
+          pp_categories;
+          pp_name_and_filter;
+          write ".";
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_control_flag = function
