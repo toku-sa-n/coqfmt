@@ -576,6 +576,18 @@ let pp_raw_atomic_tactic_expr = function
           pp_constr_expr expr;
           dot;
         ]
+  | Tacexpr.TacRewrite
+      ( false,
+        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
+        Locus.{ onhyps = Some [ _ ]; concl_occs = NoOccurrences },
+        None ) ->
+      sequence
+        [
+          write "rewrite ";
+          (if is_left_to_right then write "-> " else write "<- ");
+          pp_constr_expr expr;
+          write " in H1.";
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r = function
