@@ -66,3 +66,18 @@ let destruction_arg_of_raw_generic_argument arg =
       in
       Some (Serlib.Ser_tactics.destruction_arg_of_sexp arg_parser rems)
   | _ -> None
+
+let clause_expr_of_raw_generic_argument arg =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "in_clause" ] ];
+        rems;
+      ] ->
+      Some
+        (Serlib.Ser_locus.clause_expr_of_sexp
+           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
+           rems)
+  | _ -> None
