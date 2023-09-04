@@ -46,6 +46,7 @@ let write s t =
   t.columns <- new_columns
 
 let space = write " "
+let dot = write "."
 
 let newline t =
   if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
