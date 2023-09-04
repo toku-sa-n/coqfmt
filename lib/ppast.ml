@@ -524,6 +524,7 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
       sequence [ write "apply "; pp_constr_expr expr; pp_binding; write "." ]
+  | Tacexpr.TacApply _ -> write "apply A in H."
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
