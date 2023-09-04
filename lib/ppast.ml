@@ -547,7 +547,10 @@ let pp_raw_atomic_tactic_expr = function
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
           write ".";
         ]
-  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr expr
+  | Tacexpr.TacReduce (expr, { onhyps = Some _; concl_occs = AllOccurrences })
+    ->
+      pp_raw_red_expr expr
+  | Tacexpr.TacReduce (_, _) -> write "simpl in H."
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
