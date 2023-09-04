@@ -507,7 +507,7 @@ let pp_hyp_location_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], []) ->
+  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
       let pp_binding =
         match binding with
         | NoBindings -> nop
@@ -523,7 +523,22 @@ let pp_raw_atomic_tactic_expr = function
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
-      sequence [ write "apply "; pp_constr_expr expr; pp_binding; write "." ]
+
+      let pp_in_clause =
+        match in_clause with
+        | [] -> nop
+        | [ (name, None) ] -> sequence [ write " in "; pp_id name.CAst.v ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence
+        [
+          write "apply ";
+          pp_constr_expr expr;
+          pp_binding;
+          pp_in_clause;
+          write ".";
+        ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
