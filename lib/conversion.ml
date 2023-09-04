@@ -14,7 +14,7 @@ let raw_tactic_expr_of_raw_generic_argument arg =
       Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
 
-let constr_expr_of_raw_generic_argument arg : Constrexpr.constr_expr option =
+let constr_expr_of_raw_generic_argument arg =
   match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
   | List
       [
