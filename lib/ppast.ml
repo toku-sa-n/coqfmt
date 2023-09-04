@@ -547,7 +547,7 @@ let pp_raw_atomic_tactic_expr = function
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
           write ".";
         ]
-  | Tacexpr.TacReduce (expr, { onhyps = Some _; concl_occs = AllOccurrences })
+  | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
       sequence [ pp_raw_red_expr expr; write "." ]
   | Tacexpr.TacReduce (expr, { onhyps = Some [ _ ]; concl_occs = NoOccurrences })
