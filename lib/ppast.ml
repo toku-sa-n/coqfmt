@@ -503,7 +503,7 @@ let pp_induction_clause_list = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_hyp_location_expr = function
-  | (_, _), Locus.InHyp -> write "H"
+  | (Locus.AllOccurrences, _), Locus.InHyp -> write "H"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
