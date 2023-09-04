@@ -617,25 +617,9 @@ let pp_gen_tactic_expr_r = function
 let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
   pp_gen_tactic_expr_r v
 
-(* FIXME: This function should be in another module. *)
-let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
-    =
-  (* XXX: I'm not sure if this way is correct. See
-     https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60. *)
-  let open Sexplib.Sexp in
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "tactic" ] ];
-        rems;
-      ] ->
-      Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
-  | _ -> None
-
 let pp_ltac =
   map_sequence (fun arg ->
-      match raw_tactic_expr_of_raw_generic_argument arg with
+      match Conversion.raw_tactic_expr_of_raw_generic_argument arg with
       | None -> nop
       | Some t -> pp_raw_tactic_expr t)
 
