@@ -6,4 +6,4 @@ val raw_tactic_expr_of_raw_generic_argument :
 val constr_expr_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Constrexpr.constr_expr option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
-  [Constr.constr]. *)
+  [Constrexpr.constr_expr option]. *)
