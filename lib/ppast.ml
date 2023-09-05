@@ -656,10 +656,9 @@ let pp_ltac =
       | Some t -> pp_raw_tactic_expr t)
 
 let pp_proof_bullet = function
-  | Proof_bullet.Dash 1 -> write_before_indent "- "
-  | Proof_bullet.Plus 1 -> write_before_indent "+ "
-  | Proof_bullet.Star 1 -> write_before_indent "* "
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Proof_bullet.Dash n -> write_before_indent (String.make n '-' ^ " ")
+  | Proof_bullet.Plus n -> write_before_indent (String.make n '+' ^ " ")
+  | Proof_bullet.Star n -> write_before_indent (String.make n '*' ^ " ")
 
 let pp_import_categories { Vernacexpr.negative; import_cats } =
   let open CAst in

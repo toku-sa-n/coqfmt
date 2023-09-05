@@ -30,8 +30,14 @@ let sequence xs printer = List.iter (fun x -> x printer) xs
 let map_sequence f xs = sequence (List.map f xs)
 
 let calculate_indent t =
-  (* 2 for the bullet and a space after it. *)
-  t.indent_spaces + ((tab_size + 2) * List.length t.bullets)
+  let num_bullets = function
+    | Proof_bullet.Dash n | Proof_bullet.Plus n | Proof_bullet.Star n -> n
+  in
+  let indents_for_bullets =
+    (* +1 for the space after a bullet. *)
+    List.fold_left (fun acc b -> acc + num_bullets b + tab_size + 1) 0 t.bullets
+  in
+  t.indent_spaces + indents_for_bullets
 
 let write s t =
   let string_to_push =
