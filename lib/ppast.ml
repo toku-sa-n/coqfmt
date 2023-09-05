@@ -437,6 +437,7 @@ let pp_raw_red_expr = function
           },
         None ) ->
       write "simpl"
+  | Genredexpr.Unfold _ -> write "unfold pred"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
