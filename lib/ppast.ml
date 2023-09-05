@@ -437,7 +437,8 @@ let pp_raw_red_expr = function
           },
         None ) ->
       write "simpl"
-  | Genredexpr.Unfold [ (_, CAst.{ v = Constrexpr.AN name; loc = _ }) ] ->
+  | Genredexpr.Unfold
+      [ (AllOccurrences, CAst.{ v = Constrexpr.AN name; loc = _ }) ] ->
       sequence [ write "unfold "; pp_qualid name ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
