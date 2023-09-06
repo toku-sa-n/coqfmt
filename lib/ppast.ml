@@ -185,8 +185,9 @@ and pp_constr_expr_r = function
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
       let rec printers unparsings replacers local_assums entry_keys =
         match (unparsings, replacers, local_assums, entry_keys) with
-        | [], [], _, [] -> nop
+        | [], [], [], [] -> nop
         | [], _ :: _, _, _ -> failwith "Too many replacers."
+        | [], _, _ :: _, _ -> failwith "Too many local assumptions."
         | [], _, _, _ :: _ -> failwith "Too many entry keys."
         | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
