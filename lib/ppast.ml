@@ -257,8 +257,10 @@ and pp_constr_expr_r = function
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
             raise (NotImplemented "Too few entry keys.")
-        | Ppextend.UnpBinderListMetaVar (_, _) :: t, xs, _, _ :: keys ->
+        | Ppextend.UnpBinderListMetaVar (true, _) :: t, xs, _, _ :: keys ->
             sequence [ write "n : nat"; printers t xs local_assums keys ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpTerminal s :: t, xs, _, keys ->
             sequence [ write s; printers t xs local_assums keys ]
         | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
