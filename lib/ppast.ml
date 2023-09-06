@@ -257,8 +257,12 @@ and pp_constr_expr_r = function
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
             raise (NotImplemented "Too few entry keys.")
-        | Ppextend.UnpBinderListMetaVar (true, [ _ ]) :: t, xs, _, _ :: keys ->
-            sequence [ write "n : nat"; printers t xs local_assums keys ]
+        | ( Ppextend.UnpBinderListMetaVar (true, [ _ ]) :: t,
+            xs,
+            h_assums :: t_assums,
+            _ :: keys ) ->
+            sequence
+              [ pp_local_binder_expr h_assums; printers t xs t_assums keys ]
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpTerminal s :: t, xs, _, keys ->
@@ -272,7 +276,8 @@ and pp_constr_expr_r = function
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
-        local_assums entry_keys
+        (List.flatten local_assums)
+        entry_keys
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
