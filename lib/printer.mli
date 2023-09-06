@@ -56,6 +56,9 @@ val braces : (t -> unit) -> t -> unit
 val brackets : (t -> unit) -> t -> unit
 (** Write out brackets around the given function. *)
 
+val doublequoted : (t -> unit) -> t -> unit
+(** Write out double quotes around the given function. *)
+
 val map_with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them with [~sep] as
   the delimiter. *)

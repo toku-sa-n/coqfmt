@@ -734,6 +734,10 @@ let pp_vernac_argument_status = function
       braces (pp_name ty)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_option_string = function
+  | Vernacexpr.OptionSetString s -> doublequoted (write s)
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -911,6 +915,9 @@ let pp_vernac_expr expr =
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
+  | VernacSetOption (false, [ name ], options) ->
+      sequence
+        [ write "Set "; write name; space; pp_option_string options; dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_control_flag = function
