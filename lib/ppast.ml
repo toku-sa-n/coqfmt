@@ -161,8 +161,9 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
-      (scope, notation, (init_replacers_nonrec, init_replacers_rec, [], [])) as
-    op ->
+      ( scope,
+        notation,
+        (init_replacers_nonrec, init_replacers_rec, [], local_assums) ) as op ->
       let open Ppextend in
       let open CAst in
       let notation_info = Notgram_ops.grammar_of_notation notation |> List.hd in
@@ -182,12 +183,12 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
-      let rec printers unparsings replacers entry_keys =
-        match (unparsings, replacers, entry_keys) with
-        | [], [], [] -> nop
-        | [], _ :: _, _ -> failwith "Too many replacers."
-        | [], _, _ :: _ -> failwith "Too many entry keys."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, h_keys :: t_keys ->
+      let rec printers unparsings replacers local_assums entry_keys =
+        match (unparsings, replacers, local_assums, entry_keys) with
+        | [], [], _, [] -> nop
+        | [], _ :: _, _, _ -> failwith "Too many replacers."
+        | [], _, _, _ :: _ -> failwith "Too many entry keys."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -221,10 +222,11 @@ and pp_constr_expr_r = function
               else pp_constr_expr expr
             in
 
-            sequence [ conditional_parens h; printers t_u t_r t_keys ]
-        | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
-        | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _ :: zs ->
+            sequence
+              [ conditional_parens h; printers t_u t_r local_assums t_keys ]
+        | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs ->
             let get_seps = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut (PpBrk _) -> ";"
@@ -232,13 +234,14 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], _ -> sequence [ pp_constr_expr x; printers t [] zs ]
-              | [], _ -> printers t [] zs
+              | [ x ], _ ->
+                  sequence [ pp_constr_expr x; printers t [] local_assums zs ]
+              | [], _ -> printers t [] local_assums zs
               | xs, [] ->
                   sequence
                     [
                       map_with_seps ~sep:(write "; ") pp_constr_expr xs;
-                      printers t [] zs;
+                      printers t [] local_assums zs;
                     ]
               | x :: xs, sep :: seps ->
                   sequence
@@ -250,23 +253,22 @@ and pp_constr_expr_r = function
                     ]
             in
             loop elems seps
-        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, [] ->
+        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [] ->
             raise (NotImplemented "")
-        | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
-            raise (NotImplemented "")
-        | Ppextend.UnpTerminal s :: t, xs, keys ->
-            sequence [ write s; printers t xs keys ]
-        | Ppextend.UnpBox (_, xs) :: t, _, keys ->
-            printers (List.map snd xs @ t) replacers keys
-        | Ppextend.UnpCut _ :: t, xs, keys ->
-            let hor = sequence [ space; printers t xs keys ] in
-            let ver = sequence [ newline; printers t xs keys ] in
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
+            write "n : nat, x = double n."
+        | Ppextend.UnpTerminal s :: t, xs, _, keys ->
+            sequence [ write s; printers t xs local_assums keys ]
+        | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
+            printers (List.map snd xs @ t) replacers local_assums keys
+        | Ppextend.UnpCut _ :: t, xs, _, keys ->
+            let hor = sequence [ space; printers t xs local_assums keys ] in
+            let ver = sequence [ newline; printers t xs local_assums keys ] in
             hor <-|> ver
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
-        entry_keys
-  | Constrexpr.CNotation (_, _, _) -> write "exists n : nat, x = double n"
+        local_assums entry_keys
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
