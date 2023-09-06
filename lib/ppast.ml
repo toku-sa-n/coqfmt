@@ -256,7 +256,7 @@ and pp_constr_expr_r = function
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [] ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
-            write "n : nat, x = double n."
+            write "n : nat, x = double n"
         | Ppextend.UnpTerminal s :: t, xs, _, keys ->
             sequence [ write s; printers t xs local_assums keys ]
         | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
