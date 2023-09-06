@@ -255,8 +255,10 @@ and pp_constr_expr_r = function
             loop elems seps
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [] ->
             raise (NotImplemented "")
-        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
-            write "n : nat, x = double n"
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
+            raise (NotImplemented "Too few entry keys.")
+        | Ppextend.UnpBinderListMetaVar _ :: t, xs, _, _ :: keys ->
+            sequence [ write "n : nat"; printers t xs local_assums keys ]
         | Ppextend.UnpTerminal s :: t, xs, _, keys ->
             sequence [ write s; printers t xs local_assums keys ]
         | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
