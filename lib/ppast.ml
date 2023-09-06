@@ -266,6 +266,7 @@ and pp_constr_expr_r = function
 
       printers printing_rule.notation_printing_unparsing init_replacers
         entry_keys
+  | Constrexpr.CNotation (_, _, _) -> write "exists n : nat, x = double n"
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
