@@ -465,6 +465,7 @@ let rec pp_or_and_intro_pattern_expr = function
 
 and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
+  | Tactypes.IntroWildcard -> write "_"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_expr = function
