@@ -1,4 +1,4 @@
-Theorem foo : forall (n : nat), n = n.
+Theorem foo : forall P Q, P /\ Q -> P.
 Proof.
-  intros [ | _].
+  intros P Q [HP _].
 Abort.

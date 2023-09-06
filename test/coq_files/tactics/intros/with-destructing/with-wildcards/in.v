@@ -1,1 +1,1 @@
-Theorem foo:forall(n:nat),n=n. Proof. intros [|_]. Abort.
+Theorem foo:forall P Q,P/\Q->P. Proof. intros P Q [HP _]. Abort.
