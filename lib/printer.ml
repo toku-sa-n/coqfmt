@@ -97,6 +97,7 @@ let clear_bullets t = t.bullets <- []
 let parens f = sequence [ write "("; f; write ")" ]
 let braces f = sequence [ write "{"; f; write "}" ]
 let brackets f = sequence [ write "["; f; write "]" ]
+let doublequoted f = sequence [ write "\""; f; write "\"" ]
 
 let with_seps ~sep xs =
   sequence
