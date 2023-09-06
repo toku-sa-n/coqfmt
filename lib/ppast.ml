@@ -911,7 +911,8 @@ let pp_vernac_expr expr =
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
-  | VernacSetOption _ -> write "Set Warnings \"-notation-overridden,-parsing\"."
+  | VernacSetOption (_, _, _) ->
+      write "Set Warnings \"-notation-overridden,-parsing\"."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_control_flag = function
