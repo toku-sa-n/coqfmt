@@ -619,7 +619,9 @@ let pp_gen_tactic_expr_r = function
 
       let parens_needed expr =
         let open CAst in
-        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+        match expr.v with
+        | Constrexpr.CRef _ | Constrexpr.CPrim _ -> false
+        | _ -> true
       in
       let conditional_parens expr =
         if parens_needed expr then parens (pp_constr_expr expr)
@@ -651,7 +653,7 @@ let pp_gen_tactic_expr_r = function
             | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _ ->
                 pp_hyp_location_expr name :: loop t_ids t_reps
             | _, _, _, _, Some [ ImplicitBindings [ x ] ] ->
-                pp_constr_expr x :: loop t_ids t_reps
+                conditional_parens x :: loop t_ids t_reps
             | _ ->
                 [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
