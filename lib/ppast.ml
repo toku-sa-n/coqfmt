@@ -161,8 +161,9 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
-      (scope, notation, (init_replacers_nonrec, init_replacers_rec, [], [])) as
-    op ->
+      ( scope,
+        notation,
+        (init_replacers_nonrec, init_replacers_rec, [], local_assums) ) as op ->
       let open Ppextend in
       let open CAst in
       let notation_info = Notgram_ops.grammar_of_notation notation |> List.hd in
@@ -182,12 +183,13 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
-      let rec printers unparsings replacers entry_keys =
-        match (unparsings, replacers, entry_keys) with
-        | [], [], [] -> nop
-        | [], _ :: _, _ -> failwith "Too many replacers."
-        | [], _, _ :: _ -> failwith "Too many entry keys."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, h_keys :: t_keys ->
+      let rec printers unparsings replacers local_assums entry_keys =
+        match (unparsings, replacers, local_assums, entry_keys) with
+        | [], [], [], [] -> nop
+        | [], _ :: _, _, _ -> failwith "Too many replacers."
+        | [], _, _ :: _, _ -> failwith "Too many local assumptions."
+        | [], _, _, _ :: _ -> failwith "Too many entry keys."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -221,10 +223,11 @@ and pp_constr_expr_r = function
               else pp_constr_expr expr
             in
 
-            sequence [ conditional_parens h; printers t_u t_r t_keys ]
-        | Ppextend.UnpMetaVar _ :: _, _, _ -> failwith "Too few replacers."
-        | Ppextend.UnpBinderMetaVar _ :: _, _, _ -> raise (NotImplemented "")
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _ :: zs ->
+            sequence
+              [ conditional_parens h; printers t_u t_r local_assums t_keys ]
+        | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs ->
             let get_seps = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut (PpBrk _) -> ";"
@@ -232,13 +235,14 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], _ -> sequence [ pp_constr_expr x; printers t [] zs ]
-              | [], _ -> printers t [] zs
+              | [ x ], _ ->
+                  sequence [ pp_constr_expr x; printers t [] local_assums zs ]
+              | [], _ -> printers t [] local_assums zs
               | xs, [] ->
                   sequence
                     [
                       map_with_seps ~sep:(write "; ") pp_constr_expr xs;
-                      printers t [] zs;
+                      printers t [] local_assums zs;
                     ]
               | x :: xs, sep :: seps ->
                   sequence
@@ -250,21 +254,30 @@ and pp_constr_expr_r = function
                     ]
             in
             loop elems seps
-        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, [] ->
+        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [] ->
             raise (NotImplemented "")
-        | Ppextend.UnpBinderListMetaVar _ :: _, _, _ ->
-            raise (NotImplemented "")
-        | Ppextend.UnpTerminal s :: t, xs, keys ->
-            sequence [ write s; printers t xs keys ]
-        | Ppextend.UnpBox (_, xs) :: t, _, keys ->
-            printers (List.map snd xs @ t) replacers keys
-        | Ppextend.UnpCut _ :: t, xs, keys ->
-            let hor = sequence [ space; printers t xs keys ] in
-            let ver = sequence [ newline; printers t xs keys ] in
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
+            raise (NotImplemented "Too few entry keys.")
+        | ( Ppextend.UnpBinderListMetaVar (true, [ _ ]) :: t,
+            xs,
+            h_assums :: t_assums,
+            _ :: keys ) ->
+            sequence
+              [ pp_local_binder_expr h_assums; printers t xs t_assums keys ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, xs, _, keys ->
+            sequence [ write s; printers t xs local_assums keys ]
+        | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
+            printers (List.map snd xs @ t) replacers local_assums keys
+        | Ppextend.UnpCut _ :: t, xs, _, keys ->
+            let hor = sequence [ space; printers t xs local_assums keys ] in
+            let ver = sequence [ newline; printers t xs local_assums keys ] in
             hor <-|> ver
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
+        (List.flatten local_assums)
         entry_keys
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
@@ -606,7 +619,9 @@ let pp_gen_tactic_expr_r = function
 
       let parens_needed expr =
         let open CAst in
-        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+        match expr.v with
+        | Constrexpr.CRef _ | Constrexpr.CPrim _ -> false
+        | _ -> true
       in
       let conditional_parens expr =
         if parens_needed expr then parens (pp_constr_expr expr)
@@ -623,19 +638,22 @@ let pp_gen_tactic_expr_r = function
               ( Conversion.constr_expr_of_raw_generic_argument args,
                 Conversion.destruction_arg_of_raw_generic_argument args,
                 Conversion.intro_pattern_list_of_raw_generic_argument args,
-                Conversion.clause_expr_of_raw_generic_argument args )
+                Conversion.clause_expr_of_raw_generic_argument args,
+                Conversion.bindings_list_of_raw_generic_argument args )
             with
-            | None, None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _, _ ->
+            | None, None, None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _, _, _ ->
                 conditional_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _, _ ->
+            | _, Some h_reps, _, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps, _ ->
+            | _, _, Some h_reps, _, _ ->
                 let open CAst in
                 map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
                 :: loop t_ids t_reps
-            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ } ->
+            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _ ->
                 pp_hyp_location_expr name :: loop t_ids t_reps
+            | _, _, _, _, Some [ ImplicitBindings [ x ] ] ->
+                conditional_parens x :: loop t_ids t_reps
             | _ ->
                 [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
