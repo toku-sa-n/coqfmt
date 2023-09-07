@@ -636,19 +636,22 @@ let pp_gen_tactic_expr_r = function
               ( Conversion.constr_expr_of_raw_generic_argument args,
                 Conversion.destruction_arg_of_raw_generic_argument args,
                 Conversion.intro_pattern_list_of_raw_generic_argument args,
-                Conversion.clause_expr_of_raw_generic_argument args )
+                Conversion.clause_expr_of_raw_generic_argument args,
+                Conversion.bindings_list_of_raw_generic_argument args )
             with
-            | None, None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _, _ ->
+            | None, None, None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _, _, _ ->
                 conditional_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _, _ ->
+            | _, Some h_reps, _, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps, _ ->
+            | _, _, Some h_reps, _, _ ->
                 let open CAst in
                 map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
                 :: loop t_ids t_reps
-            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ } ->
+            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _ ->
                 pp_hyp_location_expr name :: loop t_ids t_reps
+            | _, _, _, _, Some [ ImplicitBindings [ x ] ] ->
+                pp_constr_expr x :: loop t_ids t_reps
             | _ ->
                 [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
