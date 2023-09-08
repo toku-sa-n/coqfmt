@@ -868,6 +868,7 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
+  | VernacPrint _ -> write "Print Assumptions pred."
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
         [
