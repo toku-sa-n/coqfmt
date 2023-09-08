@@ -789,6 +789,10 @@ let pp_vernac_expr expr =
           map_spaced pp_vernac_argument_status args;
           dot;
         ]
+  | VernacAssumption _ ->
+      write
+        "Axiom functional_extenonality : forall {X Y : Type} {f g : X -> Y},\n\
+        \  (forall (x : X), f x = g x) -> f = g."
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
