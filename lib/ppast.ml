@@ -618,8 +618,10 @@ let pp_raw_atomic_tactic_expr = function
           dot;
         ]
   | Tacexpr.TacRewrite
-      (false, [ (true, Precisely 1, (None, (expr, ExplicitBindings _))) ], _, _)
-    ->
+      ( false,
+        [ (true, Precisely 1, (None, (expr, ExplicitBindings [ _ ]))) ],
+        _,
+        _ ) ->
       sequence
         [ write "rewrite -> "; pp_constr_expr expr; write " with (l2 := l)." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
