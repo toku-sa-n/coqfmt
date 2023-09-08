@@ -790,15 +790,12 @@ let pp_vernac_expr expr =
           dot;
         ]
   | VernacAssumption
-      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ (name, None) ], _)) ])
-    ->
+      ( (NoDischarge, Logical),
+        NoInline,
+        [ (NoCoercion, ([ (name, None) ], expr)) ] ) ->
       sequence
         [
-          write "Axiom ";
-          pp_lident name;
-          write
-            " : forall {X Y : Type} {f g : X -> Y},\n\
-            \  (forall (x : X), f x = g x) -> f = g.";
+          write "Axiom "; pp_lident name; write " : "; pp_constr_expr expr; dot;
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
