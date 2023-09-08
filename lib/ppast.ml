@@ -585,7 +585,7 @@ let pp_raw_atomic_tactic_expr = function
         [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name; dot ]
   | Tacexpr.TacRewrite
       ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
+        [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
         in_bindings,
         None ) ->
       let parens_needed =
@@ -605,35 +605,30 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
+      let pp_with_bindings =
+        match with_bindings with
+        | NoBindings -> nop
+        | ExplicitBindings [ CAst.{ v = NamedHyp replacee, replacer; loc = _ } ]
+          ->
+            sequence
+              [
+                write " with (";
+                pp_lident replacee;
+                write " := ";
+                pp_constr_expr replacer;
+                write ")";
+              ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
       sequence
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
           conditional_parens expr;
           pp_in_bindings;
+          pp_with_bindings;
           dot;
-        ]
-  | Tacexpr.TacRewrite
-      ( false,
-        [
-          ( true,
-            Precisely 1,
-            ( None,
-              ( expr,
-                ExplicitBindings
-                  [ { v = NamedHyp replacee, replacer; loc = _ } ] ) ) );
-        ],
-        Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
-        _ ) ->
-      sequence
-        [
-          write "rewrite -> ";
-          pp_constr_expr expr;
-          write " with (";
-          pp_lident replacee;
-          write " := ";
-          pp_constr_expr replacer;
-          write ").";
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
