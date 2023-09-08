@@ -619,7 +619,11 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | Tacexpr.TacRewrite
       ( false,
-        [ (true, Precisely 1, (None, (expr, ExplicitBindings [ _ ]))) ],
+        [
+          ( true,
+            Precisely 1,
+            (None, (expr, ExplicitBindings [ { v = _; loc = _ } ])) );
+        ],
         _,
         _ ) ->
       sequence
