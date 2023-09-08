@@ -548,8 +548,18 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
+      let parens_needed expr =
+        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed expr then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       sequence
-        [ write "apply "; pp_constr_expr expr; pp_binding; pp_in_clause; dot ]
+        [
+          write "apply "; conditional_parens expr; pp_binding; pp_in_clause; dot;
+        ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
