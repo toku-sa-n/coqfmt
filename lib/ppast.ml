@@ -781,6 +781,8 @@ let pp_ident_decl = function
   | name, None -> pp_lident name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_printable _ = write "Print Assumptions pred."
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -868,7 +870,7 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
-  | VernacPrint _ -> write "Print Assumptions pred."
+  | VernacPrint printable -> pp_printable printable
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
         [
