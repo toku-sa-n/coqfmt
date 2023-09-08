@@ -598,11 +598,19 @@ let pp_raw_atomic_tactic_expr = function
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
         Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
         None ) ->
+      let parens_needed =
+        match expr.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       sequence
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
-          pp_constr_expr expr;
+          conditional_parens expr;
           dot;
         ]
   | Tacexpr.TacRewrite
