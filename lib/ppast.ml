@@ -627,7 +627,7 @@ let pp_raw_atomic_tactic_expr = function
                 ExplicitBindings
                   [ { v = NamedHyp replacee, replacer; loc = _ } ] ) ) );
         ],
-        _,
+        Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
         _ ) ->
       sequence
         [
