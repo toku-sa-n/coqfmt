@@ -622,7 +622,8 @@ let pp_raw_atomic_tactic_expr = function
         [
           ( true,
             Precisely 1,
-            (None, (expr, ExplicitBindings [ { v = _, _; loc = _ } ])) );
+            (None, (expr, ExplicitBindings [ { v = NamedHyp _, _; loc = _ } ]))
+          );
         ],
         _,
         _ ) ->
