@@ -782,7 +782,7 @@ let pp_ident_decl = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_printable = function
-  | Vernacexpr.PrintAssumptions (false, false, _) ->
+  | Vernacexpr.PrintAssumptions (false, false, { v = _; loc = _ }) ->
       write "Print Assumptions pred."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
