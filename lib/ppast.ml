@@ -202,6 +202,7 @@ and pp_constr_expr_r = function
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
               match (h.v, assoc, side, h_keys) with
+              | Constrexpr.CLambdaN _, _, _, _ -> true
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
