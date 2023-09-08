@@ -110,8 +110,11 @@ and pp_constr_expr_r = function
       sequence [ pp_constr_expr fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
-  | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
+  | Constrexpr.CAppExpl ((dots, None), [ expr ])
+    when Libnames.string_of_qualid dots = ".." ->
       spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
+  | Constrexpr.CAppExpl ((name, None), [ expr ]) ->
+      sequence [ write "@"; pp_qualid name; space; pp_constr_expr expr ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
         [
