@@ -781,7 +781,9 @@ let pp_ident_decl = function
   | name, None -> pp_lident name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_printable _ = write "Print Assumptions pred."
+let pp_printable = function
+  | Vernacexpr.PrintAssumptions _ -> write "Print Assumptions pred."
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr expr =
   let open Vernacexpr in
