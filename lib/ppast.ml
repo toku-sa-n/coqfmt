@@ -586,7 +586,7 @@ let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
+        in_bindings,
         None ) ->
       let parens_needed =
         match expr.v with Constrexpr.CApp _ -> true | _ -> false
@@ -596,25 +596,21 @@ let pp_raw_atomic_tactic_expr = function
         else pp_constr_expr expr
       in
 
+      let pp_in_bindings =
+        let open Locus in
+        match in_bindings with
+        | { onhyps = Some []; concl_occs = AllOccurrences } -> nop
+        | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
+            sequence [ write " in "; pp_hyp_location_expr name ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
       sequence
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
           conditional_parens expr;
-          dot;
-        ]
-  | Tacexpr.TacRewrite
-      ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = Some [ name ]; concl_occs = NoOccurrences },
-        None ) ->
-      sequence
-        [
-          write "rewrite ";
-          (if is_left_to_right then write "-> " else write "<- ");
-          pp_constr_expr expr;
-          write " in ";
-          pp_hyp_location_expr name;
+          pp_in_bindings;
           dot;
         ]
   | Tacexpr.TacRewrite
