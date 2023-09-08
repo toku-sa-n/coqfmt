@@ -617,7 +617,7 @@ let pp_raw_atomic_tactic_expr = function
           pp_hyp_location_expr name;
           dot;
         ]
-  | Tacexpr.TacRewrite (false, [ (true, _, _) ], _, _) ->
+  | Tacexpr.TacRewrite (false, [ (true, Precisely 1, _) ], _, _) ->
       write "rewrite -> IHl with (l2 := l)."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
