@@ -110,8 +110,11 @@ and pp_constr_expr_r = function
       sequence [ pp_constr_expr fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
-  | Constrexpr.CAppExpl ((dots, None), [ expr ]) ->
+  | Constrexpr.CAppExpl ((dots, None), [ expr ])
+    when Libnames.string_of_qualid dots = ".." ->
       spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
+  | Constrexpr.CAppExpl ((name, None), [ expr ]) ->
+      sequence [ write "@"; pp_qualid name; space; pp_constr_expr expr ]
   | Constrexpr.CCases (_, None, matchees, branches) ->
       sequence
         [
@@ -202,6 +205,7 @@ and pp_constr_expr_r = function
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
               match (h.v, assoc, side, h_keys) with
+              | Constrexpr.CLambdaN _, _, _, _ -> true
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
@@ -547,8 +551,18 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
+      let parens_needed expr =
+        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed expr then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       sequence
-        [ write "apply "; pp_constr_expr expr; pp_binding; pp_in_clause; dot ]
+        [
+          write "apply "; conditional_parens expr; pp_binding; pp_in_clause; dot;
+        ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
         [
@@ -779,6 +793,15 @@ let pp_option_string = function
   | Vernacexpr.OptionSetString s -> doublequoted (write s)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_ident_decl = function
+  | name, None -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_printable = function
+  | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
+      sequence [ write "Print Assumptions "; pp_qualid name; dot ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -790,6 +813,16 @@ let pp_vernac_expr expr =
           pp_qualid name;
           space;
           map_spaced pp_vernac_argument_status args;
+          dot;
+        ]
+  | VernacAssumption
+      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
+      sequence
+        [
+          write "Axiom ";
+          pp_ident_decl name;
+          write " : ";
+          pp_constr_expr expr;
           dot;
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
@@ -856,6 +889,7 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
+  | VernacPrint printable -> pp_printable printable
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
         [
