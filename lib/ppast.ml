@@ -790,7 +790,7 @@ let pp_vernac_expr expr =
           dot;
         ]
   | VernacAssumption
-      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ (name, _) ], _)) ])
+      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ (name, None) ], _)) ])
     ->
       sequence
         [
