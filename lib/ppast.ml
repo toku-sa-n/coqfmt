@@ -599,8 +599,8 @@ let pp_raw_atomic_tactic_expr = function
         [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name; dot ]
   | Tacexpr.TacRewrite
       ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
+        [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
+        in_bindings,
         None ) ->
       let parens_needed =
         match expr.v with Constrexpr.CApp _ -> true | _ -> false
@@ -610,25 +610,38 @@ let pp_raw_atomic_tactic_expr = function
         else pp_constr_expr expr
       in
 
+      let pp_in_bindings =
+        let open Locus in
+        match in_bindings with
+        | { onhyps = Some []; concl_occs = AllOccurrences } -> nop
+        | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
+            sequence [ write " in "; pp_hyp_location_expr name ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      let pp_with_bindings =
+        match with_bindings with
+        | NoBindings -> nop
+        | ExplicitBindings [ CAst.{ v = NamedHyp replacee, replacer; loc = _ } ]
+          ->
+            sequence
+              [
+                write " with (";
+                pp_lident replacee;
+                write " := ";
+                pp_constr_expr replacer;
+                write ")";
+              ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
       sequence
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
           conditional_parens expr;
-          dot;
-        ]
-  | Tacexpr.TacRewrite
-      ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = Some [ name ]; concl_occs = NoOccurrences },
-        None ) ->
-      sequence
-        [
-          write "rewrite ";
-          (if is_left_to_right then write "-> " else write "<- ");
-          pp_constr_expr expr;
-          write " in ";
-          pp_hyp_location_expr name;
+          pp_in_bindings;
+          pp_with_bindings;
           dot;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
