@@ -776,6 +776,10 @@ let pp_option_string = function
   | Vernacexpr.OptionSetString s -> doublequoted (write s)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_ident_decl = function
+  | name, None -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -790,12 +794,14 @@ let pp_vernac_expr expr =
           dot;
         ]
   | VernacAssumption
-      ( (NoDischarge, Logical),
-        NoInline,
-        [ (NoCoercion, ([ (name, None) ], expr)) ] ) ->
+      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
       sequence
         [
-          write "Axiom "; pp_lident name; write " : "; pp_constr_expr expr; dot;
+          write "Axiom ";
+          pp_ident_decl name;
+          write " : ";
+          pp_constr_expr expr;
+          dot;
         ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
