@@ -790,10 +790,16 @@ let pp_vernac_expr expr =
           dot;
         ]
   | VernacAssumption
-      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ (_, _) ], _)) ]) ->
-      write
-        "Axiom functional_extenonality : forall {X Y : Type} {f g : X -> Y},\n\
-        \  (forall (x : X), f x = g x) -> f = g."
+      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ (name, _) ], _)) ])
+    ->
+      sequence
+        [
+          write "Axiom ";
+          pp_lident name;
+          write
+            " : forall {X Y : Type} {f g : X -> Y},\n\
+            \  (forall (x : X), f x = g x) -> f = g.";
+        ]
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
