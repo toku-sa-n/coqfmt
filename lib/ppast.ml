@@ -622,13 +622,20 @@ let pp_raw_atomic_tactic_expr = function
         [
           ( true,
             Precisely 1,
-            (None, (expr, ExplicitBindings [ { v = NamedHyp _, _; loc = _ } ]))
-          );
+            ( None,
+              (expr, ExplicitBindings [ { v = NamedHyp replacee, _; loc = _ } ])
+            ) );
         ],
         _,
         _ ) ->
       sequence
-        [ write "rewrite -> "; pp_constr_expr expr; write " with (l2 := l)." ]
+        [
+          write "rewrite -> ";
+          pp_constr_expr expr;
+          write " with (";
+          pp_lident replacee;
+          write " := l).";
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r = function
