@@ -813,6 +813,11 @@ let pp_printable = function
       sequence [ write "Print Assumptions "; pp_qualid name; dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_assumption_object_kind = function
+  | Decls.Logical -> write "Axiom"
+  | Decls.Conjectural -> write "Conjecture"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -827,10 +832,11 @@ let pp_vernac_expr expr =
           dot;
         ]
   | VernacAssumption
-      ((NoDischarge, Logical), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
+      ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
       sequence
         [
-          write "Axiom ";
+          pp_assumption_object_kind kind;
+          space;
           pp_ident_decl name;
           write " : ";
           pp_constr_expr expr;
