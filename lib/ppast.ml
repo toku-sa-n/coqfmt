@@ -410,9 +410,18 @@ let pp_fixpoint_expr = function
 let pp_construtor_expr = function
   | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
       let open CAst in
+      let rec is_inductive_prop = function
+        | Constrexpr.CApp _ -> true
+        | Constrexpr.CRef _ -> true
+        | Constrexpr.CProdN (_, x) -> is_inductive_prop x.v
+        | Constrexpr.CNotation (None, _, (xs, _, _, _)) ->
+            List.exists (fun x -> is_inductive_prop x.v) xs
+        | _ -> false
+      in
+
       match expr.v with
       | Constrexpr.CHole _ -> sequence [ newline; write "| "; pp_lident name ]
-      | Constrexpr.CRef _ ->
+      | _ when is_inductive_prop expr.v ->
           sequence
             [
               newline;
