@@ -410,6 +410,8 @@ let pp_fixpoint_expr = function
 let pp_construtor_expr = function
   | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
       let open CAst in
+      (* TODO: Implement this completely. An `Inductive` is an inductive prop if
+         it contains a `CRef` with its name. *)
       let rec is_inductive_prop = function
         | Constrexpr.CApp _ -> true
         | Constrexpr.CRef _ -> true
