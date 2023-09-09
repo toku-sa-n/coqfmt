@@ -825,6 +825,8 @@ let pp_vernac_expr expr =
           pp_constr_expr expr;
           dot;
         ]
+  | VernacAssumption _ ->
+      write "Conjecture collaz_conjecture : forall (n : nat), reaches_1 (f n)."
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
