@@ -537,17 +537,20 @@ let pp_hyp_location_expr = function
   | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_quantified_hypothesis = function
+  | Tactypes.NamedHyp name -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
       let pp_binding =
         match binding with
         | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = NamedHyp replaced, rep_expr; loc = _ } ]
-          ->
+        | ExplicitBindings [ CAst.{ v = replaced, rep_expr; loc = _ } ] ->
             sequence
               [
                 write " with (";
-                pp_lident replaced;
+                pp_quantified_hypothesis replaced;
                 write " := ";
                 pp_constr_expr rep_expr;
                 write ")";
@@ -633,12 +636,11 @@ let pp_raw_atomic_tactic_expr = function
       let pp_with_bindings =
         match with_bindings with
         | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = NamedHyp replacee, replacer; loc = _ } ]
-          ->
+        | ExplicitBindings [ CAst.{ v = replacee, replacer; loc = _ } ] ->
             sequence
               [
                 write " with (";
-                pp_lident replacee;
+                pp_quantified_hypothesis replacee;
                 write " := ";
                 pp_constr_expr replacer;
                 write ")";
@@ -656,12 +658,12 @@ let pp_raw_atomic_tactic_expr = function
           dot;
         ]
   | Tacexpr.TacInversion
-      ( NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })),
-        NamedHyp name ) ->
+      (NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })), name)
+    ->
       sequence
         [
           write "inversion ";
-          pp_lident name;
+          pp_quantified_hypothesis name;
           write " as ";
           pp_or_and_intro_pattern_expr v;
           dot;
