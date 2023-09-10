@@ -546,23 +546,23 @@ let pp_inversion_strength = function
   | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
-      let pp_binding =
-        match binding with
-        | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = replaced, rep_expr; loc = _ } ] ->
-            sequence
-              [
-                write " with (";
-                pp_quantified_hypothesis replaced;
-                write " := ";
-                pp_constr_expr rep_expr;
-                write ")";
-              ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+let pp_bindings = function
+  | Tactypes.NoBindings -> nop
+  | Tactypes.ExplicitBindings bindings ->
+      let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
+        parens
+          (sequence
+             [
+               pp_quantified_hypothesis replacee;
+               write " := ";
+               pp_constr_expr replacer;
+             ])
       in
+      sequence [ write " with "; map_spaced pp_one_binding bindings ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_raw_atomic_tactic_expr = function
+  | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
       let pp_in_clause =
         match in_clause with
         | [] -> nop
@@ -580,7 +580,11 @@ let pp_raw_atomic_tactic_expr = function
 
       sequence
         [
-          write "apply "; conditional_parens expr; pp_binding; pp_in_clause; dot;
+          write "apply ";
+          conditional_parens expr;
+          pp_bindings bindings;
+          pp_in_clause;
+          dot;
         ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
@@ -638,28 +642,13 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
-      let pp_with_bindings =
-        match with_bindings with
-        | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = replacee, replacer; loc = _ } ] ->
-            sequence
-              [
-                write " with (";
-                pp_quantified_hypothesis replacee;
-                write " := ";
-                pp_constr_expr replacer;
-                write ")";
-              ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
-      in
-
       sequence
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
           conditional_parens expr;
           pp_in_bindings;
-          pp_with_bindings;
+          pp_bindings with_bindings;
           dot;
         ]
   | Tacexpr.TacInversion (intros, name) ->
