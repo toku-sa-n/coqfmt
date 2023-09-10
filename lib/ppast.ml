@@ -512,14 +512,14 @@ let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_or_var = function
+  | Locus.ArgArg CAst.{ v; loc = _ } ->
+      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
-      let pp_as_list = function
-        | None -> nop
-        | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
-            sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
-      in
+      let pp_as_list = function None -> nop | Some args -> pp_or_var args in
       let pp_eqn = function
         | None -> nop
         | Some x ->
@@ -537,17 +537,25 @@ let pp_hyp_location_expr = function
   | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_quantified_hypothesis = function
+  | Tactypes.NamedHyp name -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_inversion_strength = function
+  | Tacexpr.NonDepInversion (FullInversion, [], Some args) -> pp_or_var args
+  | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
       let pp_binding =
         match binding with
         | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = NamedHyp replaced, rep_expr; loc = _ } ]
-          ->
+        | ExplicitBindings [ CAst.{ v = replaced, rep_expr; loc = _ } ] ->
             sequence
               [
                 write " with (";
-                pp_lident replaced;
+                pp_quantified_hypothesis replaced;
                 write " := ";
                 pp_constr_expr rep_expr;
                 write ")";
@@ -633,12 +641,11 @@ let pp_raw_atomic_tactic_expr = function
       let pp_with_bindings =
         match with_bindings with
         | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = NamedHyp replacee, replacer; loc = _ } ]
-          ->
+        | ExplicitBindings [ CAst.{ v = replacee, replacer; loc = _ } ] ->
             sequence
               [
                 write " with (";
-                pp_lident replacee;
+                pp_quantified_hypothesis replacee;
                 write " := ";
                 pp_constr_expr replacer;
                 write ")";
@@ -653,6 +660,14 @@ let pp_raw_atomic_tactic_expr = function
           conditional_parens expr;
           pp_in_bindings;
           pp_with_bindings;
+          dot;
+        ]
+  | Tacexpr.TacInversion (intros, name) ->
+      sequence
+        [
+          write "inversion ";
+          pp_quantified_hypothesis name;
+          pp_inversion_strength intros;
           dot;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
