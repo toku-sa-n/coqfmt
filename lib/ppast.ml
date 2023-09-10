@@ -541,6 +541,11 @@ let pp_quantified_hypothesis = function
   | Tactypes.NamedHyp name -> pp_lident name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_inversion_strength = function
+  | Tacexpr.NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })) ->
+      pp_or_and_intro_pattern_expr v
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, binding)) ], in_clause) ->
       let pp_binding =
@@ -657,15 +662,13 @@ let pp_raw_atomic_tactic_expr = function
           pp_with_bindings;
           dot;
         ]
-  | Tacexpr.TacInversion
-      (NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })), name)
-    ->
+  | Tacexpr.TacInversion (intros, name) ->
       sequence
         [
           write "inversion ";
           pp_quantified_hypothesis name;
           write " as ";
-          pp_or_and_intro_pattern_expr v;
+          pp_inversion_strength intros;
           dot;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
