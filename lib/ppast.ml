@@ -512,14 +512,14 @@ let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_or_var = function
+  | Locus.ArgArg CAst.{ v; loc = _ } ->
+      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
-      let pp_as_list = function
-        | None -> nop
-        | Some (Locus.ArgArg CAst.{ v; loc = _ }) ->
-            sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
-      in
+      let pp_as_list = function None -> nop | Some args -> pp_or_var args in
       let pp_eqn = function
         | None -> nop
         | Some x ->
@@ -542,8 +542,7 @@ let pp_quantified_hypothesis = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_inversion_strength = function
-  | Tacexpr.NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })) ->
-      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+  | Tacexpr.NonDepInversion (FullInversion, [], Some args) -> pp_or_var args
   | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
