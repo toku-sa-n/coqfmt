@@ -551,15 +551,18 @@ let pp_raw_atomic_tactic_expr = function
       let pp_binding =
         match binding with
         | NoBindings -> nop
-        | ExplicitBindings [ CAst.{ v = replaced, rep_expr; loc = _ } ] ->
-            sequence
-              [
-                write " with (";
-                pp_quantified_hypothesis replaced;
-                write " := ";
-                pp_constr_expr rep_expr;
-                write ")";
-              ]
+        | ExplicitBindings bindings ->
+            let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
+              parens
+                (sequence
+                   [
+                     pp_quantified_hypothesis replacee;
+                     write " := ";
+                     pp_constr_expr replacer;
+                   ])
+            in
+
+            sequence [ write " with "; map_spaced pp_one_binding bindings ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
