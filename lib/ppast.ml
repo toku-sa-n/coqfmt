@@ -543,7 +543,8 @@ let pp_quantified_hypothesis = function
 
 let pp_inversion_strength = function
   | Tacexpr.NonDepInversion (FullInversion, [], Some (ArgArg { v; loc = _ })) ->
-      pp_or_and_intro_pattern_expr v
+      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+  | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
@@ -667,7 +668,6 @@ let pp_raw_atomic_tactic_expr = function
         [
           write "inversion ";
           pp_quantified_hypothesis name;
-          write " as ";
           pp_inversion_strength intros;
           dot;
         ]
