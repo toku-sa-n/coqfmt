@@ -655,7 +655,8 @@ let pp_raw_atomic_tactic_expr = function
           pp_with_bindings;
           dot;
         ]
-  | Tacexpr.TacInversion (NonDepInversion (FullInversion, [], Some _), _) ->
+  | Tacexpr.TacInversion
+      (NonDepInversion (FullInversion, [], Some (ArgArg _)), _) ->
       write "inversion n as [ | n']."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
