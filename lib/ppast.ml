@@ -802,7 +802,8 @@ let pp_vernac_argument_status = function
         implicit_status = MaxImplicit;
       } ->
       braces (pp_name ty)
-  | Vernacexpr.RealArg { name; recarg_like = false; _ } -> pp_name name
+  | Vernacexpr.RealArg { name; recarg_like = false; notation_scope = []; _ } ->
+      pp_name name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_option_string = function
