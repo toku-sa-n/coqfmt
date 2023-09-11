@@ -1014,6 +1014,15 @@ let pp_vernac_expr expr =
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
+  | VernacReservedNotation (false, (notation, [ modifier ])) ->
+      sequence
+        [
+          write "Reserved Notation ";
+          doublequoted (pp_lstring notation);
+          space;
+          parens (pp_syntax_modifier modifier.v);
+          write ".";
+        ]
   | VernacSetOption (false, [ name ], options) ->
       sequence
         [ write "Set "; write name; space; pp_option_string options; dot ]
