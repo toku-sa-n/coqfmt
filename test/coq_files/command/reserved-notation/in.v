@@ -1,1 +1,1 @@
-Reserved Notation "s =~ re" (at level 80).
+Reserved Notation"s =~ re"(at level 80).
