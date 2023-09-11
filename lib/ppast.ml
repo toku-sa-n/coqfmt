@@ -1011,7 +1011,7 @@ let pp_vernac_expr expr =
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
-  | VernacReservedNotation (_, _) ->
+  | VernacReservedNotation (false, _) ->
       write "Reserved Notation \"s =~ re\" (at level 80)."
   | VernacSetOption (false, [ name ], options) ->
       sequence
