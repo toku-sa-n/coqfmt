@@ -795,21 +795,16 @@ let pp_search_restriction = function
 
 let pp_vernac_argument_status = function
   | Vernacexpr.RealArg
-      {
-        name = ty;
-        recarg_like = false;
-        notation_scope = [];
-        implicit_status = MaxImplicit;
-      } ->
-      braces (pp_name ty)
-  | Vernacexpr.RealArg
-      {
-        name;
-        recarg_like = false;
-        notation_scope = [];
-        implicit_status = Explicit;
-      } ->
-      pp_name name
+      { name = ty; recarg_like = false; notation_scope = []; implicit_status }
+    ->
+      let encloser =
+        match implicit_status with
+        | Explicit -> Fun.id
+        | MaxImplicit -> braces
+        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+      in
+
+      encloser (pp_name ty)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_option_string = function
