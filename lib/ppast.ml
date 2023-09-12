@@ -1093,6 +1093,7 @@ let separator current next =
   (* `Check` *)
   | VernacCheckMayEval (None, _, _), VernacCheckMayEval (None, _, _)
   | VernacNotation _, VernacNotation _
+  | VernacReservedNotation _, VernacReservedNotation _
   | VernacDefineModule _, _
   | _, VernacEndSegment _
   | VernacSearch _, VernacSearch _
@@ -1116,6 +1117,8 @@ let separator current next =
   | _, VernacInductive _
   | VernacSearch _, _
   | _, VernacSearch _
+  | VernacReservedNotation _, _
+  | _, VernacReservedNotation _
   | _, VernacDefineModule _
   | VernacEndSegment _, _
   | VernacEndProof _, _
