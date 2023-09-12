@@ -826,7 +826,13 @@ let pp_assumption_object_kind = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_decl_notation = function
-  | Vernacexpr.{ decl_ntn_string; decl_ntn_interp; decl_ntn_scope = None; _ } ->
+  | Vernacexpr.
+      {
+        decl_ntn_string;
+        decl_ntn_interp;
+        decl_ntn_scope = None;
+        decl_ntn_modifiers = [];
+      } ->
       sequence
         [
           newline;
