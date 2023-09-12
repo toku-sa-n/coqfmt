@@ -825,6 +825,17 @@ let pp_assumption_object_kind = function
   | Decls.Conjectural -> write "Conjecture"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_decl_notation _ =
+  sequence
+    [
+      newline;
+      indented
+        (sequence
+           [
+             write "where"; newline; indented (write "\"n + m\" := (plus n m)");
+           ]);
+    ]
+
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
@@ -962,18 +973,7 @@ let pp_vernac_expr expr =
             let pp_where_clause =
               match where_clause with
               | [] -> nop
-              | [ _ ] ->
-                  sequence
-                    [
-                      newline;
-                      indented
-                        (sequence
-                           [
-                             write "where";
-                             newline;
-                             indented (write "\"n + m\" := (plus n m)");
-                           ]);
-                    ]
+              | [ notation ] -> pp_decl_notation notation
               | _ -> fun printer -> raise (NotImplemented (contents printer))
             in
 
