@@ -825,14 +825,21 @@ let pp_assumption_object_kind = function
   | Decls.Conjectural -> write "Conjecture"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_decl_notation _ =
+let pp_decl_notation Vernacexpr.{ decl_ntn_string; _ } =
   sequence
     [
       newline;
       indented
         (sequence
            [
-             write "where"; newline; indented (write "\"n + m\" := (plus n m)");
+             write "where";
+             newline;
+             indented
+               (sequence
+                  [
+                    doublequoted (pp_lstring decl_ntn_string);
+                    write " := (plus n m)";
+                  ]);
            ]);
     ]
 
