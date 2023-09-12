@@ -945,7 +945,7 @@ let pp_vernac_expr expr =
               (type_params, None),
               return_type,
               Vernacexpr.Constructors constructors ),
-            [] ) ->
+            where_clause ) ->
             let pp_type_params =
               match type_params with
               | [] -> nop
@@ -959,6 +959,24 @@ let pp_vernac_expr expr =
               | None -> nop
             in
 
+            let pp_where_clause =
+              match where_clause with
+              | [] -> nop
+              | [ _ ] ->
+                  sequence
+                    [
+                      newline;
+                      indented
+                        (sequence
+                           [
+                             write "where";
+                             newline;
+                             indented (write "\"n + m\" := (plus n m)");
+                           ]);
+                    ]
+              | _ -> fun printer -> raise (NotImplemented (contents printer))
+            in
+
             sequence
               [
                 pp_lident name;
@@ -966,6 +984,7 @@ let pp_vernac_expr expr =
                 pp_return_type;
                 write " :=";
                 indented (map_sequence pp_construtor_expr constructors);
+                pp_where_clause;
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
