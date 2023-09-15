@@ -665,7 +665,7 @@ let pp_raw_atomic_tactic_expr = function
         replacee,
         { onhyps = None; concl_occs = AllOccurrences },
         false,
-        _ ) ->
+        None ) ->
       sequence
         [
           write "remember ";
