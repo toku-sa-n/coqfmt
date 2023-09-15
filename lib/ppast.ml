@@ -666,10 +666,18 @@ let pp_raw_atomic_tactic_expr = function
         { onhyps = None; concl_occs = AllOccurrences },
         false,
         None ) ->
+      let parens_neded =
+        match replacee.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_neded then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       sequence
         [
           write "remember ";
-          pp_constr_expr replacee;
+          conditional_parens replacee;
           write " as ";
           pp_name replacer;
           dot;
