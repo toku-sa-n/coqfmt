@@ -264,10 +264,10 @@ and pp_constr_expr_r = function
             raise (NotImplemented "Too few entry keys.")
         | ( Ppextend.UnpBinderListMetaVar (true, [ _ ]) :: t,
             xs,
-            h_assums :: t_assums,
+            assums,
             _ :: keys ) ->
             sequence
-              [ pp_local_binder_expr h_assums; printers t xs t_assums keys ]
+              [ map_spaced pp_local_binder_expr assums; printers t xs [] keys ]
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpTerminal s :: t, xs, _, keys ->
