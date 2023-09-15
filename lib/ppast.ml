@@ -659,6 +659,29 @@ let pp_raw_atomic_tactic_expr = function
           pp_inversion_strength intros;
           dot;
         ]
+  | Tacexpr.TacLetTac
+      ( false,
+        replacer,
+        replacee,
+        { onhyps = None; concl_occs = AllOccurrences },
+        false,
+        None ) ->
+      let parens_neded =
+        match replacee.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_neded then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence
+        [
+          write "remember ";
+          conditional_parens replacee;
+          write " as ";
+          pp_name replacer;
+          dot;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r = function
