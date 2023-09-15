@@ -659,8 +659,15 @@ let pp_raw_atomic_tactic_expr = function
           pp_inversion_strength intros;
           dot;
         ]
-  | Tacexpr.TacLetTac (false, replacer, _, _, _, _) ->
-      sequence [ write "remember a as "; pp_name replacer; dot ]
+  | Tacexpr.TacLetTac (false, replacer, replacee, _, _, _) ->
+      sequence
+        [
+          write "remember ";
+          pp_constr_expr replacee;
+          write " as ";
+          pp_name replacer;
+          dot;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_gen_tactic_expr_r = function
