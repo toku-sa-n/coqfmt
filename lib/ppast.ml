@@ -725,8 +725,14 @@ let pp_gen_tactic_expr_r = function
                 :: loop t_ids t_reps
             | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _ ->
                 pp_hyp_location_expr name :: loop t_ids t_reps
-            | _, _, _, _, Some [ ImplicitBindings [ x ] ] ->
-                conditional_parens x :: loop t_ids t_reps
+            | _, _, _, _, Some bindings ->
+                let pp_binding = function
+                  | Tactypes.ImplicitBindings [ x ] -> conditional_parens x
+                  | _ ->
+                      fun printer -> raise (NotImplemented (contents printer))
+                in
+
+                map_commad pp_binding bindings :: loop t_ids t_reps
             | _ ->
                 [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
