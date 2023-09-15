@@ -1,4 +1,4 @@
 Theorem foo : 1 = 1.
 Proof.
-  Fail remeber a as b.
-Qed.
+  Fail remember a as b.
+Abort.
