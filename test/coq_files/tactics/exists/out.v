@@ -1,5 +1,5 @@
-Theorem foo : exists x, x = 1.
+Theorem foo : exists x y, x = y.
 Proof.
-  exists 1.
+  exists 1, 1.
   reflexivity.
 Qed.
