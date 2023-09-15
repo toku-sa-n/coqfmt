@@ -664,7 +664,7 @@ let pp_raw_atomic_tactic_expr = function
         replacer,
         replacee,
         { onhyps = None; concl_occs = AllOccurrences },
-        _,
+        false,
         _ ) ->
       sequence
         [
