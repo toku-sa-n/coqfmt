@@ -659,7 +659,13 @@ let pp_raw_atomic_tactic_expr = function
           pp_inversion_strength intros;
           dot;
         ]
-  | Tacexpr.TacLetTac (false, replacer, replacee, { onhyps = None; _ }, _, _) ->
+  | Tacexpr.TacLetTac
+      ( false,
+        replacer,
+        replacee,
+        { onhyps = None; concl_occs = AllOccurrences },
+        _,
+        _ ) ->
       sequence
         [
           write "remember ";
