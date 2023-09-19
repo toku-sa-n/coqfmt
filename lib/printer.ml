@@ -17,7 +17,7 @@ let columns_limit = 80
 
 (* {{The doc} https://v2.ocaml.org/api/Buffer.html} says to allocate 16 buffers
    if unsure. *)
-let create () =
+let create comments =
   {
     buffer = Buffer.create 16;
     indent_spaces = 0;
@@ -25,7 +25,7 @@ let create () =
     printed_newline = false;
     hard_fail_on_exceeding_column_limit = false;
     bullets = [];
-    comments = [];
+    comments;
   }
 
 let sequence xs printer = List.iter (fun x -> x printer) xs

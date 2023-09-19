@@ -1,7 +1,7 @@
 type t
 (** Print abstruct type. *)
 
-val create : unit -> t
+val create : ((int * int) * string) list -> t
 (** Create a new printer. *)
 
 val sequence : (t -> unit) list -> t -> unit

@@ -1157,7 +1157,7 @@ let separator current next =
   | VernacBullet _, _ -> nop
   | _, _ -> newline
 
-let pp_ast parser =
+let pp_ast parser comments =
   (* Do not try to pp after parsing everything. After parsing everything, the
      STM will not be in nested module(s), and things that are valid inside them
      (e.g., notation declarations inside them) will be invalid, making some
@@ -1165,7 +1165,7 @@ let pp_ast parser =
   match Astparser.next parser with
   | None -> ""
   | Some first_ast ->
-      let printer = create () in
+      let printer = create comments in
 
       pp_subast first_ast printer;
 
