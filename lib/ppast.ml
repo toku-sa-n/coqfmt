@@ -162,7 +162,7 @@ and pp_constr_expr_r = function
           write " => ";
           pp_constr_expr body;
         ]
-  | Constrexpr.CLetIn (name, expr, _, _) ->
+  | Constrexpr.CLetIn (name, expr, None, _) ->
       sequence
         [
           write "let ";
