@@ -162,16 +162,16 @@ and pp_constr_expr_r = function
           write " => ";
           pp_constr_expr body;
         ]
-  | Constrexpr.CLetIn (name, expr, None, _) ->
+  | Constrexpr.CLetIn (name, binding, None, expr) ->
       sequence
         [
           write "let ";
           pp_lname name;
           write " := ";
-          pp_constr_expr expr;
+          pp_constr_expr binding;
           write " in";
           newline;
-          write "x";
+          pp_constr_expr expr;
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
