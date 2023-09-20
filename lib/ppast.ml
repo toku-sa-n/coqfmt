@@ -858,7 +858,8 @@ let pp_ident_decl = function
 let pp_printable = function
   | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
       sequence [ write "Print Assumptions "; pp_qualid name; dot ]
-  | Vernacexpr.PrintName (_, _) -> write "Print \"+\"."
+  | Vernacexpr.PrintName (CAst.{ v = ByNotation _; loc = _ }, _) ->
+      sequence [ write "Print "; doublequoted (write "+"); dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_assumption_object_kind = function
