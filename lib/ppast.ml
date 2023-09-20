@@ -924,8 +924,8 @@ let pp_vernac_expr expr =
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
-        | Some (CbvVm None) -> write "Compute "
-        | None -> write "Check "
+        | Some (CbvVm None) -> write "Compute"
+        | None -> write "Check"
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
@@ -938,7 +938,12 @@ let pp_vernac_expr expr =
         else pp_constr_expr expr
       in
 
-      sequence [ pp_name; pp_expr; dot ]
+      let hor = sequence [ pp_name; space; pp_expr; dot ] in
+      let ver =
+        sequence [ pp_name; newline; indented (sequence [ pp_expr; dot ]) ]
+      in
+
+      hor <-|> ver
   | VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
