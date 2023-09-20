@@ -19,7 +19,9 @@ let make code =
 
   let code = Gramlib.Stream.of_string code |> Pcoq.Parsable.make in
 
-  { doc; state; code }
+  let comments = Pcoq.Parsable.comments code in
+
+  ({ doc; state; code }, comments)
 
 let add_ast t ast =
   let next_doc, next_state, _ = Stm.add ~doc:t.doc ~ontop:t.state false ast in

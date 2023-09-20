@@ -7,6 +7,7 @@ type t = {
      but also the appearances of newlines. *)
   hard_fail_on_exceeding_column_limit : bool;
   mutable bullets : Proof_bullet.t list;
+  comments : ((int * int) * string) list;
 }
 
 exception Exceeded_column_limit
@@ -16,7 +17,7 @@ let columns_limit = 80
 
 (* {{The doc} https://v2.ocaml.org/api/Buffer.html} says to allocate 16 buffers
    if unsure. *)
-let create () =
+let create comments =
   {
     buffer = Buffer.create 16;
     indent_spaces = 0;
@@ -24,6 +25,7 @@ let create () =
     printed_newline = false;
     hard_fail_on_exceeding_column_limit = false;
     bullets = [];
+    comments;
   }
 
 let sequence xs printer = List.iter (fun x -> x printer) xs
@@ -120,6 +122,7 @@ let copy_printer_by_value t =
     printed_newline = t.printed_newline;
     hard_fail_on_exceeding_column_limit = t.hard_fail_on_exceeding_column_limit;
     bullets = t.bullets;
+    comments = t.comments;
   }
 
 let overwrite_printer src dst =
