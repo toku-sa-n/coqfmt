@@ -94,10 +94,11 @@ let bullet_appears bullet t =
   t.bullets <- update_bullet (List.rev t.bullets) |> List.rev
 
 let clear_bullets t = t.bullets <- []
-let parens f = sequence [ write "("; f; write ")" ]
-let braces f = sequence [ write "{"; f; write "}" ]
-let brackets f = sequence [ write "["; f; write "]" ]
-let doublequoted f = sequence [ write "\""; f; write "\"" ]
+let wrap before after f t = sequence [ write before |=> f; write after ] t
+let parens = wrap "(" ")"
+let braces = wrap "{" "}"
+let brackets = wrap "[" "]"
+let doublequoted = wrap "\"" "\""
 
 let with_seps ~sep xs =
   sequence
