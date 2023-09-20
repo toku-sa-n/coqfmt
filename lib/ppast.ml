@@ -985,7 +985,7 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
-  | VernacOpenCloseScope _ -> write "Open Scope nat_scope."
+  | VernacOpenCloseScope (_, _) -> write "Open Scope nat_scope."
   | VernacPrint printable -> pp_printable printable
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
