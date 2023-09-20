@@ -162,6 +162,17 @@ and pp_constr_expr_r = function
           write " => ";
           pp_constr_expr body;
         ]
+  | Constrexpr.CLetIn (name, binding, None, expr) ->
+      sequence
+        [
+          write "let ";
+          pp_lname name;
+          write " := ";
+          pp_constr_expr binding;
+          write " in";
+          newline;
+          pp_constr_expr expr;
+        ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
       ( scope,
@@ -847,6 +858,11 @@ let pp_ident_decl = function
 let pp_printable = function
   | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
       sequence [ write "Print Assumptions "; pp_qualid name; dot ]
+  | Vernacexpr.PrintName (CAst.{ v = AN name; loc = _ }, None) ->
+      sequence [ write "Print "; pp_qualid name; dot ]
+  | Vernacexpr.PrintName (CAst.{ v = ByNotation (name, None); loc = _ }, None)
+    ->
+      sequence [ write "Print "; doublequoted (write name); dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_assumption_object_kind = function
@@ -908,8 +924,8 @@ let pp_vernac_expr expr =
   | VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
-        | Some (CbvVm None) -> write "Compute "
-        | None -> write "Check "
+        | Some (CbvVm None) -> write "Compute"
+        | None -> write "Check"
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
@@ -922,7 +938,12 @@ let pp_vernac_expr expr =
         else pp_constr_expr expr
       in
 
-      sequence [ pp_name; pp_expr; dot ]
+      let hor = sequence [ pp_name; space; pp_expr; dot ] in
+      let ver =
+        sequence [ pp_name; newline; indented (sequence [ pp_expr; dot ]) ]
+      in
+
+      hor <-|> ver
   | VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
   | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
@@ -969,6 +990,8 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
+  | VernacOpenCloseScope (true, scope) ->
+      sequence [ write "Open Scope "; write scope; dot ]
   | VernacPrint printable -> pp_printable printable
   | VernacSearch (searchable, None, search_restriction) ->
       sequence
