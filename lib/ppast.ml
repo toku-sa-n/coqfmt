@@ -79,7 +79,7 @@ let pp_sort_expr = function
   | Glob_term.UAnonymous { rigid = true } -> write "Type"
   | Glob_term.UAnonymous { rigid = false } ->
       fun printer -> raise (NotImplemented (contents printer))
-  | Glob_term.UNamed [ (sort, 0) ] -> pp_sort_name_expr sort
+  | Glob_term.UNamed (_, [ (sort, 0) ]) -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
@@ -127,7 +127,7 @@ and pp_constr_expr_r = function
             branches;
           write "end";
         ]
-  | Constrexpr.CCast (v, DEFAULTcast, t) ->
+  | Constrexpr.CCast (v, _, t) ->
       let parens_needed =
         match v.v with Constrexpr.CApp _ -> true | _ -> false
       in
@@ -273,7 +273,7 @@ and pp_constr_expr_r = function
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
             raise (NotImplemented "Too few entry keys.")
-        | ( Ppextend.UnpBinderListMetaVar (true, [ _ ]) :: t,
+        | ( Ppextend.UnpBinderListMetaVar (true, _, [ _ ]) :: t,
             xs,
             assums,
             _ :: keys ) ->
@@ -307,7 +307,7 @@ and pp_constr_expr_r = function
           write ",";
           hor <-|> ver;
         ]
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> write "_"
+  | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -319,7 +319,7 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous, None); loc = _ } ) ->
+        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous); loc = _ } ) ->
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
       let wrapper =
@@ -403,7 +403,7 @@ let pp_fixpoint_expr = function
       } ->
       let pp_return_type =
         match rtype.v with
-        | Constrexpr.CHole (None, IntroAnonymous, None) -> nop
+        | Constrexpr.CHole (None, IntroAnonymous) -> nop
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
       sequence
@@ -419,7 +419,7 @@ let pp_fixpoint_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_construtor_expr = function
-  | (Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
+  | (_, Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
       let open CAst in
       (* TODO: Implement this completely. An `Inductive` is an inductive prop if
          it contains a `CRef` with its name. *)
@@ -870,13 +870,13 @@ let pp_assumption_object_kind = function
   | Decls.Conjectural -> write "Conjecture"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_decl_notation = function
+let pp_notation_declaration = function
   | Vernacexpr.
       {
-        decl_ntn_string;
-        decl_ntn_interp;
-        decl_ntn_scope = None;
-        decl_ntn_modifiers = [];
+        ntn_decl_string;
+        ntn_decl_interp;
+        ntn_decl_scope = None;
+        ntn_decl_modifiers = [];
       } ->
       sequence
         [
@@ -889,9 +889,9 @@ let pp_decl_notation = function
                  indented
                    (sequence
                       [
-                        doublequoted (pp_lstring decl_ntn_string);
+                        doublequoted (pp_lstring ntn_decl_string);
                         write " := ";
-                        parens (pp_constr_expr decl_ntn_interp);
+                        parens (pp_constr_expr ntn_decl_interp);
                       ]);
                ]);
         ]
@@ -900,8 +900,9 @@ let pp_decl_notation = function
 let pp_vernac_expr expr =
   let open Vernacexpr in
   match expr with
-  | VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
+  | VernacSynPure VernacAbort -> sequence [ clear_bullets; write "Abort." ]
+  | VernacSynPure
+      (VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], [])) ->
       sequence
         [
           write "Arguments ";
@@ -910,8 +911,9 @@ let pp_vernac_expr expr =
           map_spaced pp_vernac_argument_status args;
           dot;
         ]
-  | VernacAssumption
-      ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
+  | VernacSynPure
+      (VernacAssumption
+        ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ])) ->
       sequence
         [
           pp_assumption_object_kind kind;
@@ -921,7 +923,7 @@ let pp_vernac_expr expr =
           pp_constr_expr expr;
           dot;
         ]
-  | VernacCheckMayEval (check_or_compute, None, expr) ->
+  | VernacSynPure (VernacCheckMayEval (check_or_compute, None, expr)) ->
       let pp_name =
         match check_or_compute with
         | Some (CbvVm None) -> write "Compute"
@@ -944,9 +946,10 @@ let pp_vernac_expr expr =
       in
 
       hor <-|> ver
-  | VernacDefineModule (None, name, [], Check [], []) ->
+  | VernacSynterp (VernacDefineModule (None, name, [], Check [], [])) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
-  | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
+  | VernacSynPure (VernacDefinition ((NoDischarge, kind), (name, None), expr))
+    ->
       sequence
         [
           pp_definition_object_kind kind;
@@ -955,11 +958,19 @@ let pp_vernac_expr expr =
           pp_definition_expr expr;
           dot;
         ]
-  | VernacEndSegment name ->
+  | VernacSynterp (VernacEndSegment name) ->
       sequence [ decrease_indent; write "End "; pp_lident name; dot ]
-  | VernacFixpoint (NoDischarge, [ expr ]) ->
+  | VernacSynPure (VernacFixpoint (NoDischarge, [ expr ])) ->
       sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
-  | VernacNotation (false, expr, (notation, modifiers), scope) ->
+  | VernacSynterp
+      (VernacNotation
+        ( false,
+          {
+            ntn_decl_string = notation;
+            ntn_decl_interp = expr;
+            ntn_decl_scope = scope;
+            ntn_decl_modifiers = modifiers;
+          } )) ->
       let pp_modifiers printer =
         sequence
           [
@@ -990,10 +1001,10 @@ let pp_vernac_expr expr =
           pp_scope;
           dot;
         ]
-  | VernacOpenCloseScope (true, scope) ->
+  | VernacSynPure (VernacOpenCloseScope (true, scope)) ->
       sequence [ write "Open Scope "; write scope; dot ]
-  | VernacPrint printable -> pp_printable printable
-  | VernacSearch (searchable, None, search_restriction) ->
+  | VernacSynPure (VernacPrint printable) -> pp_printable printable
+  | VernacSynPure (VernacSearch (searchable, None, search_restriction)) ->
       sequence
         [
           write "Search ";
@@ -1001,7 +1012,8 @@ let pp_vernac_expr expr =
           pp_search_restriction search_restriction;
           dot;
         ]
-  | VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ]) ->
+  | VernacSynPure
+      (VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ])) ->
       let hor = sequence [ space; pp_constr_expr expr; dot ] in
       let ver =
         sequence [ newline; indented (sequence [ pp_constr_expr expr; dot ]) ]
@@ -1017,8 +1029,8 @@ let pp_vernac_expr expr =
           write " :";
           hor <-|> ver;
         ]
-  | VernacProof (None, None) -> write "Proof."
-  | VernacInductive (Inductive_kw, inductives) ->
+  | VernacSynPure (VernacProof (None, None)) -> write "Proof."
+  | VernacSynPure (VernacInductive (Inductive_kw, inductives)) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
               (type_params, None),
@@ -1041,7 +1053,7 @@ let pp_vernac_expr expr =
             let pp_where_clause =
               match where_clause with
               | [] -> nop
-              | [ notation ] -> pp_decl_notation notation
+              | [ notation ] -> pp_notation_declaration notation
               | _ -> fun printer -> raise (NotImplemented (contents printer))
             in
 
@@ -1064,16 +1076,18 @@ let pp_vernac_expr expr =
             pp_single_inductive inductives;
           dot;
         ]
-  | VernacImport ((flag, None), [ (name, ImportAll) ]) ->
+  | VernacSynterp (VernacImport ((flag, None), [ (name, ImportAll) ])) ->
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
-  (* FIXME: Support other plugins, like ltac2. *)
-  | VernacExtend (_, args) -> pp_ltac args
-  | VernacEndProof proof_end -> pp_proof_end proof_end
-  | VernacBullet bullet ->
+      (* FIXME: Support other plugins, like ltac2. *)
+  | VernacSynterp (VernacExtend (_, args)) -> pp_ltac args
+  | VernacSynPure (VernacEndProof proof_end) -> pp_proof_end proof_end
+  | VernacSynPure (VernacBullet bullet) ->
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
-  | VernacSubproof None -> sequence [ write "{"; increase_indent ]
-  | VernacEndSubproof -> sequence [ decrease_indent; write "}" ]
-  | VernacRequire (dirpath, export_with_cats, filtered_import) ->
+  | VernacSynPure (VernacSubproof None) ->
+      sequence [ write "{"; increase_indent ]
+  | VernacSynPure VernacEndSubproof -> sequence [ decrease_indent; write "}" ]
+  | VernacSynterp (VernacRequire (dirpath, export_with_cats, filtered_import))
+    ->
       let pp_dirpath printer =
         (match dirpath with
         | None -> nop
@@ -1101,7 +1115,7 @@ let pp_vernac_expr expr =
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
-  | VernacReservedNotation (false, (notation, [ modifier ])) ->
+  | VernacSynterp (VernacReservedNotation (false, (notation, [ modifier ]))) ->
       sequence
         [
           write "Reserved Notation ";
@@ -1110,7 +1124,7 @@ let pp_vernac_expr expr =
           parens (pp_syntax_modifier modifier.v);
           write ".";
         ]
-  | VernacSetOption (false, [ name ], options) ->
+  | VernacSynterp (VernacSetOption (false, [ name ], options)) ->
       sequence
         [ write "Set "; write name; space; pp_option_string options; dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -1130,54 +1144,56 @@ let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
-  | VernacStartTheoremProof _, VernacAbort
-  | VernacStartTheoremProof _, VernacEndProof _
-  | VernacStartTheoremProof _, VernacProof _
-  | VernacDefinition _, VernacAbort
-  | VernacDefinition _, VernacEndProof _
-  | VernacDefinition _, VernacProof _
-  | VernacProof _, VernacAbort
-  | VernacProof _, VernacEndProof _
-  | _, VernacProof _
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure (VernacEndProof _)
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacDefinition _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacDefinition _), VernacSynPure (VernacEndProof _)
+  | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
+  | _, VernacSynPure (VernacProof _)
   (* `Compute` *)
-  | ( VernacCheckMayEval (Some (CbvVm None), _, _),
-      VernacCheckMayEval (Some (CbvVm None), _, _) )
+  | ( VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)),
+      VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)) )
   (* `Check` *)
-  | VernacCheckMayEval (None, _, _), VernacCheckMayEval (None, _, _)
-  | VernacNotation _, VernacNotation _
-  | VernacReservedNotation _, VernacReservedNotation _
-  | VernacDefineModule _, _
-  | _, VernacEndSegment _
-  | VernacSearch _, VernacSearch _
-  | VernacRequire _, VernacRequire _ ->
+  | ( VernacSynPure (VernacCheckMayEval (None, _, _)),
+      VernacSynPure (VernacCheckMayEval (None, _, _)) )
+  | VernacSynterp (VernacNotation _), VernacSynterp (VernacNotation _)
+  | ( VernacSynterp (VernacReservedNotation _),
+      VernacSynterp (VernacReservedNotation _) )
+  | VernacSynterp (VernacDefineModule _), _
+  | _, VernacSynterp (VernacEndSegment _)
+  | VernacSynPure (VernacSearch _), VernacSynPure (VernacSearch _)
+  | VernacSynterp (VernacRequire _), VernacSynterp (VernacRequire _) ->
       newline
-  | VernacDefinition (_, _, ProveBody _), _
-  | VernacProof _, _
-  | VernacStartTheoremProof _, _ ->
+  | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
+  | VernacSynPure (VernacProof _), _
+  | VernacSynPure (VernacStartTheoremProof _), _ ->
       sequence [ newline; increase_indent ]
-  | _, VernacAbort | _, VernacEndProof _ ->
+  | _, VernacSynPure VernacAbort | _, VernacSynPure (VernacEndProof _) ->
       sequence [ newline; decrease_indent ]
-  | VernacCheckMayEval _, _
-  | _, VernacCheckMayEval _
-  | VernacNotation _, _
-  | _, VernacNotation _
-  | VernacDefinition _, _
-  | _, VernacDefinition _
-  | VernacFixpoint _, _
-  | _, VernacFixpoint _
-  | VernacInductive _, _
-  | _, VernacInductive _
-  | VernacSearch _, _
-  | _, VernacSearch _
-  | VernacReservedNotation _, _
-  | _, VernacReservedNotation _
-  | _, VernacDefineModule _
-  | VernacEndSegment _, _
-  | VernacEndProof _, _
-  | VernacAbort, _
-  | VernacRequire _, _ ->
+  | VernacSynPure (VernacCheckMayEval _), _
+  | _, VernacSynPure (VernacCheckMayEval _)
+  | VernacSynterp (VernacNotation _), _
+  | _, VernacSynterp (VernacNotation _)
+  | VernacSynPure (VernacDefinition _), _
+  | _, VernacSynPure (VernacDefinition _)
+  | VernacSynPure (VernacFixpoint _), _
+  | _, VernacSynPure (VernacFixpoint _)
+  | VernacSynPure (VernacInductive _), _
+  | _, VernacSynPure (VernacInductive _)
+  | VernacSynPure (VernacSearch _), _
+  | _, VernacSynPure (VernacSearch _)
+  | VernacSynterp (VernacReservedNotation _), _
+  | _, VernacSynterp (VernacReservedNotation _)
+  | _, VernacSynterp (VernacDefineModule _)
+  | VernacSynterp (VernacEndSegment _), _
+  | VernacSynPure (VernacEndProof _), _
+  | VernacSynPure VernacAbort, _
+  | VernacSynterp (VernacRequire _), _ ->
       blankline
-  | VernacBullet _, _ -> nop
+  | VernacSynPure (VernacBullet _), _ -> nop
   | _, _ -> newline
 
 let pp_ast parser =

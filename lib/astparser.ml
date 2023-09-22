@@ -9,9 +9,12 @@ let make code =
   let stm_init_options =
     Stm.
       {
-        doc_type = Interactive (TopLogical Names.DirPath.initial);
+        doc_type = Interactive (TopLogical Coqargs.default_toplevel);
         injections =
-          [ Coqargs.RequireInjection ("Prelude", Some "Coq", Some Import) ];
+          [
+            Coqargs.RequireInjection
+              { lib = "Prelude"; prefix = Some "Coq"; export = Some Import };
+          ];
       }
   in
 
@@ -47,10 +50,11 @@ let rec next t =
         let open CAst in
         let open Vernacexpr in
         match (prev_ast.v.expr, next_ast.v.expr) with
-        | VernacStartTheoremProof _, VernacProof _
-        | VernacDefinition _, VernacProof _ ->
+        | ( VernacSynPure (VernacStartTheoremProof _),
+            VernacSynPure (VernacProof _) )
+        | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _) ->
             false
-        | _, VernacProof _ -> true
+        | _, VernacSynPure (VernacProof _) -> true
         | _, _ -> false
       in
 
