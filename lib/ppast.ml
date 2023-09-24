@@ -273,7 +273,7 @@ and pp_constr_expr_r = function
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
             raise (NotImplemented "Too few entry keys.")
-        | ( Ppextend.UnpBinderListMetaVar (true, _, [ _ ]) :: t,
+        | ( Ppextend.UnpBinderListMetaVar (true, true, [ _ ]) :: t,
             xs,
             assums,
             _ :: keys ) ->
