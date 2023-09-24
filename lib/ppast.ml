@@ -418,7 +418,7 @@ let pp_fixpoint_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_construtor_expr = function
+let pp_constructor_expr = function
   | (_, Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
       let open CAst in
       (* TODO: Implement this completely. An `Inductive` is an inductive prop if
@@ -1063,7 +1063,7 @@ let pp_vernac_expr expr =
                 pp_type_params;
                 pp_return_type;
                 write " :=";
-                indented (map_sequence pp_construtor_expr constructors);
+                indented (map_sequence pp_constructor_expr constructors);
                 pp_where_clause;
               ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
