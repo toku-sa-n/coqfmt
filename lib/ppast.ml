@@ -127,7 +127,7 @@ and pp_constr_expr_r = function
             branches;
           write "end";
         ]
-  | Constrexpr.CCast (v, Some _, t) ->
+  | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
       let parens_needed =
         match v.v with Constrexpr.CApp _ -> true | _ -> false
       in
