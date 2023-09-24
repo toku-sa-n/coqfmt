@@ -419,7 +419,7 @@ let pp_fixpoint_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_constructor_expr = function
-  | (_, Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
+  | ([], Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
       let open CAst in
       (* TODO: Implement this completely. An `Inductive` is an inductive prop if
          it contains a `CRef` with its name. *)
