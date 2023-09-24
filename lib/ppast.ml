@@ -79,7 +79,7 @@ let pp_sort_expr = function
   | Glob_term.UAnonymous { rigid = true } -> write "Type"
   | Glob_term.UAnonymous { rigid = false } ->
       fun printer -> raise (NotImplemented (contents printer))
-  | Glob_term.UNamed (_, [ (sort, 0) ]) -> pp_sort_name_expr sort
+  | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
