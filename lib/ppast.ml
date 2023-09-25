@@ -95,6 +95,9 @@ and pp_constr_expr_r = function
         match expr.v with
         | Constrexpr.CApp _ | Constrexpr.CNotation _ | Constrexpr.CLambdaN _ ->
             parens (pp_constr_expr expr)
+        | Constrexpr.CAppExpl ((name, None), [ _ ])
+          when Libnames.string_of_qualid name <> ".." ->
+            parens (pp_constr_expr expr)
         | _ -> pp_constr_expr expr
       in
 
