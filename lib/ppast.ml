@@ -695,7 +695,10 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_gen_tactic_expr_r = function
+let rec pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+  pp_gen_tactic_expr_r v
+
+and pp_gen_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
       let id = Names.KerName.label alias |> Names.Label.to_string in
@@ -754,10 +757,9 @@ let pp_gen_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced; dot ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
+  | Tacexpr.TacRepeat tactic ->
+      sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
-
-let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_gen_tactic_expr_r v
 
 let pp_ltac =
   map_sequence (fun arg ->
