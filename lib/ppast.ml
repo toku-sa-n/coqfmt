@@ -754,6 +754,7 @@ let pp_gen_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced; dot ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
+  | Tacexpr.TacRepeat _ -> write "repeat reflexivity."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
