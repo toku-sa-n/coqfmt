@@ -759,6 +759,8 @@ and pp_gen_tactic_expr_r = function
   | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
   | Tacexpr.TacRepeat tactic ->
       sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
+  | Tacexpr.TacThen _ ->
+      sequence [ write "simpl;"; newline; write "reflexivity." ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
