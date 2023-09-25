@@ -459,9 +459,9 @@ let pp_syntax_modifier = function
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
   | Tacexpr.Reference name -> pp_qualid name
-  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> sequence [ pp_qualid v; dot ]
+  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> pp_qualid v
   | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
-      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg; dot ]
+      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
@@ -595,7 +595,6 @@ let pp_raw_atomic_tactic_expr = function
           conditional_parens expr;
           pp_bindings bindings;
           pp_in_clause;
-          dot;
         ]
   | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
       sequence
@@ -604,33 +603,30 @@ let pp_raw_atomic_tactic_expr = function
           pp_intro_pattern_expr name.v;
           write " : ";
           pp_constr_expr expr;
-          write ").";
+          write ")";
         ]
   | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
         [
           (if is_induction then write "induction " else write "destruct ");
           pp_induction_clause_list clause_list;
-          dot;
         ]
   | Tacexpr.TacIntroPattern
       (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
-      write "intros."
+      write "intros"
   | Tacexpr.TacIntroPattern (false, exprs) ->
       let open CAst in
       sequence
         [
           write "intros ";
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
-          dot;
         ]
   | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
-      sequence [ pp_raw_red_expr expr; dot ]
+      pp_raw_red_expr expr
   | Tacexpr.TacReduce
       (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
-      sequence
-        [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name; dot ]
+      sequence [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
@@ -660,7 +656,6 @@ let pp_raw_atomic_tactic_expr = function
           conditional_parens expr;
           pp_in_bindings;
           pp_bindings with_bindings;
-          dot;
         ]
   | Tacexpr.TacInversion (intros, name) ->
       sequence
@@ -668,7 +663,6 @@ let pp_raw_atomic_tactic_expr = function
           write "inversion ";
           pp_quantified_hypothesis name;
           pp_inversion_strength intros;
-          dot;
         ]
   | Tacexpr.TacLetTac
       ( false,
@@ -691,7 +685,6 @@ let pp_raw_atomic_tactic_expr = function
           conditional_parens replacee;
           write " as ";
           pp_name replacer;
-          dot;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -754,18 +747,26 @@ and pp_gen_tactic_expr_r = function
         | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
-      sequence [ loop init_idents init_replacers |> spaced; dot ]
+      sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
-  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr atom
+  | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacRepeat tactic ->
       sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
+  | Tacexpr.TacThen (first, second) ->
+      sequence
+        [
+          pp_raw_tactic_expr first;
+          write ";";
+          newline;
+          pp_raw_tactic_expr second;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
   map_sequence (fun arg ->
       match Conversion.raw_tactic_expr_of_raw_generic_argument arg with
       | None -> nop
-      | Some t -> pp_raw_tactic_expr t)
+      | Some t -> sequence [ pp_raw_tactic_expr t; dot ])
 
 let pp_proof_bullet = function
   | Proof_bullet.Dash n -> write_before_indent (String.make n '-' ^ " ")
