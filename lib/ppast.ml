@@ -1126,8 +1126,8 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacEndProof proof_end -> pp_proof_end proof_end
   | Vernacexpr.VernacBullet bullet ->
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
-  | Vernacexpr.VernacSubproof None -> sequence [ write "{"; increase_indent ]
-  | Vernacexpr.VernacEndSubproof -> sequence [ decrease_indent; write "}" ]
+  | Vernacexpr.VernacSubproof None -> sequence [ write "{"; start_subproof ]
+  | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function

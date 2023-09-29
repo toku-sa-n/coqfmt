@@ -25,6 +25,12 @@ val newline : t -> unit
 val blankline : t -> unit
 (** Write out a blank line. *)
 
+val start_subproof : t -> unit
+(** Start a subproof. *)
+
+val end_subproof : t -> unit
+(** End a subproof. *)
+
 val increase_indent : t -> unit
 (** Increase the indent level. *)
 
