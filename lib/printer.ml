@@ -33,13 +33,13 @@ let calculate_indent t =
   let num_bullets = function
     | Proof_bullet.Dash n | Proof_bullet.Plus n | Proof_bullet.Star n -> n
   in
-  let indents_for_bullets_for_single_block bullets =
+  let indents_for_bullets_in_single_block bullets =
     (* +1 for the space after a bullet. *)
     List.fold_left (fun acc b -> acc + num_bullets b + tab_size + 1) 0 bullets
   in
   let indents_for_bullets =
     List.fold_left
-      (fun acc b -> acc + indents_for_bullets_for_single_block b)
+      (fun acc b -> acc + indents_for_bullets_in_single_block b)
       0 t.bullets
     + (tab_size * (List.length t.bullets - 1))
   in
