@@ -6,7 +6,7 @@ type t = {
   (* TODO: Rename this as it is used not only for detecting the columns limit,
      but also the appearances of newlines. *)
   hard_fail_on_exceeding_column_limit : bool;
-  mutable bullets : Proof_bullet.t list;
+  mutable bullets : Proof_bullet.t list list;
 }
 
 exception Exceeded_column_limit
@@ -23,7 +23,7 @@ let create () =
     columns = 0;
     printed_newline = false;
     hard_fail_on_exceeding_column_limit = false;
-    bullets = [];
+    bullets = [ [] ];
   }
 
 let sequence xs printer = List.iter (fun x -> x printer) xs
@@ -33,9 +33,15 @@ let calculate_indent t =
   let num_bullets = function
     | Proof_bullet.Dash n | Proof_bullet.Plus n | Proof_bullet.Star n -> n
   in
-  let indents_for_bullets =
+  let indents_for_bullets_for_single_block bullets =
     (* +1 for the space after a bullet. *)
-    List.fold_left (fun acc b -> acc + num_bullets b + tab_size + 1) 0 t.bullets
+    List.fold_left (fun acc b -> acc + num_bullets b + tab_size + 1) 0 bullets
+  in
+  let indents_for_bullets =
+    List.fold_left
+      (fun acc b -> acc + indents_for_bullets_for_single_block b)
+      0 t.bullets
+    + (tab_size * (List.length t.bullets - 1))
   in
   t.indent_spaces + indents_for_bullets
 
@@ -64,6 +70,13 @@ let blankline t =
   newline t;
   newline t
 
+let start_subproof t = t.bullets <- [] :: t.bullets
+
+let end_subproof t =
+  match t.bullets with
+  | [] -> failwith "end_subproof: empty list"
+  | _ :: tail -> t.bullets <- tail
+
 let increase_indent t = t.indent_spaces <- t.indent_spaces + tab_size
 
 let decrease_indent t =
@@ -91,9 +104,15 @@ let bullet_appears bullet t =
     | h :: _ when h = bullet -> [ bullet ]
     | h :: t -> h :: update_bullet t
   in
-  t.bullets <- update_bullet (List.rev t.bullets) |> List.rev
+  match t.bullets with
+  | [] -> failwith "bullet_appears: empty list"
+  | h :: tail -> t.bullets <- update_bullet h :: tail
 
-let clear_bullets t = t.bullets <- []
+let clear_bullets t =
+  match t.bullets with
+  | [] -> failwith "clear_bullets: empty list"
+  | _ :: tail -> t.bullets <- [] :: tail
+
 let wrap before after f t = sequence [ write before |=> f; write after ] t
 let parens = wrap "(" ")"
 let braces = wrap "{" "}"
