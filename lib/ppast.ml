@@ -675,7 +675,9 @@ let pp_raw_atomic_tactic_expr = function
         false,
         None ) ->
       let parens_neded =
-        match replacee.v with Constrexpr.CApp _ -> true | _ -> false
+        match replacee.v with
+        | Constrexpr.CApp _ | Constrexpr.CNotation _ -> true
+        | _ -> false
       in
       let conditional_parens expr =
         if parens_neded then parens (pp_constr_expr expr)
