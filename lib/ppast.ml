@@ -989,9 +989,15 @@ let pp_synterp_vernac_expr = function
           parens (pp_syntax_modifier modifier.v);
           write ".";
         ]
-  | Vernacexpr.VernacSetOption (false, [ name ], options) ->
+  | Vernacexpr.VernacSetOption (false, names, options) ->
       sequence
-        [ write "Set "; write name; space; pp_option_string options; dot ]
+        [
+          write "Set ";
+          map_spaced write names;
+          space;
+          pp_option_string options;
+          dot;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synpure_vernac_expr = function
