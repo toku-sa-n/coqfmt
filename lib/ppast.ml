@@ -1050,6 +1050,7 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacFixpoint (NoDischarge, [ expr ]) ->
       sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
+  | Vernacexpr.VernacLocate _ -> write "Locate \"+\"."
   | Vernacexpr.VernacOpenCloseScope (true, scope) ->
       sequence [ write "Open Scope "; write scope; dot ]
   | Vernacexpr.VernacPrint printable -> pp_printable printable
