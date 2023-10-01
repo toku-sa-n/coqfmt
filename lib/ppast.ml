@@ -140,7 +140,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
-  | Constrexpr.CDelimiters _ -> write "String.eqb_refl%string"
+  | Constrexpr.CDelimiters (_, _) -> write "String.eqb_refl%string"
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
