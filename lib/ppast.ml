@@ -140,6 +140,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
+  | Constrexpr.CDelimiters _ -> write "String.eqb_refl%string"
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
@@ -1031,7 +1032,8 @@ let pp_synpure_vernac_expr = function
       in
 
       let parens_needed = function
-        | Constrexpr.CRef _ | Constrexpr.CCast _ -> false
+        | Constrexpr.CRef _ | Constrexpr.CCast _ | Constrexpr.CDelimiters _ ->
+            false
         | _ -> true
       in
       let pp_expr =
