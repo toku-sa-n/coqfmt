@@ -992,7 +992,8 @@ let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacSetOption (false, [ name ], options) ->
       sequence
         [ write "Set "; write name; space; pp_option_string options; dot ]
-  | Vernacexpr.VernacSetOption _ -> write "Set Default Goal Selector \"!\"."
+  | Vernacexpr.VernacSetOption (_, _, _) ->
+      write "Set Default Goal Selector \"!\"."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synpure_vernac_expr = function
