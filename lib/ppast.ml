@@ -457,7 +457,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
-  | Vernacexpr.SetItemLevel ([ name ], None, _) ->
+  | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
