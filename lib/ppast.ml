@@ -457,6 +457,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetItemLevel _ -> write "v at next level"
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
