@@ -1,6 +1,6 @@
 Print Init.Nat.add.
 
-Locate "+". 
+Locate "+".
 Locate "+".
 
 Print Init.Nat.add.
