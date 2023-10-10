@@ -1192,7 +1192,8 @@ let separator current next =
       VernacSynterp (VernacRequire (Some _, _, _)) )
   (* `Require ...` *)
   | ( VernacSynterp (VernacRequire (None, _, _)),
-      VernacSynterp (VernacRequire (None, _, _)) ) ->
+      VernacSynterp (VernacRequire (None, _, _)) )
+  | VernacSynterp (VernacSetOption _), VernacSynterp (VernacSetOption _) ->
       newline
   | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
   | VernacSynPure (VernacProof _), _
@@ -1214,6 +1215,8 @@ let separator current next =
   | _, VernacSynPure (VernacSearch _)
   | VernacSynterp (VernacReservedNotation _), _
   | _, VernacSynterp (VernacReservedNotation _)
+  | VernacSynterp (VernacSetOption _), _
+  | _, VernacSynterp (VernacSetOption _)
   | _, VernacSynterp (VernacDefineModule _)
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
