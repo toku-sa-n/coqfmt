@@ -142,7 +142,15 @@ and pp_constr_expr_r = function
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
   | Constrexpr.CDelimiters (scope, expr) ->
-      sequence [ pp_constr_expr expr; write "%"; write scope ]
+      let parens_needed =
+        match expr.v with Constrexpr.CNotation _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ conditional_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
