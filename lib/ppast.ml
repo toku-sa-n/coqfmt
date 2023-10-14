@@ -25,7 +25,7 @@ let pp_signed (sign, n) = sequence [ pp_sign sign; pp_unsigned n ]
 
 let pp_prim_token = function
   | Constrexpr.Number n -> pp_signed n
-  | Constrexpr.String s -> write s
+  | Constrexpr.String s -> doublequoted (write s)
 
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
