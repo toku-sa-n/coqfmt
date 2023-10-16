@@ -110,7 +110,7 @@ and pp_constr_expr_r = function
           args
       in
 
-      sequence [ pp_constr_expr fn; pp_args ]
+      sequence [ conditional_parens fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ])
