@@ -112,12 +112,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2.0.0
 
-      - uses: ocaml/setup-ocaml@v2.0.0
+      - uses: ocaml/setup-ocaml@v2.1.0
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-opam@v2.0.0
+      - uses: ocaml/setup-ocaml/lint-opam@v2.1.0
 
   docker:
     runs-on: ubuntu-latest
