@@ -9,8 +9,7 @@ license: "AGPL-3.0-or-later"
 homepage: "https://github.com/toku-sa-n/coqfmt"
 bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
-  "alcotest"
-  "{with-test}"
+  "alcotest" {with_test}
   "coq" {= "8.18.0"}
   "coq-core"
   "coq-serapi"

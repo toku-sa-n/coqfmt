@@ -20,8 +20,7 @@
  (synopsis "Coq code formatter")
  (description "Coqfmt formats the given Coq source code in a uniform style.")
  (depends
-  alcotest
-  {with-test}
+  (alcotest :with_test)
   ; FIXME: We should remove the `coq` dependency and specify only `coq-core` as
   ; users may have already installed it. However, removing it and installing Coq
   ; via opam causes a build error on CI.
