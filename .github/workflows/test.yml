@@ -38,7 +38,7 @@ jobs:
           dune-cache: true
 
       - name: Install dependencies
-        run: opam install --deps-only .
+        run: opam install --deps-only --with-test .
 
       # Without `opam exec -- `, these commands will fail due to "dune not found"
       # error.
@@ -105,6 +105,19 @@ jobs:
         run: |
           shopt -s globstar
           find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vio {} > /dev/null && echo "OK" || exit 255'
+
+  opamlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2.0.0
+
+      - uses: ocaml/setup-ocaml@v2.0.0
+        with:
+          ocaml-compiler: "4.14.1"
+          dune-cache: true
+
+      - uses: ocaml/setup-ocaml/lint-opam@v2.0.0
 
   docker:
     runs-on: ubuntu-latest
