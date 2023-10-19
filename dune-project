@@ -20,8 +20,7 @@
  (synopsis "Coq code formatter")
  (description "Coqfmt formats the given Coq source code in a uniform style.")
  (depends
-  (alcotest
-   (and :with-test))
+  (alcotest :with-test)
   (coq
    (= 8.18.0))
   coq-core
