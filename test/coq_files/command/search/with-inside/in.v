@@ -1,0 +1,2 @@
+Search      pred
+    inside       Prelude.

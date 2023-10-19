@@ -1,2 +1,0 @@
-Definition foo :=
-  3.

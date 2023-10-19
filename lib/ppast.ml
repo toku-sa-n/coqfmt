@@ -3,205 +3,408 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
-let pp_id printer id = Names.Id.to_string id |> write printer
-let pp_lident printer CAst.{ v; loc = _ } = pp_id printer v
+let nop _ = ()
+let pp_id id = write (Names.Id.to_string id)
+let pp_lident CAst.{ v; loc = _ } = pp_id v
 
-let pp_name printer = function
-  | Names.Name name -> pp_id printer name
-  | Names.Anonymous -> raise (NotImplemented (contents printer))
+let pp_name = function
+  | Names.Name name -> pp_id name
+  | Names.Anonymous -> write "_"
 
-let pp_lname printer CAst.{ v; loc = _ } = pp_name printer v
-let pp_lstring printer CAst.{ v; loc = _ } = write printer v
+let pp_lname CAst.{ v; loc = _ } = pp_name v
+let pp_lstring CAst.{ v; loc = _ } = write v
 
-let pp_definition_object_kind printer = function
-  | Decls.Example -> write printer "Example"
-  | Decls.Definition -> write printer "Definition"
-  | _ -> raise (NotImplemented (contents printer))
+let pp_definition_object_kind = function
+  | Decls.Example -> write "Example"
+  | Decls.Definition -> write "Definition"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_sign printer = function
-  | NumTok.SPlus -> ()
-  | NumTok.SMinus -> write printer "-"
+let pp_sign = function NumTok.SPlus -> nop | NumTok.SMinus -> write "-"
+let pp_unsigned n = write (NumTok.Unsigned.sprint n)
+let pp_signed (sign, n) = sequence [ pp_sign sign; pp_unsigned n ]
 
-let pp_unsigned printer n = write printer (NumTok.Unsigned.sprint n)
+let pp_prim_token = function
+  | Constrexpr.Number n -> pp_signed n
+  | Constrexpr.String s -> doublequoted (write s)
 
-let pp_signed printer (sign, n) =
-  pp_sign printer sign;
-  pp_unsigned printer n
+let pp_qualid id = write (Libnames.string_of_qualid id)
 
-let pp_prim_token printer = function
-  | Constrexpr.Number n -> pp_signed printer n
-  | Constrexpr.String s -> write printer s
+let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
 
-let pp_qualid printer id = Libnames.string_of_qualid id |> write printer
-
-let rec pp_cases_pattern_expr printer CAst.{ v; loc = _ } =
-  pp_cases_pattern_expr_r printer v
-
-and pp_cases_pattern_expr_r printer = function
-  | Constrexpr.CPatAtom (Some id) -> pp_qualid printer id
-  | Constrexpr.CPatAtom None -> write printer "_"
+and pp_cases_pattern_expr_r = function
+  | Constrexpr.CPatAtom (Some id) -> pp_qualid id
+  | Constrexpr.CPatAtom None -> write "_"
+  (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
-      pp_qualid printer outer;
-      List.iter
-        (fun value ->
-          space printer;
-          pp_cases_pattern_expr printer value)
-        values
-  | Constrexpr.CPatNotation (None, (_, notation), (expr1, expr2), []) ->
-      (* FIXME: THE CODE OF THIS BRANCH IS CORNER-CUTTING. *)
-      let exprs = expr1 @ List.flatten expr2 in
-      let prefix =
-        String.split_on_char '_' notation |> List.hd |> String.trim
+      let open CAst in
+      let conditional_parens expr =
+        match expr.v with
+        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
+        | _ -> parens (pp_cases_pattern_expr expr)
       in
-      let suffix =
-        String.split_on_char '_' notation |> List.rev |> List.hd |> String.trim
-      in
-      let separator =
-        String.split_on_char '_' notation |> List.tl |> List.hd |> String.trim
-      in
-      write printer prefix;
-      with_seps
-        ~sep:(fun () ->
-          write printer separator;
-          space printer)
-        (pp_cases_pattern_expr printer)
-        exprs;
-      write printer suffix
-  | _ -> raise (NotImplemented (contents printer))
+      spaced (pp_qualid outer :: List.map conditional_parens values)
+  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2), []) ->
+      let printing_rule = Ppextend.find_notation_printing_rule scope notation in
 
-let rec pp_constr_expr printer CAst.{ v; loc = _ } = pp_constr_expr_r printer v
+      let rec pp unparsings exprs =
+        match (unparsings, exprs) with
+        | [], _ -> nop
+        | Ppextend.UnpMetaVar _ :: _, [] -> failwith "Too few exprs."
+        | Ppextend.UnpMetaVar _ :: t, h_exprs :: t_exprs ->
+            sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
+        | Ppextend.UnpBinderMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
+        | Ppextend.UnpListMetaVar _ :: t, h_exprs :: t_exprs ->
+            sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, _ -> sequence [ write s; pp t exprs ]
+        | Ppextend.UnpCut _ :: t, _ -> sequence [ space; pp t exprs ]
+        | Ppextend.UnpBox (_, xs) :: t, _ -> pp (List.map snd xs @ t) exprs
+      in
 
-and pp_constr_expr_r printer = function
+      pp printing_rule.notation_printing_unparsing
+        (exprs_1 @ List.flatten exprs_2)
+  | Constrexpr.CPatPrim token -> pp_prim_token token
+  | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_sort_name_expr = function
+  | Constrexpr.CProp -> write "Prop"
+  | Constrexpr.CSet -> write "Set"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_sort_expr = function
+  | Glob_term.UAnonymous { rigid = true } -> write "Type"
+  | Glob_term.UAnonymous { rigid = false } ->
+      fun printer -> raise (NotImplemented (contents printer))
+  | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
+  | Glob_term.UNamed _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+
+let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
+
+and pp_constr_expr_r = function
   | Constrexpr.CApp
       (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      pp_constr_expr printer outer;
-      space printer;
-      parens printer (fun () -> pp_constr_expr printer inner)
-  | Constrexpr.CApp (outer, inners) ->
-      pp_constr_expr printer outer;
-      List.iter
-        (function
-          | inner, None ->
-              space printer;
-              pp_constr_expr printer inner
-          | _, Some _ -> raise (NotImplemented (contents printer)))
-        inners
-  | Constrexpr.CCases (_, None, matchees, branches) ->
-      write printer "match ";
-      commad printer (pp_case_expr printer) matchees;
-      write printer " with";
-      newline printer;
-      List.iter
-        (fun branch ->
-          pp_branch_expr printer branch;
-          newline printer)
-        branches;
-      write printer "end"
-  | Constrexpr.CCast (v, DEFAULTcast, t) ->
-      pp_constr_expr printer v;
-      write printer " : ";
-      pp_constr_expr printer t
-  | Constrexpr.CIf (cond, (None, None), t, f) ->
-      write printer "if ";
-      pp_constr_expr printer cond;
-      newline printer;
-      increase_indent printer;
-      write printer "then ";
-      pp_constr_expr printer t;
-      newline printer;
-      write printer "else ";
-      pp_constr_expr printer f;
-      decrease_indent printer
-  | Constrexpr.CRef (id, None) -> Libnames.string_of_qualid id |> write printer
-  | Constrexpr.CNotation
-      (None, (InConstrEntry, init_notation), (init_replacers, [], [], [])) ->
-      let rec loop notation replacers =
-        match (notation, replacers) with
-        | "", [] -> ()
-        | "", _ -> failwith "Not all relpacers are consumed."
-        | s, h :: t when String.starts_with ~prefix:"_" s ->
-            pp_constr_expr printer h;
-            loop (String.sub s 1 (String.length s - 1)) t
-        | s, _ ->
-            write printer (String.sub s 0 1);
-            loop (String.sub s 1 (String.length s - 1)) replacers
+      spaced [ pp_constr_expr outer; parens (pp_constr_expr inner) ]
+  | Constrexpr.CApp (fn, args) ->
+      let open CAst in
+      let conditional_parens expr =
+        match expr.v with
+        | Constrexpr.CApp _ | Constrexpr.CNotation _ | Constrexpr.CLambdaN _ ->
+            parens (pp_constr_expr expr)
+        | Constrexpr.CAppExpl ((name, None), [ _ ])
+          when Libnames.string_of_qualid name <> ".." ->
+            parens (pp_constr_expr expr)
+        | _ -> pp_constr_expr expr
       in
-      loop init_notation init_replacers
-  | Constrexpr.CPrim prim -> pp_prim_token printer prim
+
+      let pp_args =
+        map_sequence
+          (function
+            | inner, None -> sequence [ space; conditional_parens inner ]
+            | _, Some _ ->
+                fun printer -> raise (NotImplemented (contents printer)))
+          args
+      in
+
+      sequence [ conditional_parens fn; pp_args ]
+  | Constrexpr.CAppExpl ((name, None), []) ->
+      sequence [ write "@"; pp_qualid name ]
+  | Constrexpr.CAppExpl ((dots, None), [ expr ])
+    when Libnames.string_of_qualid dots = ".." ->
+      spaced [ pp_qualid dots; parens (pp_constr_expr expr); pp_qualid dots ]
+  | Constrexpr.CAppExpl ((name, None), exprs) ->
+      sequence
+        [ write "@"; pp_qualid name; space; map_spaced pp_constr_expr exprs ]
+  | Constrexpr.CCases (_, None, matchees, branches) ->
+      sequence
+        [
+          write "match ";
+          map_commad pp_case_expr matchees;
+          write " with";
+          newline;
+          map_sequence
+            (fun branch -> sequence [ pp_branch_expr branch; newline ])
+            branches;
+          write "end";
+        ]
+  | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
+      let parens_needed =
+        match v.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
+  | Constrexpr.CDelimiters (scope, expr) ->
+      let parens_needed =
+        match expr.v with Constrexpr.CNotation _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ conditional_parens expr; write "%"; write scope ]
+  | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
+  | Constrexpr.CIf (cond, (None, None), t, f) ->
+      sequence
+        [
+          write "if ";
+          pp_constr_expr cond;
+          newline;
+          indented
+            (sequence
+               [
+                 write "then ";
+                 pp_constr_expr t;
+                 newline;
+                 write "else ";
+                 pp_constr_expr f;
+               ]);
+        ]
+  | Constrexpr.CLambdaN (args, body) ->
+      sequence
+        [
+          write "fun ";
+          map_spaced pp_local_binder_expr args;
+          write " => ";
+          pp_constr_expr body;
+        ]
+  | Constrexpr.CLetIn (name, binding, None, expr) ->
+      sequence
+        [
+          write "let ";
+          pp_lname name;
+          write " := ";
+          pp_constr_expr binding;
+          write " in";
+          newline;
+          pp_constr_expr expr;
+        ]
+  | Constrexpr.CRef (id, None) -> pp_qualid id
+  | Constrexpr.CNotation
+      ( scope,
+        notation,
+        (init_replacers_nonrec, init_replacers_rec, [], local_assums) ) as op ->
+      let open Ppextend in
+      let open CAst in
+      let notation_info = Notgram_ops.grammar_of_notation notation |> List.hd in
+
+      let init_replacers =
+        init_replacers_nonrec @ List.flatten init_replacers_rec
+      in
+
+      let assoc = notation_info.notgram_assoc in
+
+      let entry_keys = notation_info.notgram_typs in
+
+      let op_level = function
+        | Constrexpr.CNotation (_, notation, _) ->
+            Some (Notation.level_of_notation notation)
+        | _ -> None
+      in
+
+      let printing_rule = Ppextend.find_notation_printing_rule scope notation in
+      let rec printers unparsings replacers local_assums entry_keys =
+        match (unparsings, replacers, local_assums, entry_keys) with
+        | [], [], [], [] -> nop
+        | [], _ :: _, _, _ -> failwith "Too many replacers."
+        | [], _, _ :: _, _ -> failwith "Too many local assumptions."
+        | [], _, _, _ :: _ -> failwith "Too many entry keys."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys ->
+            (* CProdN denotes a `forall foo, ... ` value. This value needs to be
+               enclosed by parentheses if it is not on the rightmost position,
+               otherwise all expressions will be in the scope of the `forall
+               foo`.
+
+               For example, `(forall x, f x = x) -> (forall x, f x = x)` is
+               valid, but `forall x, f x = x -> forall x, f x = x` will be
+               interpreted as `forall x, (f x = x -> forall x, f x = x).` which
+               is invalid. Certainly, these two have different meanings, and
+               thus lhs' `forall` needs parentheses.*)
+            let parens_needed =
+              match (h.v, assoc, side, h_keys) with
+              | Constrexpr.CLambdaN _, _, _, _ -> true
+              | Constrexpr.CProdN _, _, _, _ -> t_u <> []
+              | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
+                  op_level h.v >= op_level op
+              | _, Some LeftA, Some Left, _ | _, Some RightA, Some Right, _ ->
+                  op_level h.v > op_level op
+              | ( _,
+                  None,
+                  None,
+                  Extend.ETConstr
+                    ( Constrexpr.InConstrEntry,
+                      None,
+                      (Extend.NumLevel _, Extend.BorderProd (Right, None)) ) )
+                ->
+                  op_level h.v > op_level op
+              | _ -> op_level h.v >= op_level op
+            in
+            let conditional_parens expr =
+              if parens_needed then parens (pp_constr_expr expr)
+              else pp_constr_expr expr
+            in
+
+            sequence
+              [ conditional_parens h; printers t_u t_r local_assums t_keys ]
+        | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _, _ -> raise (NotImplemented "")
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs ->
+            let get_seps = function
+              | Ppextend.UnpTerminal s -> s
+              | Ppextend.UnpCut (PpBrk _) -> ";"
+              | _ -> failwith "TODO"
+            in
+            let rec loop elems seps =
+              match (elems, seps) with
+              | [ x ], _ ->
+                  sequence [ pp_constr_expr x; printers t [] local_assums zs ]
+              | [], _ -> printers t [] local_assums zs
+              | xs, [] ->
+                  sequence
+                    [
+                      map_with_seps ~sep:(write "; ") pp_constr_expr xs;
+                      printers t [] local_assums zs;
+                    ]
+              | x :: xs, sep :: seps ->
+                  sequence
+                    [
+                      pp_constr_expr x;
+                      write (get_seps sep);
+                      space;
+                      loop xs seps;
+                    ]
+            in
+            loop elems seps
+        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [] ->
+            raise (NotImplemented "")
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [] ->
+            raise (NotImplemented "Too few entry keys.")
+        | ( Ppextend.UnpBinderListMetaVar (true, true, [ _ ]) :: t,
+            xs,
+            assums,
+            _ :: keys ) ->
+            sequence
+              [ map_spaced pp_local_binder_expr assums; printers t xs [] keys ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, xs, _, keys ->
+            sequence [ write s; printers t xs local_assums keys ]
+        | Ppextend.UnpBox (_, xs) :: t, _, _, keys ->
+            printers (List.map snd xs @ t) replacers local_assums keys
+        | Ppextend.UnpCut _ :: t, xs, _, keys ->
+            let hor = sequence [ space; printers t xs local_assums keys ] in
+            let ver = sequence [ newline; printers t xs local_assums keys ] in
+            hor <-|> ver
+      in
+
+      printers printing_rule.notation_printing_unparsing init_replacers
+        (List.flatten local_assums)
+        entry_keys
+  | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      List.iter
-        (fun x ->
-          space printer;
-          pp_local_binder_expr printer x)
-        xs
+      map_spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
-      write printer "forall ";
-      spaced printer (pp_local_binder_expr printer) xs;
-      write printer ", ";
-      pp_constr_expr printer ty
-  | Constrexpr.CHole (None, IntroAnonymous, None) -> ()
-  | _ -> raise (NotImplemented (contents printer))
+      let hor = sequence [ space; pp_constr_expr ty ] in
+      let ver = sequence [ newline; indented (pp_constr_expr ty) ] in
+      sequence
+        [
+          write "forall ";
+          map_spaced pp_local_binder_expr xs;
+          write ",";
+          hor <-|> ver;
+        ]
+  | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
+  | Constrexpr.CSort expr -> pp_sort_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_case_expr printer = function
-  | expr, None, None -> pp_constr_expr printer expr
-  | _ -> raise (NotImplemented (contents printer))
+and pp_case_expr = function
+  | expr, None, None -> pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_local_binder_expr printer = function
+and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.
-          {
-            v = Constrexpr.CHole (Some (BinderType _), IntroAnonymous, None);
-            loc = _;
-          } ) ->
-      pp_lname printer name
-  | Constrexpr.CLocalAssum (names, Constrexpr.Default Explicit, ty) ->
-      parens printer (fun () ->
-          spaced printer (pp_lname printer) names;
-          write printer " : ";
-          pp_constr_expr printer ty)
-  | _ -> raise (NotImplemented (contents printer))
+        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous); loc = _ } ) ->
+      pp_lname name
+  | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
+      let wrapper =
+        match kind with
+        | Explicit -> parens
+        | MaxImplicit -> braces
+        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+      in
 
-and pp_branch_expr printer = function
-  | CAst.{ v = [ patterns ], expr; loc = _ } ->
-      write printer "| ";
-      commad printer (pp_cases_pattern_expr printer) patterns;
-      write printer " => ";
-      pp_constr_expr printer expr
-  | _ -> raise (NotImplemented (contents printer))
+      wrapper
+        (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_definition_expr printer = function
-  | Vernacexpr.ProveBody ([], expr) ->
-      write printer " : ";
-      pp_constr_expr printer expr
+and pp_branch_expr = function
+  | CAst.{ v = patterns, expr; loc = _ } ->
+      let hor = sequence [ space; pp_constr_expr expr ] in
+      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
+      sequence
+        [
+          write "| ";
+          map_bard (map_commad pp_cases_pattern_expr) patterns;
+          write " =>";
+          hor <-|> ver;
+        ]
+
+let pp_definition_expr = function
+  | Vernacexpr.ProveBody (args, expr) ->
+      let hor = sequence [ space; pp_constr_expr expr ] in
+      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
+      sequence
+        [
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
+          write " :";
+          hor <-|> ver;
+        ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
-      List.iter
-        (fun arg ->
-          space printer;
-          pp_local_binder_expr printer arg)
-        args;
-      (match return_ty with
-      | None -> ()
-      | Some ty ->
-          write printer " : ";
-          pp_constr_expr printer ty);
-      write printer " :=";
-      newline printer;
-      increase_indent printer;
-      pp_constr_expr printer def_body;
-      decrease_indent printer
-  | _ -> raise (NotImplemented (contents printer))
+      let hor = sequence [ space; pp_constr_expr def_body ] in
+      let ver = sequence [ newline; indented (pp_constr_expr def_body) ] in
+      sequence
+        [
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
+          (match return_ty with
+          | None -> nop
+          | Some ty -> sequence [ write " : "; pp_constr_expr ty ]);
+          write " :=";
+          hor <-|> ver;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_proof_end printer = function
-  | Vernacexpr.Proved (Vernacexpr.Opaque, None) -> write printer "Qed."
-  | _ -> raise (NotImplemented (contents printer))
+let pp_proof_end = function
+  | Vernacexpr.Proved (Vernacexpr.Opaque, Some ident) ->
+      sequence [ clear_bullets; write "Save"; space; pp_lident ident; dot ]
+  | Vernacexpr.Proved (Vernacexpr.Opaque, None) ->
+      sequence [ clear_bullets; write "Qed." ]
+  | Vernacexpr.Proved (Vernacexpr.Transparent, Some ident) ->
+      sequence [ clear_bullets; write "Defined"; space; pp_lident ident; dot ]
+  | Vernacexpr.Proved (Vernacexpr.Transparent, None) ->
+      sequence [ clear_bullets; write "Defined." ]
+  | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
-let pp_theorem_kind printer = function
-  | Decls.Theorem -> write printer "Theorem"
-  | _ -> raise (NotImplemented (contents printer))
+let pp_theorem_kind = function
+  | Decls.Fact -> write "Fact"
+  | Decls.Lemma -> write "Lemma"
+  | Decls.Theorem -> write "Theorem"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_fixpoint_expr printer = function
+let pp_fixpoint_expr = function
   | Vernacexpr.
       {
         fname;
@@ -212,41 +415,72 @@ let pp_fixpoint_expr printer = function
         body_def = Some body_def;
         notations = [];
       } ->
-      pp_lident printer fname;
-      space printer;
-      List.iter (fun binder -> pp_local_binder_expr printer binder) binders;
-      write printer " : ";
-      pp_constr_expr printer rtype;
-      write printer " :=";
-      newline printer;
-      increase_indent printer;
-      pp_constr_expr printer body_def;
-      write printer ".";
-      decrease_indent printer
-  | _ -> raise (NotImplemented (contents printer))
+      let pp_return_type =
+        match rtype.v with
+        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | _ -> sequence [ write " : "; pp_constr_expr rtype ]
+      in
+      sequence
+        [
+          pp_lident fname;
+          space;
+          map_spaced pp_local_binder_expr binders;
+          pp_return_type;
+          write " :=";
+          newline;
+          indented (sequence [ pp_constr_expr body_def; dot ]);
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_construtor_expr printer (_, (name, expr)) =
-  newline printer;
-  write printer "| ";
-  pp_lident printer name;
-  pp_constr_expr printer expr
+let pp_constructor_expr = function
+  | ([], Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
+      let open CAst in
+      (* TODO: Implement this completely. An `Inductive` is an inductive prop if
+         it contains a `CRef` with its name. *)
+      let rec is_inductive_prop = function
+        | Constrexpr.CApp _ -> true
+        | Constrexpr.CRef _ -> true
+        | Constrexpr.CProdN (_, x) -> is_inductive_prop x.v
+        | Constrexpr.CNotation (None, _, (xs, [], [], [])) ->
+            List.exists (fun x -> is_inductive_prop x.v) xs
+        | _ -> false
+      in
 
-let pp_syntax_modifier printer = function
-  | Vernacexpr.SetAssoc LeftA -> write printer "left associativity"
+      match expr.v with
+      | Constrexpr.CHole _ -> sequence [ newline; write "| "; pp_lident name ]
+      | _ when is_inductive_prop expr.v ->
+          sequence
+            [
+              newline;
+              write "| ";
+              pp_lident name;
+              write " : ";
+              pp_constr_expr expr;
+            ]
+      | _ ->
+          sequence
+            [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ])
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_syntax_modifier = function
+  | Vernacexpr.SetAssoc LeftA -> write "left associativity"
+  | Vernacexpr.SetAssoc RightA -> write "right associativity"
+  | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
+      sequence [ write name; write " at next level" ]
   | Vernacexpr.SetLevel level ->
-      write printer "at level ";
-      write printer (string_of_int level)
-  | _ -> raise (NotImplemented (contents printer))
+      sequence [ write "at level "; write (string_of_int level) ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_gen_tactic_arg printer (expr : Tacexpr.raw_tactic_arg) =
-  match expr with
-  | Tacexpr.TacCall ast ->
-      pp_qualid printer (fst ast.v);
-      write printer "."
-  | _ -> raise (NotImplemented (contents printer))
+let rec pp_gen_tactic_arg = function
+  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.Reference name -> pp_qualid name
+  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> pp_qualid v
+  | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
+      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
-  match expr with
+let pp_raw_red_expr = function
   | Genredexpr.Simpl
       ( Genredexpr.
           {
@@ -259,209 +493,769 @@ let pp_raw_red_expr printer (expr : Tacexpr.raw_red_expr) =
             rConst = [];
           },
         None ) ->
-      write printer "simpl."
-  | _ -> raise (NotImplemented (contents printer))
+      write "simpl"
+  | Genredexpr.Unfold
+      [ (AllOccurrences, CAst.{ v = Constrexpr.AN name; loc = _ }) ] ->
+      sequence [ write "unfold "; pp_qualid name ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_naming_expr printer = function
-  | Namegen.IntroIdentifier name -> pp_id printer name
-  | _ -> raise (NotImplemented (contents printer))
+let pp_intro_pattern_naming_expr = function
+  | Namegen.IntroIdentifier name -> pp_id name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_intro_pattern_expr printer = function
-  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr printer expr
-  | _ -> raise (NotImplemented (contents printer))
+let rec pp_or_and_intro_pattern_expr = function
+  | Tactypes.IntroOrPattern patterns ->
+      let open CAst in
+      let pp_patterns i pattern =
+        match (i, pattern) with
+        | 0, [] -> nop
+        | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
+        | _, xs ->
+            sequence
+              [
+                write " | "; map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+              ]
+      in
+      brackets (sequence (List.mapi pp_patterns patterns))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_core_destruction_arg printer = function
-  | Tactics.ElimOnIdent ident -> pp_lident printer ident
-  | _ -> raise (NotImplemented (contents printer))
+and pp_intro_pattern_action_expr = function
+  | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
+  | Tactypes.IntroWildcard -> write "_"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_destruction_arg printer = function
-  | None, arg -> pp_core_destruction_arg printer arg
-  | _ -> raise (NotImplemented (contents printer))
+and pp_intro_pattern_expr = function
+  | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr expr
+  | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause printer = function
-  | arg, (None, None), None -> pp_destruction_arg printer arg
-  | _ -> raise (NotImplemented (contents printer))
+let pp_core_destruction_arg = function
+  | Tactics.ElimOnConstr (expr, Tactypes.NoBindings) ->
+      parens (pp_constr_expr expr)
+  | Tactics.ElimOnIdent ident -> pp_lident ident
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_induction_clause_list printer = function
-  | [ clause ], None -> pp_induction_clause printer clause
-  | _ -> raise (NotImplemented (contents printer))
+let pp_destruction_arg = function
+  | None, arg -> pp_core_destruction_arg arg
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_atomic_tactic_expr printer (expr : Tacexpr.raw_atomic_tactic_expr) =
-  let open CAst in
-  match expr with
-  | Tacexpr.TacInductionDestruct (false, false, clause_list) ->
-      write printer "destruct ";
-      pp_induction_clause_list printer clause_list;
-      write printer "."
+let pp_or_var = function
+  | Locus.ArgArg CAst.{ v; loc = _ } ->
+      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_induction_clause = function
+  | arg, (eqn, as_list), None ->
+      let pp_as_list = function None -> nop | Some args -> pp_or_var args in
+      let pp_eqn = function
+        | None -> nop
+        | Some x ->
+            let open CAst in
+            sequence [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
+      in
+      sequence [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_induction_clause_list = function
+  | [ clause ], None -> pp_induction_clause clause
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_hyp_location_expr = function
+  | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_quantified_hypothesis = function
+  | Tactypes.NamedHyp name -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_inversion_strength = function
+  | Tacexpr.NonDepInversion (FullInversion, [], Some args) -> pp_or_var args
+  | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_bindings = function
+  | Tactypes.NoBindings -> nop
+  | Tactypes.ExplicitBindings bindings ->
+      let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
+        parens
+          (sequence
+             [
+               pp_quantified_hypothesis replacee;
+               write " := ";
+               pp_constr_expr replacer;
+             ])
+      in
+      sequence [ write " with "; map_spaced pp_one_binding bindings ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_raw_atomic_tactic_expr = function
+  | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
+      let pp_in_clause =
+        match in_clause with
+        | [] -> nop
+        | [ (name, None) ] -> sequence [ write " in "; pp_id name.CAst.v ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      let parens_needed expr =
+        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed expr then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence
+        [
+          write "apply ";
+          conditional_parens expr;
+          pp_bindings bindings;
+          pp_in_clause;
+        ]
+  | Tacexpr.TacAssert (false, true, Some None, Some name, expr) ->
+      sequence
+        [
+          write "assert (";
+          pp_intro_pattern_expr name.v;
+          write " : ";
+          pp_constr_expr expr;
+          write ")";
+        ]
+  | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
+      sequence
+        [
+          (if is_induction then write "induction " else write "destruct ");
+          pp_induction_clause_list clause_list;
+        ]
+  | Tacexpr.TacIntroPattern
+      (false, [ CAst.{ v = Tactypes.IntroForthcoming _; loc = _ } ]) ->
+      write "intros"
   | Tacexpr.TacIntroPattern (false, exprs) ->
-      write printer "intros ";
-      spaced printer (fun expr -> pp_intro_pattern_expr printer expr.v) exprs;
-      write printer "."
-  | Tacexpr.TacReduce (expr, _) -> pp_raw_red_expr printer expr
+      let open CAst in
+      sequence
+        [
+          write "intros ";
+          map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
+        ]
+  | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
+    ->
+      pp_raw_red_expr expr
+  | Tacexpr.TacReduce
+      (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
+      sequence [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name ]
   | Tacexpr.TacRewrite
       ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, NoBindings))) ],
-        Locus.{ onhyps = Some []; concl_occs = AllOccurrences },
+        [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
+        in_bindings,
         None ) ->
-      write printer "rewrite ";
-      if is_left_to_right then write printer "-> " else write printer "<- ";
-      pp_constr_expr printer expr;
-      write printer "."
-  | _ -> raise (NotImplemented (contents printer))
+      let parens_needed =
+        match expr.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
 
-let pp_gen_tactic_expr_r printer
-    (expr : Tacexpr.r_dispatch Tacexpr.gen_tactic_expr_r) =
-  match expr with
-  | Tacexpr.TacArg arg -> pp_gen_tactic_arg printer arg
-  | Tacexpr.TacAtom atom -> pp_raw_atomic_tactic_expr printer atom
-  | _ -> raise (NotImplemented (contents printer))
+      let pp_in_bindings =
+        let open Locus in
+        match in_bindings with
+        | { onhyps = Some []; concl_occs = AllOccurrences } -> nop
+        | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
+            sequence [ write " in "; pp_hyp_location_expr name ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
 
-let pp_raw_tactic_expr printer (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_gen_tactic_expr_r printer v
+      sequence
+        [
+          write "rewrite ";
+          (if is_left_to_right then write "-> " else write "<- ");
+          conditional_parens expr;
+          pp_in_bindings;
+          pp_bindings with_bindings;
+        ]
+  | Tacexpr.TacInversion (intros, name) ->
+      sequence
+        [
+          write "inversion ";
+          pp_quantified_hypothesis name;
+          pp_inversion_strength intros;
+        ]
+  | Tacexpr.TacLetTac
+      ( false,
+        replacer,
+        replacee,
+        { onhyps = None; concl_occs = AllOccurrences },
+        false,
+        None ) ->
+      let parens_neded =
+        match replacee.v with
+        | Constrexpr.CApp _ | Constrexpr.CNotation _ -> true
+        | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_neded then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
 
-let raw_tactic_expr_of_raw_generic_argument arg : Tacexpr.raw_tactic_expr option
-    =
-  (* XXX: I'm not sure if this way is correct. See
-          https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60.
-  *)
-  let open Sexplib.Sexp in
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "tactic" ] ];
-        rems;
-      ] ->
-      Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
-  | _ -> None
+      sequence
+        [
+          write "remember ";
+          conditional_parens replacee;
+          write " as ";
+          pp_name replacer;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_ltac printer args =
-  List.iter
-    (fun arg ->
-      match raw_tactic_expr_of_raw_generic_argument arg with
-      | None -> ()
-      | Some t -> pp_raw_tactic_expr printer t)
-    args
+let rec pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+  pp_gen_tactic_expr_r v
 
-let pp_subast printer
-    CAst.{ v = Vernacexpr.{ control = _; attrs = _; expr }; loc = _ } =
-  match expr with
-  | VernacAbort ->
-      decrease_indent printer;
-      write printer "Abort."
-  | VernacCheckMayEval (check_or_compute, None, expr) ->
-      ((match check_or_compute with
-       | Some (CbvVm None) -> write printer "Compute "
-       | None -> write printer "Check "
-       | _ -> raise (NotImplemented (contents printer)));
-       match expr.v with
-       | Constrexpr.CRef _ | Constrexpr.CCast _ -> pp_constr_expr printer expr
-       | _ -> parens printer (fun () -> pp_constr_expr printer expr));
-      write printer "."
-  | VernacDefineModule (None, name, [], Check [], []) ->
-      write printer "Module ";
-      pp_lident printer name;
-      write printer ".";
-      increase_indent printer
-  | VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
-      pp_definition_object_kind printer kind;
-      space printer;
-      pp_lname printer name;
-      pp_definition_expr printer expr;
-      write printer "."
-  | VernacEndSegment name ->
-      decrease_indent printer;
-      write printer "End ";
-      pp_lident printer name;
-      write printer "."
-  | VernacFixpoint (NoDischarge, [ expr ]) ->
-      write printer "Fixpoint ";
-      pp_fixpoint_expr printer expr
-  | VernacNotation (false, expr, (notation, modifiers), scope) ->
-      let pp_modifiers () =
-        space printer;
-        parens printer (fun () ->
-            commad printer
-              (fun modifier ->
+and pp_gen_tactic_expr_r = function
+  | Tacexpr.TacAlias (alias, init_replacers) ->
+      (* FIXME: Needs refactoring. *)
+      let id = Names.KerName.label alias |> Names.Label.to_string in
+      let init xs = List.rev xs |> List.tl |> List.rev in
+
+      let parens_needed expr =
+        let open CAst in
+        match expr.v with
+        | Constrexpr.CRef _ | Constrexpr.CPrim _ -> false
+        | _ -> true
+      in
+      let conditional_parens expr =
+        if parens_needed expr then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      (* The last element is Coq's internal ID and we don't need it. *)
+      let init_idents = String.split_on_char '_' id |> init in
+      let rec loop idents replacers =
+        match (idents, replacers) with
+        | "#" :: _, [] -> failwith "Too few replacers."
+        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
+            match
+              ( Conversion.constr_expr_of_raw_generic_argument args,
+                Conversion.destruction_arg_of_raw_generic_argument args,
+                Conversion.intro_pattern_list_of_raw_generic_argument args,
+                Conversion.clause_expr_of_raw_generic_argument args,
+                Conversion.bindings_list_of_raw_generic_argument args )
+            with
+            | None, None, None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _, _, _ ->
+                conditional_parens h_reps :: loop t_ids t_reps
+            | _, Some h_reps, _, _, _ ->
+                pp_destruction_arg h_reps :: loop t_ids t_reps
+            | _, _, Some h_reps, _, _ ->
                 let open CAst in
-                pp_syntax_modifier printer modifier.v)
-              modifiers)
+                map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
+                :: loop t_ids t_reps
+            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _ ->
+                pp_hyp_location_expr name :: loop t_ids t_reps
+            | _, _, _, _, Some bindings ->
+                let pp_binding = function
+                  | Tactypes.ImplicitBindings [ x ] -> conditional_parens x
+                  | _ ->
+                      fun printer -> raise (NotImplemented (contents printer))
+                in
+
+                map_commad pp_binding bindings :: loop t_ids t_reps
+            | _ ->
+                [ (fun printer -> raise (NotImplemented (contents printer))) ])
+        | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
+        | [], [] -> []
+        | [], _ -> failwith "Too many replacers."
+        | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
-      let pp_scope () =
+      sequence [ loop init_idents init_replacers |> spaced ]
+  | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
+  | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
+  | Tacexpr.TacRepeat tactic ->
+      sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
+  | Tacexpr.TacThen (first, second) ->
+      sequence
+        [
+          pp_raw_tactic_expr first;
+          write ";";
+          newline;
+          pp_raw_tactic_expr second;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_ltac =
+  map_sequence (fun arg ->
+      match Conversion.raw_tactic_expr_of_raw_generic_argument arg with
+      | None -> nop
+      | Some t -> sequence [ pp_raw_tactic_expr t; dot ])
+
+let pp_proof_bullet = function
+  | Proof_bullet.Dash n -> write_before_indent (String.make n '-' ^ " ")
+  | Proof_bullet.Plus n -> write_before_indent (String.make n '+' ^ " ")
+  | Proof_bullet.Star n -> write_before_indent (String.make n '*' ^ " ")
+
+let pp_import_categories { Vernacexpr.negative; import_cats } =
+  let open CAst in
+  sequence
+    [
+      space;
+      (if negative then write "-" else nop);
+      parens (map_commad (fun import_cat -> write import_cat.v) import_cats);
+    ]
+
+let pp_export_flag = function
+  | Vernacexpr.Export -> write "Export"
+  | Vernacexpr.Import -> write "Import"
+
+let pp_export_with_cats (flag, import_categories) =
+  sequence
+    [
+      space;
+      pp_export_flag flag;
+      (match import_categories with
+      | None -> nop
+      | Some x -> pp_import_categories x);
+    ]
+
+let pp_import_filter_expr import_filter_expr =
+  match import_filter_expr with
+  | Vernacexpr.ImportAll -> nop
+  | Vernacexpr.ImportNames names ->
+      sequence
+        [
+          (* FIXME: The Coq parser will raise an exception here if Export/Import
+             was omitted *)
+          parens
+            (map_commad (fun (filter_name, _) -> pp_qualid filter_name) names);
+        ]
+
+let pp_search_item = function
+  | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
+      let parens_needed =
+        match expr.v with Constrexpr.CRef _ -> false | _ -> true
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      conditional_parens expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_search_request = function
+  | Vernacexpr.SearchLiteral search_item -> pp_search_item search_item
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_searchable = function
+  | Vernacexpr.Search [ (true, search_request) ] ->
+      pp_search_request search_request
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_search_restriction = function
+  | Vernacexpr.SearchInside [ range ] ->
+      sequence [ write " inside "; pp_qualid range ]
+  | Vernacexpr.SearchOutside [] -> nop
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_vernac_argument_status = function
+  | Vernacexpr.RealArg
+      { name = ty; recarg_like = false; notation_scope = []; implicit_status }
+    ->
+      let encloser =
+        match implicit_status with
+        | Explicit -> Fun.id
+        | MaxImplicit -> braces
+        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+      in
+
+      encloser (pp_name ty)
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_option_string = function
+  | Vernacexpr.OptionSetString s -> doublequoted (write s)
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_ident_decl = function
+  | name, None -> pp_lident name
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_printable = function
+  | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
+      sequence [ write "Print Assumptions "; pp_qualid name; dot ]
+  | Vernacexpr.PrintName (CAst.{ v = AN name; loc = _ }, None) ->
+      sequence [ write "Print "; pp_qualid name; dot ]
+  | Vernacexpr.PrintName (CAst.{ v = ByNotation (name, None); loc = _ }, None)
+    ->
+      sequence [ write "Print "; doublequoted (write name); dot ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_assumption_object_kind = function
+  | Decls.Logical -> write "Axiom"
+  | Decls.Conjectural -> write "Conjecture"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_notation_declaration = function
+  | Vernacexpr.
+      {
+        ntn_decl_string;
+        ntn_decl_interp;
+        ntn_decl_scope = None;
+        ntn_decl_modifiers = [];
+      } ->
+      sequence
+        [
+          newline;
+          indented
+            (sequence
+               [
+                 write "where";
+                 newline;
+                 indented
+                   (sequence
+                      [
+                        doublequoted (pp_lstring ntn_decl_string);
+                        write " := ";
+                        parens (pp_constr_expr ntn_decl_interp);
+                      ]);
+               ]);
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_synterp_vernac_expr = function
+  | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
+      sequence [ write "Module "; pp_lident name; dot; increase_indent ]
+  | Vernacexpr.VernacEndSegment name ->
+      sequence [ decrease_indent; write "End "; pp_lident name; dot ]
+  | Vernacexpr.VernacImport ((flag, None), [ (name, ImportAll) ]) ->
+      sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
+      (* FIXME: Support other plugins, like ltac2. *)
+  | Vernacexpr.VernacExtend (_, args) -> pp_ltac args
+  | Vernacexpr.VernacNotation
+      ( false,
+        {
+          ntn_decl_string = notation;
+          ntn_decl_interp = expr;
+          ntn_decl_scope = scope;
+          ntn_decl_modifiers = modifiers;
+        } ) ->
+      let pp_modifiers printer =
+        sequence
+          [
+            space;
+            parens
+              (map_commad
+                 (fun modifier ->
+                   let open CAst in
+                   pp_syntax_modifier modifier.v)
+                 modifiers);
+          ]
+          printer
+      in
+      (* We cannot use `Option.value` here because the `Option` module is
+         overridden by `coq-core`'s one which does not have it. *)
+      let pp_scope =
         match scope with
-        | None -> ()
-        | Some scope ->
-            write printer " : ";
-            write printer scope
+        | None -> nop
+        | Some scope -> sequence [ write " : "; write scope ]
       in
-      write printer "Notation \"";
-      pp_lstring printer notation;
-      write printer "\" := ";
-      parens printer (fun () -> pp_constr_expr printer expr);
-      if List.length modifiers > 0 then pp_modifiers ();
-      pp_scope ();
-      write printer "."
-  | VernacStartTheoremProof (kind, [ ((ident, None), ([], expr)) ]) ->
-      pp_theorem_kind printer kind;
-      write printer " ";
-      pp_lident printer ident;
-      write printer " : ";
-      pp_constr_expr printer expr;
-      write printer "."
-  | VernacProof (None, None) ->
-      write printer "Proof.";
-      increase_indent printer
-  | VernacInductive (Inductive_kw, inductives) ->
+      sequence
+        [
+          write "Notation \"";
+          pp_lstring notation;
+          write "\" := ";
+          parens (pp_constr_expr expr);
+          (if List.length modifiers > 0 then pp_modifiers else nop);
+          pp_scope;
+          dot;
+        ]
+  | Vernacexpr.VernacRequire (dirpath, export_with_cats, filtered_import) ->
+      let pp_dirpath printer =
+        (match dirpath with
+        | None -> nop
+        | Some dirpath -> sequence [ write "From "; pp_qualid dirpath; space ])
+          printer
+      in
+
+      let pp_categories =
+        match export_with_cats with
+        | None -> nop
+        | Some x -> pp_export_with_cats x
+      in
+
+      let pp_name_and_filter =
+        map_sequence
+          (fun (modname, import_filter_expr) ->
+            sequence
+              [
+                space;
+                pp_qualid modname;
+                pp_import_filter_expr import_filter_expr;
+              ])
+          filtered_import
+      in
+
+      sequence
+        [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
+  | Vernacexpr.VernacReservedNotation (false, (notation, [ modifier ])) ->
+      sequence
+        [
+          write "Reserved Notation ";
+          doublequoted (pp_lstring notation);
+          space;
+          parens (pp_syntax_modifier modifier.v);
+          write ".";
+        ]
+  | Vernacexpr.VernacSetOption (false, names, options) ->
+      sequence
+        [
+          write "Set ";
+          map_spaced write names;
+          space;
+          pp_option_string options;
+          dot;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_synpure_vernac_expr = function
+  | Vernacexpr.VernacAbort -> sequence [ clear_bullets; write "Abort." ]
+  | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
+      sequence
+        [
+          write "Arguments ";
+          pp_qualid name;
+          space;
+          map_spaced pp_vernac_argument_status args;
+          dot;
+        ]
+  | Vernacexpr.VernacAssumption
+      ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
+      sequence
+        [
+          pp_assumption_object_kind kind;
+          space;
+          pp_ident_decl name;
+          write " : ";
+          pp_constr_expr expr;
+          dot;
+        ]
+  | Vernacexpr.VernacCheckMayEval (check_or_compute, None, expr) ->
+      let pp_name =
+        match check_or_compute with
+        | Some (CbvVm None) -> write "Compute"
+        | None -> write "Check"
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      let parens_needed = function
+        | Constrexpr.CRef _ | Constrexpr.CCast _ | Constrexpr.CDelimiters _ ->
+            false
+        | _ -> true
+      in
+      let pp_expr =
+        if parens_needed expr.v then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      let hor = sequence [ pp_name; space; pp_expr; dot ] in
+      let ver =
+        sequence [ pp_name; newline; indented (sequence [ pp_expr; dot ]) ]
+      in
+
+      hor <-|> ver
+  | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
+      sequence
+        [
+          pp_definition_object_kind kind;
+          space;
+          pp_lname name;
+          pp_definition_expr expr;
+          dot;
+        ]
+  | Vernacexpr.VernacFixpoint (NoDischarge, [ expr ]) ->
+      sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
+  | Vernacexpr.VernacLocate
+      (LocateAny CAst.{ v = Constrexpr.ByNotation (name, None); loc = _ }) ->
+      sequence [ write "Locate "; doublequoted (write name); dot ]
+  | Vernacexpr.VernacOpenCloseScope (true, scope) ->
+      sequence [ write "Open Scope "; write scope; dot ]
+  | Vernacexpr.VernacPrint printable -> pp_printable printable
+  | Vernacexpr.VernacSearch (searchable, None, search_restriction) ->
+      sequence
+        [
+          write "Search ";
+          pp_searchable searchable;
+          pp_search_restriction search_restriction;
+          dot;
+        ]
+  | Vernacexpr.VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ])
+    ->
+      let hor = sequence [ space; pp_constr_expr expr; dot ] in
+      let ver =
+        sequence [ newline; indented (sequence [ pp_constr_expr expr; dot ]) ]
+      in
+      sequence
+        [
+          pp_theorem_kind kind;
+          space;
+          pp_lident ident;
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args;
+          write " :";
+          hor <-|> ver;
+        ]
+  | Vernacexpr.VernacProof (None, None) -> write "Proof."
+  | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
-              ([], None),
-              ty,
+              (type_params, None),
+              return_type,
               Vernacexpr.Constructors constructors ),
-            [] ) ->
-            pp_lident printer name;
-            if Option.has_some ty then write printer " : Type";
-            write printer " :=";
-            increase_indent printer;
-            List.iter (pp_construtor_expr printer) constructors;
-            decrease_indent printer
-        | _ -> raise (NotImplemented (contents printer))
-      in
-      write printer "Inductive ";
-      with_seps
-        ~sep:(fun () ->
-          newline printer;
-          write printer "with ")
-        pp_single_inductive inductives;
-      write printer "."
-  (* FIXME: Support other plugins, like ltac2. *)
-  | VernacExtend (_, args) -> pp_ltac printer args
-  | VernacEndProof proof_end ->
-      decrease_indent printer;
-      pp_proof_end printer proof_end
-  | _ -> raise (NotImplemented (contents printer))
+            where_clause ) ->
+            let pp_type_params =
+              match type_params with
+              | [] -> nop
+              | _ ->
+                  sequence
+                    [ space; map_spaced pp_local_binder_expr type_params ]
+            in
+            let pp_return_type =
+              match return_type with
+              | Some ty -> sequence [ write " : "; pp_constr_expr ty ]
+              | None -> nop
+            in
 
-let separator printer current next =
+            let pp_where_clause =
+              match where_clause with
+              | [] -> nop
+              | [ notation ] -> pp_notation_declaration notation
+              | _ -> fun printer -> raise (NotImplemented (contents printer))
+            in
+
+            sequence
+              [
+                pp_lident name;
+                pp_type_params;
+                pp_return_type;
+                write " :=";
+                indented (map_sequence pp_constructor_expr constructors);
+                pp_where_clause;
+              ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+      sequence
+        [
+          write "Inductive ";
+          map_with_seps
+            ~sep:(sequence [ newline; write "with " ])
+            pp_single_inductive inductives;
+          dot;
+        ]
+  | Vernacexpr.VernacEndProof proof_end -> pp_proof_end proof_end
+  | Vernacexpr.VernacBullet bullet ->
+      sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
+  | Vernacexpr.VernacSubproof None -> sequence [ write "{"; start_subproof ]
+  | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_vernac_expr = function
+  | Vernacexpr.VernacSynterp x -> pp_synterp_vernac_expr x
+  | Vernacexpr.VernacSynPure x -> pp_synpure_vernac_expr x
+
+let pp_control_flag = function
+  | Vernacexpr.ControlFail -> write "Fail"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_subast CAst.{ v = Vernacexpr.{ control; attrs = _; expr }; loc = _ } =
+  let pp_controls = function
+    | [] -> nop
+    | _ -> sequence [ map_spaced pp_control_flag control; space ]
+  in
+  sequence [ pp_controls control; pp_vernac_expr expr ]
+
+let separator current next =
   let open Vernacexpr in
   let open CAst in
   match (current.v.expr, next.v.expr) with
-  | VernacDefinition _, VernacDefinition _
-  | VernacInductive _, VernacDefinition _ ->
-      blankline printer
-  | _, _ -> newline printer
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure (VernacEndProof _)
+  | VernacSynPure (VernacStartTheoremProof _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacDefinition _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacDefinition _), VernacSynPure (VernacEndProof _)
+  | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
+  | _, VernacSynPure (VernacProof _)
+  (* `Compute` *)
+  | ( VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)),
+      VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)) )
+  (* `Check` *)
+  | ( VernacSynPure (VernacCheckMayEval (None, _, _)),
+      VernacSynPure (VernacCheckMayEval (None, _, _)) )
+  | VernacSynterp (VernacNotation _), VernacSynterp (VernacNotation _)
+  | ( VernacSynterp (VernacReservedNotation _),
+      VernacSynterp (VernacReservedNotation _) )
+  | VernacSynterp (VernacDefineModule _), _
+  | _, VernacSynterp (VernacEndSegment _)
+  | VernacSynPure (VernacSearch _), VernacSynPure (VernacSearch _)
+  (* `From ... Require ...` *)
+  | ( VernacSynterp (VernacRequire (Some _, _, _)),
+      VernacSynterp (VernacRequire (Some _, _, _)) )
+  (* `Require ...` *)
+  | ( VernacSynterp (VernacRequire (None, _, _)),
+      VernacSynterp (VernacRequire (None, _, _)) )
+  | VernacSynterp (VernacSetOption _), VernacSynterp (VernacSetOption _)
+  | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _) ->
+      newline
+  | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
+  | VernacSynPure (VernacProof _), _
+  | VernacSynPure (VernacStartTheoremProof _), _ ->
+      sequence [ newline; increase_indent ]
+  | _, VernacSynPure VernacAbort | _, VernacSynPure (VernacEndProof _) ->
+      sequence [ newline; decrease_indent ]
+  | VernacSynPure (VernacCheckMayEval _), _
+  | _, VernacSynPure (VernacCheckMayEval _)
+  | VernacSynterp (VernacNotation _), _
+  | _, VernacSynterp (VernacNotation _)
+  | VernacSynPure (VernacDefinition _), _
+  | _, VernacSynPure (VernacDefinition _)
+  | VernacSynPure (VernacFixpoint _), _
+  | _, VernacSynPure (VernacFixpoint _)
+  | VernacSynPure (VernacInductive _), _
+  | _, VernacSynPure (VernacInductive _)
+  | VernacSynPure (VernacSearch _), _
+  | _, VernacSynPure (VernacSearch _)
+  | VernacSynterp (VernacReservedNotation _), _
+  | _, VernacSynterp (VernacReservedNotation _)
+  | VernacSynPure (VernacLocate _), _
+  | _, VernacSynPure (VernacLocate _)
+  | VernacSynterp (VernacSetOption _), _
+  | _, VernacSynterp (VernacSetOption _)
+  | _, VernacSynterp (VernacDefineModule _)
+  | VernacSynterp (VernacEndSegment _), _
+  | VernacSynPure (VernacEndProof _), _
+  | VernacSynPure VernacAbort, _
+  | VernacSynterp (VernacRequire _), _ ->
+      blankline
+  | VernacSynPure (VernacBullet _), _ -> nop
+  | _, _ -> newline
 
-let pp_ast ast =
-  let printer = create () in
-  let rec loop = function
-    | [] -> ()
-    | [ x ] ->
-        pp_subast printer x;
-        (* Given that codes are usually stored in files, it is better to append
-           a `\n` at the end if the code is not empty. *)
-        newline printer
-    | head :: next :: tail ->
-        pp_subast printer head;
-        separator printer head next;
-        loop (next :: tail)
-  in
-  loop ast;
-  contents printer
+let pp_ast parser =
+  (* Do not try to pp after parsing everything. After parsing everything, the
+     STM will not be in nested module(s), and things that are valid inside them
+     (e.g., notation declarations inside them) will be invalid, making some
+     functions (e.g., `grammar_of_notation`) raise exceptions. *)
+  match Astparser.next parser with
+  | None -> ""
+  | Some first_ast ->
+      let printer = create () in
+
+      pp_subast first_ast printer;
+
+      let rec loop prev_ast =
+        match Astparser.next parser with
+        | None -> newline printer
+        | Some next_ast ->
+            sequence [ separator prev_ast next_ast; pp_subast next_ast ] printer;
+            loop next_ast
+      in
+
+      let () = loop first_ast in
+      contents printer

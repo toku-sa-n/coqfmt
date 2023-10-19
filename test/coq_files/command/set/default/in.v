@@ -1,0 +1,2 @@
+Set      Default
+    Goal        Selector        "!".

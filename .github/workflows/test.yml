@@ -1,6 +1,11 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
 
 jobs:
   test:
@@ -21,10 +26,10 @@ jobs:
       - name: Modify the git setting not to convert LF to CRLF
         run: git config --global core.autocrlf input
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.0
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
-      - uses: ocaml/setup-ocaml@v2
+      - uses: ocaml/setup-ocaml@v2.1.0
         with:
           ocaml-compiler: "4.14.1"
           opam-repositories: |
@@ -40,14 +45,18 @@ jobs:
       - name: Build
         run: opam exec -- dune build
 
-      - name: Run tests
+      - name: Run tests with dune
         run: opam exec -- dune test
+
+      - name: Run `Require` test
+        run: ./test.sh
+        working-directory: ./test/require-test
 
   prettier:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.0
 
       - name: Run Prettier
         run: npx --yes prettier --check .
@@ -56,22 +65,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.0
 
-      - uses: ocaml/setup-ocaml@v2
+      - uses: ocaml/setup-ocaml@v2.1.0
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-fmt@v2
+      - uses: ocaml/setup-ocaml/lint-fmt@v2.1.0
+
+  lint_docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.0
+
+      - uses: ocaml/setup-ocaml@v2.1.0
+        with:
+          ocaml-compiler: "4.14.1"
+          dune-cache: true
+
+      - uses: ocaml/setup-ocaml/lint-doc@v2.1.0
 
   test_coq_files:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.0
 
-      - uses: ocaml/setup-ocaml@v2
+      - uses: ocaml/setup-ocaml@v2.1.0
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
@@ -79,8 +101,10 @@ jobs:
       - name: Install Coq
         run: opam install coq
 
-      - name: Compile Coq files
-        run: find ./test/coq_files/**/*.v -print0|xargs -0 -n1 opam exec -- coqc
+      - name: List Coq files which did not compile
+        run: |
+          shopt -s globstar
+          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vio {} > /dev/null && echo "OK" || exit 255'
 
   opamlint:
     runs-on: ubuntu-latest
@@ -94,3 +118,15 @@ jobs:
           dune-cache: true
 
       - uses: ocaml/setup-ocaml/lint-opam@v2
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.0
+
+      - name: Build Docker image
+        run: docker build -t coqfmt .
+
+      - name: Run Docker image
+        run: docker run --rm coqfmt --version

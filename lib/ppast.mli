@@ -1,2 +1,2 @@
-val pp_ast : Ast.t -> string
+val pp_ast : Astparser.t -> string
 (** Pretty-print the given AST. *)

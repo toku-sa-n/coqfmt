@@ -1,0 +1,3 @@
+ Inductive False
+  : Prop
+:= .

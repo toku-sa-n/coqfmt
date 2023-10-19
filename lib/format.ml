@@ -1,1 +1,1 @@
-let format code = Ast.generate_from_code code |> Ppast.pp_ast
+let format code = Astparser.make code |> Ppast.pp_ast
