@@ -117,7 +117,7 @@ jobs:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-opam@v2
+      - uses: ocaml/setup-ocaml/lint-opam@v2.0.0
 
   docker:
     runs-on: ubuntu-latest
