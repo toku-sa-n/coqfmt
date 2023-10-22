@@ -521,25 +521,16 @@ let rec pp_or_and_intro_pattern_expr = function
         brackets (sequence (List.mapi pp_patterns patterns))
       in
       let ver =
+        let prefix = function 0 -> nop | _ -> write "|" in
         let pp_patterns i pattern =
-          match (i, pattern) with
-          | 0, xs ->
-              sequence
-                [
-                  map_sequence
-                    (fun x -> sequence [ space; pp_intro_pattern_expr x.v ])
-                    xs;
-                  newline;
-                ]
-          | _, xs ->
-              sequence
-                [
-                  write "|";
-                  map_sequence
-                    (fun x -> sequence [ space; pp_intro_pattern_expr x.v ])
-                    xs;
-                  newline;
-                ]
+          sequence
+            [
+              prefix i;
+              map_sequence
+                (fun x -> sequence [ space; pp_intro_pattern_expr x.v ])
+                pattern;
+              newline;
+            ]
         in
         sequence
           [ write "["; sequence (List.mapi pp_patterns patterns); write "]" ]
