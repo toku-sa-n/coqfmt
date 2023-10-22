@@ -509,7 +509,6 @@ let rec pp_or_and_intro_pattern_expr = function
       let hor =
         let pp_patterns i pattern =
           match (i, pattern) with
-          | 0, [] -> nop
           | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
           | _, xs ->
               sequence
