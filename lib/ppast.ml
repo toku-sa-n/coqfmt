@@ -523,12 +523,12 @@ let rec pp_or_and_intro_pattern_expr = function
       let ver =
         let pp_patterns i pattern =
           match (i, pattern) with
-          | 0, [] -> newline
           | 0, xs ->
               sequence
                 [
-                  space;
-                  map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+                  map_sequence
+                    (fun x -> sequence [ space; pp_intro_pattern_expr x.v ])
+                    xs;
                   newline;
                 ]
           | _, xs ->
