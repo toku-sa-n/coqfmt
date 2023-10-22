@@ -506,17 +506,45 @@ let pp_intro_pattern_naming_expr = function
 let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
-      let pp_patterns i pattern =
-        match (i, pattern) with
-        | 0, [] -> nop
-        | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
-        | _, xs ->
-            sequence
-              [
-                write " | "; map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
-              ]
+      let hor =
+        let pp_patterns i pattern =
+          match (i, pattern) with
+          | 0, [] -> nop
+          | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
+          | _, xs ->
+              sequence
+                [
+                  write " | ";
+                  map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+                ]
+        in
+        brackets (sequence (List.mapi pp_patterns patterns))
       in
-      brackets (sequence (List.mapi pp_patterns patterns))
+      let ver =
+        let pp_patterns i pattern =
+          match (i, pattern) with
+          | 0, [] -> newline
+          | 0, xs ->
+              sequence
+                [
+                  space;
+                  map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
+                  newline;
+                ]
+          | _, xs ->
+              sequence
+                [
+                  write "|";
+                  map_sequence
+                    (fun x -> sequence [ space; pp_intro_pattern_expr x.v ])
+                    xs;
+                  newline;
+                ]
+        in
+        sequence
+          [ write "["; sequence (List.mapi pp_patterns patterns); write "]" ]
+      in
+      hor <-|> ver
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_intro_pattern_action_expr = function
@@ -541,7 +569,12 @@ let pp_destruction_arg = function
 
 let pp_or_var = function
   | Locus.ArgArg CAst.{ v; loc = _ } ->
-      sequence [ write " as "; pp_or_and_intro_pattern_expr v ]
+      let hor = sequence [ write " as "; pp_or_and_intro_pattern_expr v ] in
+      let ver =
+        sequence
+          [ write " as"; newline; indented (pp_or_and_intro_pattern_expr v) ]
+      in
+      hor <-|> ver
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause = function
