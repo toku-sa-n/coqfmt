@@ -507,15 +507,12 @@ let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
       let hor =
+        let prefix = function 0 -> nop | _ -> write " | " in
         let pp_patterns i pattern =
-          match (i, pattern) with
-          | 0, xs -> map_spaced (fun x -> pp_intro_pattern_expr x.v) xs
-          | _, xs ->
-              sequence
-                [
-                  write " | ";
-                  map_spaced (fun x -> pp_intro_pattern_expr x.v) xs;
-                ]
+          sequence
+            [
+              prefix i; map_spaced (fun x -> pp_intro_pattern_expr x.v) pattern;
+            ]
         in
         brackets (sequence (List.mapi pp_patterns patterns))
       in
