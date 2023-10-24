@@ -377,6 +377,7 @@ let pp_definition_expr = function
           (fun arg -> sequence [ space; pp_local_binder_expr arg ])
           args
       in
+
       let pp_return_ty =
         match return_ty with
         | None -> nop
@@ -392,10 +393,14 @@ let pp_definition_expr = function
             hor <-|> ver
       in
 
-      let hor = sequence [ space; pp_constr_expr def_body ] in
-      let ver = sequence [ newline; indented (pp_constr_expr def_body) ] in
+      let pp_body =
+        let hor = sequence [ space; pp_constr_expr def_body ] in
+        let ver = sequence [ newline; indented (pp_constr_expr def_body) ] in
 
-      sequence [ pp_args; pp_return_ty; write " :="; hor <-|> ver ]
+        hor <-|> ver
+      in
+
+      sequence [ pp_args; pp_return_ty; write " :="; pp_body ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_proof_end = function
