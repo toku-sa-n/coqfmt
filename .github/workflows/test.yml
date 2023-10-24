@@ -130,3 +130,12 @@ jobs:
 
       - name: Run Docker image
         run: docker run --rm coqfmt --version
+
+  ensure_trailing_newline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: List all non-empty files tracked by git that do not end with a newline
+        run: git ls-files | xargs -I {} sh -c '[ -s "{}" ] && echo "{}"' | xargs -I {} sh -c 'tail -c 1 {} | read -r _ || (echo "{}"; false)'
