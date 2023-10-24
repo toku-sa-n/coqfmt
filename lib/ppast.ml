@@ -989,6 +989,7 @@ let pp_synterp_vernac_expr = function
           ]
           printer
       in
+
       (* We cannot use `Option.value` here because the `Option` module is
          overridden by `coq-core`'s one which does not have it. *)
       let pp_scope =
