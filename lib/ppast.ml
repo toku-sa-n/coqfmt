@@ -1084,8 +1084,8 @@ let pp_synpure_vernac_expr = function
       in
 
       hor <-|> ver
-  | Vernacexpr.VernacComments [ x ] ->
-      sequence [ write "Comments "; pp_comment x; dot ]
+  | Vernacexpr.VernacComments xs ->
+      sequence [ write "Comments "; map_spaced pp_comment xs; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       sequence
         [
