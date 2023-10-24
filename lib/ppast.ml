@@ -989,6 +989,7 @@ let pp_synterp_vernac_expr = function
           ]
           printer
       in
+
       (* We cannot use `Option.value` here because the `Option` module is
          overridden by `coq-core`'s one which does not have it. *)
       let pp_scope =
@@ -996,15 +997,36 @@ let pp_synterp_vernac_expr = function
         | None -> nop
         | Some scope -> sequence [ write " : "; write scope ]
       in
+
+      let hor =
+        sequence
+          [
+            space;
+            parens (pp_constr_expr expr);
+            (if List.length modifiers > 0 then pp_modifiers else nop);
+            pp_scope;
+            dot;
+          ]
+      in
+
+      let ver =
+        sequence
+          [
+            newline;
+            indented
+              (sequence
+                 [
+                   parens (pp_constr_expr expr);
+                   (if List.length modifiers > 0 then pp_modifiers else nop);
+                   pp_scope;
+                   dot;
+                 ]);
+          ]
+      in
+
       sequence
         [
-          write "Notation \"";
-          pp_lstring notation;
-          write "\" := ";
-          parens (pp_constr_expr expr);
-          (if List.length modifiers > 0 then pp_modifiers else nop);
-          pp_scope;
-          dot;
+          write "Notation \""; pp_lstring notation; write "\" :="; hor <-|> ver;
         ]
   | Vernacexpr.VernacRequire (dirpath, export_with_cats, filtered_import) ->
       let pp_dirpath printer =
