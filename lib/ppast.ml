@@ -939,7 +939,8 @@ let pp_notation_declaration = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_comment = function
-  | Vernacexpr.CommentString _ -> write "Comments \"foo\"."
+  | Vernacexpr.CommentString s ->
+      sequence [ write "Comments "; doublequoted (write s); dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
