@@ -130,3 +130,14 @@ jobs:
 
       - name: Run Docker image
         run: docker run --rm coqfmt --version
+
+  ensure_trailing_newline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: List files which do not end with a newline
+        run: |
+          shopt -s globstar
+          find . -type f -print0|xargs -0 -I{} sh -c 'tail -c1 {} | read -r _ || (echo "{}"; false)'
