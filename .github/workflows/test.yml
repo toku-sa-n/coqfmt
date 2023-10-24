@@ -137,7 +137,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
 
-      - name: List files which do not end with a newline except empty files
-        run: |
-          shopt -s globstar
-          find . -type f -size +0c -print0|xargs -0 -I{} sh -c 'tail -c1 {} | read -r _ || (echo "{}"; false)'
+      - name: List all non-empty files tracked by git that do not end with a newline
+        run: git ls-files | xargs -I {} sh -c '[ -s "{}" ] && echo "{}"' | xargs -I {} sh -c 'tail -c 1 {} | read -r _ || (echo "{}"; false)'
