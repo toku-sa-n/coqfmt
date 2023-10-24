@@ -50,7 +50,7 @@ let write s t =
     if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
   in
   let new_columns = t.columns + String.length string_to_push in
-  if t.hard_fail_on_exceeding_column_limit && new_columns > columns_limit then
+  if t.hard_fail_on_exceeding_column_limit && new_columns >= columns_limit then
     raise Exceeded_column_limit;
 
   Buffer.add_string t.buffer string_to_push;
