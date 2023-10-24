@@ -1,1 +1,1 @@
-Definition foo(n m:bool):=orb(andb n m)(andb n m).
+Definition foo(a b:nat):nat:=a+b.
