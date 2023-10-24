@@ -389,7 +389,7 @@ let pp_definition_expr = function
                 ]
             in
 
-            sequence [ hor <-|> ver ]
+            hor <-|> ver
       in
 
       let hor = sequence [ space; pp_constr_expr def_body ] in
