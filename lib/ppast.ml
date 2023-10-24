@@ -939,10 +939,8 @@ let pp_notation_declaration = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_comment = function
-  | Vernacexpr.CommentConstr expr ->
-      sequence [ write "Comments "; pp_constr_expr expr; dot ]
-  | Vernacexpr.CommentString s ->
-      sequence [ write "Comments "; doublequoted (write s); dot ]
+  | Vernacexpr.CommentConstr expr -> pp_constr_expr expr
+  | Vernacexpr.CommentString s -> doublequoted (write s)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
@@ -1086,7 +1084,8 @@ let pp_synpure_vernac_expr = function
       in
 
       hor <-|> ver
-  | Vernacexpr.VernacComments [ x ] -> pp_comment x
+  | Vernacexpr.VernacComments [ x ] ->
+      sequence [ write "Comments "; pp_comment x; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       sequence
         [
