@@ -1,3 +1,5 @@
+Comments "See https://github.com/toku-sa-n/coqfmt/blob/a6d6191ea703812a36d76f796002882a8fc97036/lib/ppast.ml#L1284-L1287 about this test".
+
 Module Foo.
   Fixpoint eqb (n m : nat) : bool :=
     match n, m with
