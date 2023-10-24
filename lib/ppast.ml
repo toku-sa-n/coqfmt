@@ -938,7 +938,9 @@ let pp_notation_declaration = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_comment _ = write "Comments \"foo\"."
+let pp_comment = function
+  | Vernacexpr.CommentString _ -> write "Comments \"foo\"."
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
