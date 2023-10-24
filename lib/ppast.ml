@@ -938,6 +938,8 @@ let pp_notation_declaration = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_comment _ = write "Comments \"foo\"."
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
@@ -1079,7 +1081,7 @@ let pp_synpure_vernac_expr = function
       in
 
       hor <-|> ver
-  | Vernacexpr.VernacComments [ _ ] -> write "Comments \"foo\"."
+  | Vernacexpr.VernacComments [ x ] -> pp_comment x
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       sequence
         [
