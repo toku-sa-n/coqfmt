@@ -898,7 +898,7 @@ let pp_vernac_argument_status = function
         match implicit_status with
         | Explicit -> Fun.id
         | MaxImplicit -> braces
-        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+        | NonMaxImplicit -> brackets
       in
 
       encloser (pp_name ty)
