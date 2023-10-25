@@ -1299,7 +1299,7 @@ let separator current next =
   | _, VernacSynPure (VernacLocate _)
   | VernacSynterp (VernacSetOption _), _
   | _, VernacSynterp (VernacSetOption _)
-  |VernacSynPure (VernacPrint _), _
+  | VernacSynPure (VernacPrint _), _
   | _, VernacSynPure (VernacPrint _)
   | _, VernacSynterp (VernacDefineModule _)
   | VernacSynterp (VernacEndSegment _), _
