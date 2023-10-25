@@ -1274,7 +1274,8 @@ let separator current next =
   | ( VernacSynterp (VernacRequire (None, _, _)),
       VernacSynterp (VernacRequire (None, _, _)) )
   | VernacSynterp (VernacSetOption _), VernacSynterp (VernacSetOption _)
-  | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _) ->
+  | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _)
+  | VernacSynPure (VernacPrint _), VernacSynPure (VernacPrint _) ->
       newline
   | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
   | VernacSynPure (VernacProof _), _
@@ -1300,6 +1301,8 @@ let separator current next =
   | _, VernacSynPure (VernacLocate _)
   | VernacSynterp (VernacSetOption _), _
   | _, VernacSynterp (VernacSetOption _)
+  | VernacSynPure (VernacPrint _), _
+  | _, VernacSynPure (VernacPrint _)
   | _, VernacSynterp (VernacDefineModule _)
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
