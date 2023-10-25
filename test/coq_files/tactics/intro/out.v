@@ -1,4 +1,4 @@
-Theorem foo : forall n, n = n.
+Theorem foo : forall (n : nat), n = n.
 Proof.
   intro n.
   reflexivity.
