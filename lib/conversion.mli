@@ -29,3 +29,8 @@ val bindings_list_of_raw_generic_argument :
   Constrexpr.constr_expr Tactypes.bindings list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Constrexpr.constr_expr Tactypes.bindings list]. *)
+
+val id_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Names.Id.t option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Names.Id.t]. *)
