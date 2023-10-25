@@ -1166,6 +1166,7 @@ let pp_synpure_vernac_expr = function
           write " :";
           hor <-|> ver;
         ]
+  | Vernacexpr.VernacShow _ -> write "Show Proof."
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
