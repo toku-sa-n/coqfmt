@@ -100,3 +100,14 @@ let bindings_list_of_raw_generic_argument arg =
               Serlib.Ser_constrexpr.constr_expr_of_sexp)
            rems)
   | _ -> None
+
+let id_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ident" ] ];
+        rems;
+      ] ->
+      Some (Serlib.Ser_names.Id.t_of_sexp rems)
+  | _ -> None
