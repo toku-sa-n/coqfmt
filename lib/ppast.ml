@@ -959,6 +959,8 @@ let pp_comment = function
   | Vernacexpr.CommentString s -> doublequoted (write s)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_showable _ = write "Show Proof."
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
@@ -1166,7 +1168,7 @@ let pp_synpure_vernac_expr = function
           write " :";
           hor <-|> ver;
         ]
-  | Vernacexpr.VernacShow _ -> write "Show Proof."
+  | Vernacexpr.VernacShow x -> pp_showable x
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
