@@ -362,6 +362,12 @@ and pp_local_binder_expr = function
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+and pp_recursion_order_expr CAst.{ v; loc = _ } = pp_recursion_order_expr_r v
+
+and pp_recursion_order_expr_r = function
+  | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 and pp_branch_expr = function
   | CAst.{ v = patterns, expr; loc = _ } ->
       let hor = sequence [ space; pp_constr_expr expr ] in
@@ -440,22 +446,30 @@ let pp_fixpoint_expr = function
       {
         fname;
         univs = None;
-        rec_order = None;
+        rec_order;
         binders;
         rtype;
         body_def = Some body_def;
         notations = [];
       } ->
+      let pp_rec =
+        match rec_order with
+        | None -> nop
+        | Some x -> sequence [ space; braces (pp_recursion_order_expr x) ]
+      in
+
       let pp_return_type =
         match rtype.v with
         | Constrexpr.CHole (None, IntroAnonymous) -> nop
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
+
       sequence
         [
           pp_lident fname;
           space;
           map_spaced pp_local_binder_expr binders;
+          pp_rec;
           pp_return_type;
           write " :=";
           newline;
