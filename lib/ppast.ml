@@ -169,12 +169,15 @@ and pp_constr_expr_r = function
                ]);
         ]
   | Constrexpr.CLambdaN (args, body) ->
+      let hor = sequence [ space; pp_constr_expr body ] in
+      let ver = sequence [ newline; indented (pp_constr_expr body) ] in
+
       sequence
         [
           write "fun ";
           map_spaced pp_local_binder_expr args;
-          write " => ";
-          pp_constr_expr body;
+          write " =>";
+          hor <-|> ver;
         ]
   | Constrexpr.CLetIn (name, binding, None, expr) ->
       sequence
