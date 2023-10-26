@@ -365,7 +365,7 @@ and pp_local_binder_expr = function
 and pp_recursion_order_expr CAst.{ v; loc = _ } = pp_recursion_order_expr_r v
 
 and pp_recursion_order_expr_r = function
-  | Constrexpr.CStructRec _ -> write "struct n"
+  | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_branch_expr = function
