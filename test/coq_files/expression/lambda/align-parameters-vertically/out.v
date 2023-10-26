@@ -1,5 +1,5 @@
 Definition foo :=
-  fun 
+  fun
     (a : nat)
     (b : nat)
     (c : nat)
