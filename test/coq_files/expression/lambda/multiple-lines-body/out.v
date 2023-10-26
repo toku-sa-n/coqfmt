@@ -1,5 +1,5 @@
 Definition foo :=
-  fun x => 
+  fun x =>
     match x with
     | O => O
     | S n => n
