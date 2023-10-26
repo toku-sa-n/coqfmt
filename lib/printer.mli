@@ -80,6 +80,10 @@ val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them
   space-separatedly. *)
 
+val map_lined : ('a -> t -> unit) -> 'a list -> t -> unit
+(** Map the elements of the given list to printers and run them
+  line-separatedly. *)
+
 val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them
   bar-separatedly. *)

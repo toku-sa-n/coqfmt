@@ -127,6 +127,7 @@ let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
 let map_commad f = map_with_seps ~sep:(write ", ") f
 let spaced = with_seps ~sep:space
 let map_spaced f = map_with_seps ~sep:space f
+let map_lined f = map_with_seps ~sep:newline f
 let map_bard f = map_with_seps ~sep:(write " | ") f
 
 let copy_printer_by_value t =
