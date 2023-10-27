@@ -392,7 +392,7 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [ (name, _, _, _, _) ] ->
+  | [ (name, None, _, _, _) ] ->
       sequence [ pp_lident name; write " (n : nat) := n" ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
