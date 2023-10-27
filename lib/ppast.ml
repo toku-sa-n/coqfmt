@@ -392,14 +392,15 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [ (name, None, bindings, _, _) ] ->
+  | [ (name, None, bindings, _, body) ] ->
       sequence
         [
           pp_lident name;
           map_sequence
             (fun x -> sequence [ space; pp_local_binder_expr x ])
             bindings;
-          write " := n";
+          write " := ";
+          pp_constr_expr body;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
