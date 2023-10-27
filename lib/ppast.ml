@@ -632,7 +632,16 @@ let pp_induction_clause = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_induction_clause_list = function
-  | [ clause ], None -> pp_induction_clause clause
+  | [ clause ], using ->
+      let pp_using =
+        match using with
+        | None -> nop
+        | Some (expr, Tactypes.NoBindings) ->
+            sequence [ write " using "; pp_constr_expr expr ]
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence [ pp_induction_clause clause; pp_using ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_hyp_location_expr = function
