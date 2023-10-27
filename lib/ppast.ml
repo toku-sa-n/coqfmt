@@ -392,8 +392,15 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [ (name, None, _, _, _) ] ->
-      sequence [ pp_lident name; write " (n : nat) := n" ]
+  | [ (name, None, bindings, _, _) ] ->
+      sequence
+        [
+          pp_lident name;
+          map_sequence
+            (fun x -> sequence [ space; pp_local_binder_expr x ])
+            bindings;
+          write " := n";
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr = function
