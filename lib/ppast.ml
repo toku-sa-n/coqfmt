@@ -102,12 +102,25 @@ and pp_constr_expr_r = function
       in
 
       let pp_args =
-        map_sequence
-          (function
-            | inner, None -> sequence [ space; conditional_parens inner ]
-            | _, Some _ ->
-                fun printer -> raise (NotImplemented (contents printer)))
-          args
+        let hor =
+          map_sequence
+            (function
+              | inner, None -> sequence [ space; conditional_parens inner ]
+              | _, Some _ ->
+                  fun printer -> raise (NotImplemented (contents printer)))
+            args
+        in
+        let ver =
+          map_sequence
+            (function
+              | inner, None ->
+                  sequence [ newline; indented (conditional_parens inner) ]
+              | _, Some _ ->
+                  fun printer -> raise (NotImplemented (contents printer)))
+            args
+        in
+
+        hor <-|> ver
       in
 
       sequence [ conditional_parens fn; pp_args ]
