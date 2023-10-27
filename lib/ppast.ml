@@ -162,6 +162,7 @@ and pp_constr_expr_r = function
 
       sequence [ conditional_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
+  | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
@@ -389,6 +390,25 @@ and pp_branch_expr = function
           write " =>";
           hor <-|> ver;
         ]
+
+and pp_fix_expr = function
+  | [
+      ( name,
+        None,
+        bindings,
+        CAst.{ v = Constrexpr.CHole (None, IntroAnonymous); loc = _ },
+        body );
+    ] ->
+      sequence
+        [
+          pp_lident name;
+          map_sequence
+            (fun x -> sequence [ space; pp_local_binder_expr x ])
+            bindings;
+          write " := ";
+          pp_constr_expr body;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
