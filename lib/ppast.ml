@@ -392,8 +392,13 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [ (name, None, bindings, CAst.{ v = Constrexpr.CHole _; loc = _ }, body) ]
-    ->
+  | [
+      ( name,
+        None,
+        bindings,
+        CAst.{ v = Constrexpr.CHole (None, IntroAnonymous); loc = _ },
+        body );
+    ] ->
       sequence
         [
           pp_lident name;
