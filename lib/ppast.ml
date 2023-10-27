@@ -55,8 +55,33 @@ and pp_cases_pattern_expr_r = function
         | Ppextend.UnpBinderMetaVar _ :: _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
-        | Ppextend.UnpListMetaVar _ :: t, h_exprs :: t_exprs ->
-            sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems ->
+            let get_sep = function
+              | Ppextend.UnpTerminal s -> s
+              | _ -> failwith "TODO"
+            in
+
+            let rec loop elems seps =
+              match (elems, seps) with
+              | [ x ], _ -> sequence [ pp_cases_pattern_expr x; pp t [] ]
+              | [], _ -> pp t []
+              | xs, [] ->
+                  sequence
+                    [
+                      map_with_seps ~sep:(write "; ") pp_cases_pattern_expr xs;
+                      pp t [];
+                    ]
+              | x :: xs, sep :: seps ->
+                  sequence
+                    [
+                      pp_cases_pattern_expr x;
+                      write (get_sep sep);
+                      space;
+                      loop xs seps;
+                    ]
+            in
+
+            loop elems seps
         | Ppextend.UnpBinderListMetaVar _ :: _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpTerminal s :: t, _ -> sequence [ write s; pp t exprs ]
@@ -283,7 +308,7 @@ and pp_constr_expr_r = function
         | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _ -> raise (NotImplemented "")
         | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs ->
-            let get_seps = function
+            let get_sep = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut (PpBrk _) -> ";"
               | _ -> failwith "TODO"
@@ -302,10 +327,7 @@ and pp_constr_expr_r = function
               | x :: xs, sep :: seps ->
                   sequence
                     [
-                      pp_constr_expr x;
-                      write (get_seps sep);
-                      space;
-                      loop xs seps;
+                      pp_constr_expr x; write (get_sep sep); space; loop xs seps;
                     ]
             in
             loop elems seps
