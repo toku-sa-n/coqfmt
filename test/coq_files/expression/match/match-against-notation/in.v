@@ -1,1 +1,1 @@
-Definition xor(xy:prod bool bool):=match xy with(true,false)=>true|(false,true)=>true|_=>false end.
+Definition foo(xy:bool * bool * bool):=match xy with(true,true,true)=>true|(false,false,false)=>true|_=>false end.
