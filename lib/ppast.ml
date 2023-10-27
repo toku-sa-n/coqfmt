@@ -392,7 +392,9 @@ and pp_branch_expr = function
           hor <-|> ver;
         ]
 
-and pp_fix_expr _ = write " (n : nat) := n"
+and pp_fix_expr = function
+  | [ _ ] -> write " (n : nat) := n"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
