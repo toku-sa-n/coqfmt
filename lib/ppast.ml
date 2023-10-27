@@ -162,7 +162,7 @@ and pp_constr_expr_r = function
 
       sequence [ conditional_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
-  | Constrexpr.CFix _ -> write "fix f (n : nat) := n"
+  | Constrexpr.CFix (_, _) -> write "fix f (n : nat) := n"
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
