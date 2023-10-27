@@ -162,8 +162,7 @@ and pp_constr_expr_r = function
 
       sequence [ conditional_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
-  | Constrexpr.CFix (name, body) ->
-      sequence [ write "fix "; pp_lident name; pp_fix_expr body ]
+  | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
       sequence
         [
@@ -393,7 +392,8 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [ (_, _, _, _, _) ] -> write " (n : nat) := n"
+  | [ (name, _, _, _, _) ] ->
+      sequence [ pp_lident name; write " (n : nat) := n" ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_definition_expr = function
