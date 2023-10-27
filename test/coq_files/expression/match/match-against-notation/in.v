@@ -1,1 +1,1 @@
-Definition foo(xy:bool * bool * bool):=match xy with(true,true,true)=>true|(false,false,false)=>true|_=>false end.
+Definition foo(bar:bool * bool * bool):=match bar with(true,true,true)=>true|(false,false,false)=>true|_=>false end.
