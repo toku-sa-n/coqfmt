@@ -1,1 +1,1 @@
-Definition foo:=fix f(x:nat):=x.
+Definition foo:=fix f(n:nat):=n.
