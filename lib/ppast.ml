@@ -86,9 +86,6 @@ let pp_sort_expr = function
 let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 
 and pp_constr_expr_r = function
-  | Constrexpr.CApp
-      (outer, [ ((CAst.{ v = Constrexpr.CApp _; loc = _ } as inner), None) ]) ->
-      spaced [ pp_constr_expr outer; parens (pp_constr_expr inner) ]
   | Constrexpr.CApp (fn, args) ->
       let open CAst in
       let conditional_parens expr =
