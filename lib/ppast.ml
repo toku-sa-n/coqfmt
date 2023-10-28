@@ -506,6 +506,20 @@ let pp_fixpoint_expr = function
         body_def = Some body_def;
         notations = [];
       } ->
+      let pp_binders =
+        let hor =
+          map_sequence
+            (fun x -> sequence [ space; pp_local_binder_expr x ])
+            binders
+        in
+        let ver =
+          map_sequence
+            (fun x -> sequence [ newline; indented (pp_local_binder_expr x) ])
+            binders
+        in
+        hor <-|> ver
+      in
+
       let pp_rec =
         match rec_order with
         | None -> nop
@@ -521,8 +535,7 @@ let pp_fixpoint_expr = function
       sequence
         [
           pp_lident fname;
-          space;
-          map_spaced pp_local_binder_expr binders;
+          pp_binders;
           pp_rec;
           pp_return_type;
           write " :=";
