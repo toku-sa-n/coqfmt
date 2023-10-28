@@ -561,14 +561,14 @@ let pp_constructor_expr = function
       match expr.v with
       | Constrexpr.CHole _ -> sequence [ newline; write "| "; pp_lident name ]
       | _ when is_inductive_prop expr.v ->
-          sequence
-            [
-              newline;
-              write "| ";
-              pp_lident name;
-              write " : ";
-              pp_constr_expr expr;
-            ]
+          let pp_type =
+            let hor = sequence [ space; pp_constr_expr expr ] in
+            let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
+            hor <-|> ver
+          in
+
+          sequence [ newline; write "| " ]
+          |=> sequence [ pp_lident name; write " :"; pp_type ]
       | _ ->
           sequence
             [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ])
