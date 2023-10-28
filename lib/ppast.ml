@@ -360,15 +360,25 @@ and pp_constr_expr_r = function
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
       map_spaced pp_local_binder_expr xs
   | Constrexpr.CProdN (xs, ty) ->
-      let hor = sequence [ space; pp_constr_expr ty ] in
-      let ver = sequence [ newline; indented (pp_constr_expr ty) ] in
-      sequence
-        [
-          write "forall ";
-          map_spaced pp_local_binder_expr xs;
-          write ",";
-          hor <-|> ver;
-        ]
+      let pp_parameters =
+        let hor =
+          map_sequence (fun x -> sequence [ space; pp_local_binder_expr x ]) xs
+        in
+        let ver =
+          map_sequence
+            (fun x -> sequence [ newline; indented (pp_local_binder_expr x) ])
+            xs
+        in
+        hor <-|> ver
+      in
+
+      let pp_body =
+        let hor = sequence [ space; pp_constr_expr ty ] in
+        let ver = sequence [ newline; indented (pp_constr_expr ty) ] in
+        hor <-|> ver
+      in
+
+      sequence [ write "forall"; pp_parameters; write ","; pp_body ]
   | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
