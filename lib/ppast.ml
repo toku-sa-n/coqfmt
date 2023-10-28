@@ -715,7 +715,16 @@ let pp_inversion_strength = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_bindings = function
-  | Tactypes.NoBindings -> nop
+  | Tactypes.ImplicitBindings [ expr ] ->
+      let parens_needed =
+        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ write " with "; conditional_parens expr ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
@@ -727,6 +736,7 @@ let pp_bindings = function
              ])
       in
       sequence [ write " with "; map_spaced pp_one_binding bindings ]
+  | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_atomic_tactic_expr = function
