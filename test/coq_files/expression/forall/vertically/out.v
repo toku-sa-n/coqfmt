@@ -7,5 +7,4 @@ Check
     (e : nat)
     (f : nat)
     (g : nat)
-    (h : nat),
-  True).
+    (h : nat), True).
