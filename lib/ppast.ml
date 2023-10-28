@@ -716,7 +716,15 @@ let pp_inversion_strength = function
 
 let pp_bindings = function
   | Tactypes.ImplicitBindings [ expr ] ->
-      sequence [ write " with "; pp_constr_expr expr ]
+      let parens_needed =
+        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
+      in
+      let conditional_parens expr =
+        if parens_needed then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
+      sequence [ write " with "; conditional_parens expr ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
