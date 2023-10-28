@@ -715,7 +715,8 @@ let pp_inversion_strength = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_bindings = function
-  | Tactypes.ImplicitBindings [ _ ] -> write " with bar"
+  | Tactypes.ImplicitBindings [ expr ] ->
+      sequence [ write " with "; pp_constr_expr expr ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
