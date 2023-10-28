@@ -414,19 +414,21 @@ and pp_branch_expr = function
         ]
 
 and pp_fix_expr = function
-  | [
-      ( name,
-        None,
-        bindings,
-        CAst.{ v = Constrexpr.CHole (None, IntroAnonymous); loc = _ },
-        body );
-    ] ->
+  | [ (name, None, bindings, return_type, body) ] ->
+      let open CAst in
+      let pp_return_type =
+        match return_type.v with
+        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | _ -> sequence [ write " : "; pp_constr_expr return_type ]
+      in
+
       sequence
         [
           pp_lident name;
           map_sequence
             (fun x -> sequence [ space; pp_local_binder_expr x ])
             bindings;
+          pp_return_type;
           write " := ";
           pp_constr_expr body;
         ]
