@@ -3,6 +3,21 @@ open Ltac_plugin
 
 exception NotImplemented of string
 
+(** Returns a `true` if printing the given [Constrexpr.constr_expr_r] needs
+      parentheses IN ANY TIMES.
+
+    In some cases (e.g., printing a notation), printing parentheses may be
+    needed even if this function returns a `false`, but do not modify this
+    function to return a `true` in such cases. *)
+let generally_parens_needed = function
+  | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
+  | Constrexpr.CNotation _ | Constrexpr.CProdN _ ->
+      true
+  | Constrexpr.CAppExpl ((name, None), [ _ ])
+    when Libnames.string_of_qualid name <> ".." ->
+      true
+  | _ -> false
+
 let nop _ = ()
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
@@ -167,21 +182,15 @@ and pp_constr_expr_r = function
           write "end";
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
-      let parens_needed =
-        match v.v with Constrexpr.CApp _ -> true | _ -> false
-      in
       let conditional_parens expr =
-        if parens_needed then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
       sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
   | Constrexpr.CDelimiters (scope, expr) ->
-      let parens_needed =
-        match expr.v with Constrexpr.CNotation _ -> true | _ -> false
-      in
       let conditional_parens expr =
-        if parens_needed then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -726,11 +735,8 @@ let pp_inversion_strength = function
 
 let pp_bindings = function
   | Tactypes.ImplicitBindings [ expr ] ->
-      let parens_needed =
-        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
-      in
       let conditional_parens expr =
-        if parens_needed then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -758,11 +764,8 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
-      let parens_needed expr =
-        match expr.CAst.v with Constrexpr.CApp _ -> true | _ -> false
-      in
       let conditional_parens expr =
-        if parens_needed expr then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -809,11 +812,8 @@ let pp_raw_atomic_tactic_expr = function
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
         in_bindings,
         None ) ->
-      let parens_needed =
-        match expr.v with Constrexpr.CApp _ -> true | _ -> false
-      in
       let conditional_parens expr =
-        if parens_needed then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -876,14 +876,8 @@ and pp_gen_tactic_expr_r = function
       let id = Names.KerName.label alias |> Names.Label.to_string in
       let init xs = List.rev xs |> List.tl |> List.rev in
 
-      let parens_needed expr =
-        let open CAst in
-        match expr.v with
-        | Constrexpr.CRef _ | Constrexpr.CPrim _ -> false
-        | _ -> true
-      in
       let conditional_parens expr =
-        if parens_needed expr then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -991,11 +985,8 @@ let pp_import_filter_expr import_filter_expr =
 
 let pp_search_item = function
   | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
-      let parens_needed =
-        match expr.v with Constrexpr.CRef _ -> false | _ -> true
-      in
       let conditional_parens expr =
-        if parens_needed then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -1237,13 +1228,8 @@ let pp_synpure_vernac_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
-      let parens_needed = function
-        | Constrexpr.CRef _ | Constrexpr.CCast _ | Constrexpr.CDelimiters _ ->
-            false
-        | _ -> true
-      in
       let pp_expr =
-        if parens_needed expr.v then parens (pp_constr_expr expr)
+        if generally_parens_needed expr.v then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
