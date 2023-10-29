@@ -888,12 +888,17 @@ and pp_gen_tactic_expr_r = function
       sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
   | Tacexpr.TacThen (first, second) ->
       sequence
-        [
-          pp_raw_tactic_expr first;
-          write ";";
-          newline;
-          pp_raw_tactic_expr second;
-        ]
+        [ pp_raw_tactic_expr first; write "; "; pp_raw_tactic_expr second ]
+  | Tacexpr.TacTry tactic ->
+      let parens_needed =
+        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
+      in
+      let pp_tactic =
+        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        else pp_raw_tactic_expr tactic
+      in
+
+      sequence [ write "try "; pp_tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
