@@ -888,12 +888,7 @@ and pp_gen_tactic_expr_r = function
       sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
   | Tacexpr.TacThen (first, second) ->
       sequence
-        [
-          pp_raw_tactic_expr first;
-          write ";";
-          newline;
-          pp_raw_tactic_expr second;
-        ]
+        [ pp_raw_tactic_expr first; write "; "; pp_raw_tactic_expr second ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
