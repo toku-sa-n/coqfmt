@@ -894,7 +894,8 @@ and pp_gen_tactic_expr_r = function
           newline;
           pp_raw_tactic_expr second;
         ]
-  | Tacexpr.TacTry _ -> write "try reflexivity"
+  | Tacexpr.TacTry tactic ->
+      sequence [ write "try "; pp_raw_tactic_expr tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
