@@ -54,7 +54,8 @@ and pp_cases_pattern_expr_r = function
       let open CAst in
       let conditional_parens expr =
         match expr.v with
-        | Constrexpr.CPatAtom _ -> pp_cases_pattern_expr expr
+        | Constrexpr.CPatAtom _ | Constrexpr.CPatPrim _ ->
+            pp_cases_pattern_expr expr
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
