@@ -127,22 +127,12 @@ let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
 
 and pp_constr_expr_r = function
   | Constrexpr.CApp (fn, args) ->
-      let open CAst in
-      let conditional_parens expr =
-        match expr.v with
-        | Constrexpr.CApp _ | Constrexpr.CNotation _ | Constrexpr.CLambdaN _ ->
-            parens (pp_constr_expr expr)
-        | Constrexpr.CAppExpl ((name, None), [ _ ])
-          when Libnames.string_of_qualid name <> ".." ->
-            parens (pp_constr_expr expr)
-        | _ -> pp_constr_expr expr
-      in
-
       let pp_args =
         let hor =
           map_sequence
             (function
-              | inner, None -> sequence [ space; conditional_parens inner ]
+              | inner, None ->
+                  sequence [ space; pp_constr_expr_with_parens_generally inner ]
               | _, Some _ ->
                   fun printer -> raise (NotImplemented (contents printer)))
             args
@@ -151,7 +141,11 @@ and pp_constr_expr_r = function
           map_sequence
             (function
               | inner, None ->
-                  sequence [ newline; indented (conditional_parens inner) ]
+                  sequence
+                    [
+                      newline;
+                      indented (pp_constr_expr_with_parens_generally inner);
+                    ]
               | _, Some _ ->
                   fun printer -> raise (NotImplemented (contents printer)))
             args
@@ -160,7 +154,7 @@ and pp_constr_expr_r = function
         hor <-|> ver
       in
 
-      sequence [ conditional_parens fn; pp_args ]
+      sequence [ pp_constr_expr_with_parens_generally fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ])
@@ -182,19 +176,13 @@ and pp_constr_expr_r = function
           write "end";
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
-      sequence [ conditional_parens v; write " : "; pp_constr_expr t ]
+      sequence
+        [
+          pp_constr_expr_with_parens_generally v; write " : "; pp_constr_expr t;
+        ]
   | Constrexpr.CDelimiters (scope, expr) ->
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
-      sequence [ conditional_parens expr; write "%"; write scope ]
+      sequence
+        [ pp_constr_expr_with_parens_generally expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
@@ -307,13 +295,11 @@ and pp_constr_expr_r = function
                   op_level h.v > op_level op
               | _ -> op_level h.v >= op_level op
             in
-            let conditional_parens expr =
-              if parens_needed then parens (pp_constr_expr expr)
-              else pp_constr_expr expr
-            in
-
             sequence
-              [ conditional_parens h; printers t_u t_r local_assums t_keys ]
+              [
+                pp_constr_expr_with_parens parens_needed h;
+                printers t_u t_r local_assums t_keys;
+              ]
         | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _ -> raise (NotImplemented "")
         | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs ->
@@ -391,6 +377,12 @@ and pp_constr_expr_r = function
   | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+and pp_constr_expr_with_parens cond expr =
+  if cond then parens (pp_constr_expr expr) else pp_constr_expr expr
+
+and pp_constr_expr_with_parens_generally expr =
+  pp_constr_expr_with_parens (generally_parens_needed expr.CAst.v) expr
 
 and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
@@ -735,12 +727,7 @@ let pp_inversion_strength = function
 
 let pp_bindings = function
   | Tactypes.ImplicitBindings [ expr ] ->
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
-      sequence [ write " with "; conditional_parens expr ]
+      sequence [ write " with "; pp_constr_expr_with_parens_generally expr ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
@@ -764,15 +751,10 @@ let pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
       sequence
         [
           write "apply ";
-          conditional_parens expr;
+          pp_constr_expr_with_parens_generally expr;
           pp_bindings bindings;
           pp_in_clause;
         ]
@@ -812,11 +794,6 @@ let pp_raw_atomic_tactic_expr = function
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
         in_bindings,
         None ) ->
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
       let pp_in_bindings =
         let open Locus in
         match in_bindings with
@@ -830,7 +807,7 @@ let pp_raw_atomic_tactic_expr = function
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
-          conditional_parens expr;
+          pp_constr_expr_with_parens_generally expr;
           pp_in_bindings;
           pp_bindings with_bindings;
         ]
@@ -848,20 +825,10 @@ let pp_raw_atomic_tactic_expr = function
         { onhyps = None; concl_occs = AllOccurrences },
         false,
         None ) ->
-      let parens_neded =
-        match replacee.v with
-        | Constrexpr.CApp _ | Constrexpr.CNotation _ -> true
-        | _ -> false
-      in
-      let conditional_parens expr =
-        if parens_neded then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
       sequence
         [
           write "remember ";
-          conditional_parens replacee;
+          pp_constr_expr_with_parens_generally replacee;
           write " as ";
           pp_name replacer;
         ]
@@ -875,11 +842,6 @@ and pp_gen_tactic_expr_r = function
       (* FIXME: Needs refactoring. *)
       let id = Names.KerName.label alias |> Names.Label.to_string in
       let init xs = List.rev xs |> List.tl |> List.rev in
-
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
 
       (* The last element is Coq's internal ID and we don't need it. *)
       let init_idents = String.split_on_char '_' id |> init in
@@ -897,7 +859,7 @@ and pp_gen_tactic_expr_r = function
             with
             | None, None, None, None, None, None -> loop t_ids t_reps
             | Some h_reps, _, _, _, _, _ ->
-                conditional_parens h_reps :: loop t_ids t_reps
+                pp_constr_expr_with_parens_generally h_reps :: loop t_ids t_reps
             | _, Some h_reps, _, _, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
             | _, _, Some h_reps, _, _, _ ->
@@ -908,7 +870,8 @@ and pp_gen_tactic_expr_r = function
                 pp_hyp_location_expr name :: loop t_ids t_reps
             | _, _, _, _, Some bindings, _ ->
                 let pp_binding = function
-                  | Tactypes.ImplicitBindings [ x ] -> conditional_parens x
+                  | Tactypes.ImplicitBindings [ x ] ->
+                      pp_constr_expr_with_parens_generally x
                   | _ ->
                       fun printer -> raise (NotImplemented (contents printer))
                 in
@@ -985,12 +948,7 @@ let pp_import_filter_expr import_filter_expr =
 
 let pp_search_item = function
   | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
-      let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
-        else pp_constr_expr expr
-      in
-
-      conditional_parens expr
+      pp_constr_expr_with_parens_generally expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_search_request = function
