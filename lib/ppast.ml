@@ -132,7 +132,7 @@ and pp_constr_expr_r = function
           map_sequence
             (function
               | inner, None ->
-                  sequence [ space; pp_constr_expr_with_parens_generally inner ]
+                  sequence [ space; pp_constr_expr_with_parens inner ]
               | _, Some _ ->
                   fun printer -> raise (NotImplemented (contents printer)))
             args
@@ -142,10 +142,7 @@ and pp_constr_expr_r = function
             (function
               | inner, None ->
                   sequence
-                    [
-                      newline;
-                      indented (pp_constr_expr_with_parens_generally inner);
-                    ]
+                    [ newline; indented (pp_constr_expr_with_parens inner) ]
               | _, Some _ ->
                   fun printer -> raise (NotImplemented (contents printer)))
             args
@@ -154,7 +151,7 @@ and pp_constr_expr_r = function
         hor <-|> ver
       in
 
-      sequence [ pp_constr_expr_with_parens_generally fn; pp_args ]
+      sequence [ pp_constr_expr_with_parens fn; pp_args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ])
@@ -176,13 +173,9 @@ and pp_constr_expr_r = function
           write "end";
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
-      sequence
-        [
-          pp_constr_expr_with_parens_generally v; write " : "; pp_constr_expr t;
-        ]
+      sequence [ pp_constr_expr_with_parens v; write " : "; pp_constr_expr t ]
   | Constrexpr.CDelimiters (scope, expr) ->
-      sequence
-        [ pp_constr_expr_with_parens_generally expr; write "%"; write scope ]
+      sequence [ pp_constr_expr_with_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
@@ -297,7 +290,7 @@ and pp_constr_expr_r = function
             in
             sequence
               [
-                pp_constr_expr_with_parens parens_needed h;
+                pp_constr_expr_with_parens_conditionally parens_needed h;
                 printers t_u t_r local_assums t_keys;
               ]
         | Ppextend.UnpMetaVar _ :: _, _, _, _ -> failwith "Too few replacers."
@@ -378,11 +371,13 @@ and pp_constr_expr_r = function
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_constr_expr_with_parens cond expr =
+and pp_constr_expr_with_parens_conditionally cond expr =
   if cond then parens (pp_constr_expr expr) else pp_constr_expr expr
 
-and pp_constr_expr_with_parens_generally expr =
-  pp_constr_expr_with_parens (generally_parens_needed expr.CAst.v) expr
+and pp_constr_expr_with_parens expr =
+  pp_constr_expr_with_parens_conditionally
+    (generally_parens_needed expr.CAst.v)
+    expr
 
 and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
@@ -727,7 +722,7 @@ let pp_inversion_strength = function
 
 let pp_bindings = function
   | Tactypes.ImplicitBindings [ expr ] ->
-      sequence [ write " with "; pp_constr_expr_with_parens_generally expr ]
+      sequence [ write " with "; pp_constr_expr_with_parens expr ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
@@ -754,7 +749,7 @@ let pp_raw_atomic_tactic_expr = function
       sequence
         [
           write "apply ";
-          pp_constr_expr_with_parens_generally expr;
+          pp_constr_expr_with_parens expr;
           pp_bindings bindings;
           pp_in_clause;
         ]
@@ -807,7 +802,7 @@ let pp_raw_atomic_tactic_expr = function
         [
           write "rewrite ";
           (if is_left_to_right then write "-> " else write "<- ");
-          pp_constr_expr_with_parens_generally expr;
+          pp_constr_expr_with_parens expr;
           pp_in_bindings;
           pp_bindings with_bindings;
         ]
@@ -828,7 +823,7 @@ let pp_raw_atomic_tactic_expr = function
       sequence
         [
           write "remember ";
-          pp_constr_expr_with_parens_generally replacee;
+          pp_constr_expr_with_parens replacee;
           write " as ";
           pp_name replacer;
         ]
@@ -859,7 +854,7 @@ and pp_gen_tactic_expr_r = function
             with
             | None, None, None, None, None, None -> loop t_ids t_reps
             | Some h_reps, _, _, _, _, _ ->
-                pp_constr_expr_with_parens_generally h_reps :: loop t_ids t_reps
+                pp_constr_expr_with_parens h_reps :: loop t_ids t_reps
             | _, Some h_reps, _, _, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
             | _, _, Some h_reps, _, _, _ ->
@@ -871,7 +866,7 @@ and pp_gen_tactic_expr_r = function
             | _, _, _, _, Some bindings, _ ->
                 let pp_binding = function
                   | Tactypes.ImplicitBindings [ x ] ->
-                      pp_constr_expr_with_parens_generally x
+                      pp_constr_expr_with_parens x
                   | _ ->
                       fun printer -> raise (NotImplemented (contents printer))
                 in
@@ -948,7 +943,7 @@ let pp_import_filter_expr import_filter_expr =
 
 let pp_search_item = function
   | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
-      pp_constr_expr_with_parens_generally expr
+      pp_constr_expr_with_parens expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_search_request = function
