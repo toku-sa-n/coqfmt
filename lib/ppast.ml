@@ -887,8 +887,31 @@ and pp_gen_tactic_expr_r = function
   | Tacexpr.TacRepeat tactic ->
       sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
   | Tacexpr.TacThen (first, second) ->
-      sequence
-        [ pp_raw_tactic_expr first; write "; "; pp_raw_tactic_expr second ]
+      let hor =
+        sequence
+          [ pp_raw_tactic_expr first; write "; "; pp_raw_tactic_expr second ]
+      in
+      let ver =
+        let rec loop tactic =
+          match tactic.CAst.v with
+          | Tacexpr.TacThen (first, second) ->
+              sequence
+                [
+                  loop first;
+                  write ";";
+                  newline;
+                  indented (pp_raw_tactic_expr second);
+                ]
+          | _ -> pp_raw_tactic_expr tactic
+        in
+
+        sequence
+          [
+            loop first; write ";"; newline; indented (pp_raw_tactic_expr second);
+          ]
+      in
+
+      hor <-|> ver
   | Tacexpr.TacTry tactic ->
       let parens_needed =
         match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
