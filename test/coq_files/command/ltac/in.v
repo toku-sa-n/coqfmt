@@ -1,0 +1,1 @@
+Ltac foo:=simpl.

@@ -944,11 +944,36 @@ and pp_gen_tactic_expr_r = function
       sequence [ write "try "; pp_tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_tacdef_body = function
+  | Tacexpr.TacticDefinition (name, body) ->
+      sequence
+        [ write "Ltac "; pp_lident name; write " := "; pp_raw_tactic_expr body ]
+  | Tacexpr.TacticRedefinition _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+
 let pp_ltac =
-  map_sequence (fun arg ->
-      match Conversion.raw_tactic_expr_of_raw_generic_argument arg with
-      | None -> nop
-      | Some t -> sequence [ pp_raw_tactic_expr t; dot ])
+  let try_pp_raw_tactic_expr expr =
+    match Conversion.raw_tactic_expr_of_raw_generic_argument expr with
+    | None -> None
+    | Some t -> Some (sequence [ pp_raw_tactic_expr t; dot ])
+  in
+
+  let try_pp_tacdef_body expr =
+    match Conversion.tacdef_body_of_raw_generic_argument expr with
+    | None -> None
+    | Some [ t ] -> Some (sequence [ pp_tacdef_body t; dot ])
+    | Some _ -> Some (fun printer -> raise (NotImplemented (contents printer)))
+  in
+
+  let pp_funcs = [ try_pp_raw_tactic_expr; try_pp_tacdef_body ] in
+
+  let rec pp fs expr =
+    match fs with
+    | [] -> nop
+    | h :: t -> ( match h expr with None -> pp t expr | Some p -> p)
+  in
+
+  map_sequence (pp pp_funcs)
 
 let pp_proof_bullet = function
   | Proof_bullet.Dash n -> write_before_indent (String.make n '-' ^ " ")
