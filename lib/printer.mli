@@ -54,6 +54,8 @@ val can_pp_oneline : (t -> unit) -> t -> bool
 val contents : t -> string
 (** Get the contents of the printer. *)
 
+(* TODO: Move below modules into newly-created .ml and .mli files *)
+
 (** Combinators for frequently used strings *)
 module Str : sig
   val space : t -> unit
