@@ -53,17 +53,19 @@ val bullet_appears : Proof_bullet.t -> t -> unit
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
 
-val parens : (t -> unit) -> t -> unit
-(** Write out parentheses around the given function. *)
+module Wrap : sig
+  val parens : (t -> unit) -> t -> unit
+  (** Write out parentheses around the given function. *)
 
-val braces : (t -> unit) -> t -> unit
-(** Write out braces around the given function. *)
+  val braces : (t -> unit) -> t -> unit
+  (** Write out braces around the given function. *)
 
-val brackets : (t -> unit) -> t -> unit
-(** Write out brackets around the given function. *)
+  val brackets : (t -> unit) -> t -> unit
+  (** Write out brackets around the given function. *)
 
-val doublequoted : (t -> unit) -> t -> unit
-(** Write out double quotes around the given function. *)
+  val doublequoted : (t -> unit) -> t -> unit
+  (** Write out double quotes around the given function. *)
+end
 
 val map_with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
 (** Map the elements of the given list to printers and run them with [~sep] as

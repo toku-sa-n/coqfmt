@@ -112,11 +112,13 @@ let clear_bullets t =
   | [] -> failwith "clear_bullets: empty list"
   | _ :: tail -> t.bullets <- [] :: tail
 
-let wrap before after f t = sequence [ write before |=> f; write after ] t
-let parens = wrap "(" ")"
-let braces = wrap "{" "}"
-let brackets = wrap "[" "]"
-let doublequoted = wrap "\"" "\""
+module Wrap = struct
+  let wrap before after f t = sequence [ write before |=> f; write after ] t
+  let parens = wrap "(" ")"
+  let braces = wrap "{" "}"
+  let brackets = wrap "[" "]"
+  let doublequoted = wrap "\"" "\""
+end
 
 let with_seps ~sep xs =
   sequence
