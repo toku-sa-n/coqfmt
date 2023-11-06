@@ -112,7 +112,6 @@ let clear_bullets t =
   | [] -> failwith "clear_bullets: empty list"
   | _ :: tail -> t.bullets <- [] :: tail
 
-(** Combinators for wrapping elements *)
 module Wrap = struct
   let wrap before after f t = sequence [ write before |=> f; write after ] t
   let parens = wrap "(" ")"
@@ -121,16 +120,20 @@ module Wrap = struct
   let doublequoted = wrap "\"" "\""
 end
 
-let with_seps ~sep xs =
-  sequence
-    (List.mapi (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ]) xs)
+module Lineup = struct
+  let with_seps ~sep xs =
+    sequence
+      (List.mapi
+         (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ])
+         xs)
 
-let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
-let map_commad f = map_with_seps ~sep:(write ", ") f
-let spaced = with_seps ~sep:space
-let map_spaced f = map_with_seps ~sep:space f
-let map_lined f = map_with_seps ~sep:newline f
-let map_bard f = map_with_seps ~sep:(write " | ") f
+  let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
+  let map_commad f = map_with_seps ~sep:(write ", ") f
+  let spaced = with_seps ~sep:space
+  let map_spaced f = map_with_seps ~sep:space f
+  let map_lined f = map_with_seps ~sep:newline f
+  let map_bard f = map_with_seps ~sep:(write " | ") f
+end
 
 let copy_printer_by_value t =
   let buffer = Buffer.create 16 in

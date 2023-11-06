@@ -53,6 +53,7 @@ val bullet_appears : Proof_bullet.t -> t -> unit
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
 
+(** Combinators for wrapping elements *)
 module Wrap : sig
   val parens : (t -> unit) -> t -> unit
   (** Write out parentheses around the given function. *)
@@ -67,28 +68,31 @@ module Wrap : sig
   (** Write out double quotes around the given function. *)
 end
 
-val map_with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them with [~sep] as
+module Lineup : sig
+  val map_with_seps :
+    sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them with [~sep] as
   the delimiter. *)
 
-val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
+  val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
   comma-separatedly. *)
 
-val spaced : (t -> unit) list -> t -> unit
-(** Run the given printers space-separatedly. *)
+  val spaced : (t -> unit) list -> t -> unit
+  (** Run the given printers space-separatedly. *)
 
-val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
+  val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
   space-separatedly. *)
 
-val map_lined : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
+  val map_lined : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
   line-separatedly. *)
 
-val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
+  val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
   bar-separatedly. *)
+end
 
 val ( <-|> ) : (t -> unit) -> (t -> unit) -> t -> unit
 (** Try running the first printer. If the result fits in the columns limit, use
