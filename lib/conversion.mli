@@ -39,3 +39,8 @@ val id_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Names.Id.t option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Names.Id.t]. *)
+
+val hyp_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Names.lident list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Names.lident list]. *)

@@ -851,20 +851,22 @@ and pp_gen_tactic_expr_r = function
                 Conversion.intro_pattern_list_of_raw_generic_argument args,
                 Conversion.clause_expr_of_raw_generic_argument args,
                 Conversion.bindings_list_of_raw_generic_argument args,
-                Conversion.id_of_raw_generic_argument args )
+                Conversion.id_of_raw_generic_argument args,
+                Conversion.hyp_of_raw_generic_argument args )
             with
-            | None, None, None, None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _, _, _, _ ->
+            | None, None, None, None, None, None, None -> loop t_ids t_reps
+            | Some h_reps, _, _, _, _, _, _ ->
                 pp_constr_expr_with_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _, _, _, _ ->
+            | _, Some h_reps, _, _, _, _, _ ->
                 pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps, _, _, _ ->
+            | _, _, Some h_reps, _, _, _, _ ->
                 let open CAst in
                 map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
                 :: loop t_ids t_reps
-            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _, _ ->
+            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _, _, _
+              ->
                 pp_hyp_location_expr name :: loop t_ids t_reps
-            | _, _, _, _, Some bindings, _ ->
+            | _, _, _, _, Some bindings, _, _ ->
                 let pp_binding = function
                   | Tactypes.ImplicitBindings [ x ] ->
                       pp_constr_expr_with_parens x
@@ -873,7 +875,9 @@ and pp_gen_tactic_expr_r = function
                 in
 
                 map_commad pp_binding bindings :: loop t_ids t_reps
-            | _, _, _, _, _, Some id -> pp_id id :: loop t_ids t_reps
+            | _, _, _, _, _, Some id, _ -> pp_id id :: loop t_ids t_reps
+            | _, _, _, _, _, _, Some [ name ] ->
+                pp_lident name :: loop t_ids t_reps
             | _ ->
                 [ (fun printer -> raise (NotImplemented (contents printer))) ])
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
@@ -945,15 +949,16 @@ and pp_gen_tactic_expr_r = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition (name, CAst.{ v = TacFun ([ param ], _); loc = _ })
-    ->
+  | Tacexpr.TacticDefinition
+      (name, CAst.{ v = TacFun ([ param ], body); loc = _ }) ->
       sequence
         [
           write "Ltac ";
           pp_lident name;
           space;
           pp_name param;
-          write " := inversion H; subst; clear H";
+          write " := ";
+          pp_raw_tactic_expr body;
         ]
   | Tacexpr.TacticDefinition (name, body) ->
       sequence
