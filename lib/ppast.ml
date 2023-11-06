@@ -945,10 +945,13 @@ and pp_gen_tactic_expr_r = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition (_, CAst.{ v = TacFun ([ param ], _); loc = _ }) ->
+  | Tacexpr.TacticDefinition (name, CAst.{ v = TacFun ([ param ], _); loc = _ })
+    ->
       sequence
         [
-          write "Ltac invert ";
+          write "Ltac ";
+          pp_lident name;
+          space;
           pp_name param;
           write " := inversion H; subst; clear H";
         ]
