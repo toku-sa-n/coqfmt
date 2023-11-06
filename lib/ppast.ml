@@ -1460,7 +1460,8 @@ let separator current next =
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
   | VernacSynPure VernacAbort, _
-  | VernacSynterp (VernacRequire _), _ ->
+  | VernacSynterp (VernacRequire _), _
+  | _, VernacSynPure (VernacStartTheoremProof _) ->
       blankline
   | VernacSynPure (VernacBullet _), _ -> nop
   | _, _ -> newline
