@@ -3,9 +3,7 @@ type t = {
   mutable indent_spaces : int;
   mutable columns : int;
   mutable printed_newline : bool;
-  (* TODO: Rename this as it is used not only for detecting the columns limit,
-     but also the appearances of newlines. *)
-  hard_fail_on_exceeding_column_limit : bool;
+  fail_on_overflow : bool;
   mutable bullets : Proof_bullet.t list list;
 }
 
@@ -22,7 +20,7 @@ let create () =
     indent_spaces = 0;
     columns = 0;
     printed_newline = false;
-    hard_fail_on_exceeding_column_limit = false;
+    fail_on_overflow = false;
     bullets = [ [] ];
   }
 
@@ -49,7 +47,7 @@ let write s t =
     if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
   in
   let new_columns = t.columns + String.length string_to_push in
-  if t.hard_fail_on_exceeding_column_limit && new_columns > columns_limit then
+  if t.fail_on_overflow && new_columns > columns_limit then
     raise Exceeded_column_limit;
 
   Buffer.add_string t.buffer string_to_push;
@@ -57,7 +55,7 @@ let write s t =
   t.columns <- new_columns
 
 let newline t =
-  if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
+  if t.fail_on_overflow then raise Exceeded_column_limit;
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true;
   t.columns <- 0
@@ -145,16 +143,13 @@ let copy_printer_by_value t =
     indent_spaces = t.indent_spaces;
     columns = t.columns;
     printed_newline = t.printed_newline;
-    hard_fail_on_exceeding_column_limit = t.hard_fail_on_exceeding_column_limit;
+    fail_on_overflow = t.fail_on_overflow;
     bullets = t.bullets;
   }
 
 let can_pp_oneline f printer =
   let printer_backup =
-    {
-      (copy_printer_by_value printer) with
-      hard_fail_on_exceeding_column_limit = true;
-    }
+    { (copy_printer_by_value printer) with fail_on_overflow = true }
   in
 
   try
