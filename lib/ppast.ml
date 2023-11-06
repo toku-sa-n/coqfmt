@@ -885,7 +885,15 @@ and pp_gen_tactic_expr_r = function
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacRepeat tactic ->
-      sequence [ write "repeat "; pp_raw_tactic_expr tactic ]
+      let parens_needed =
+        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
+      in
+      let pp_tactic =
+        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        else pp_raw_tactic_expr tactic
+      in
+
+      sequence [ write "repeat "; pp_tactic ]
   | Tacexpr.TacThen (first, second) ->
       let hor =
         sequence
