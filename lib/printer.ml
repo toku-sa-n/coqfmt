@@ -112,6 +112,7 @@ let clear_bullets t =
   | [] -> failwith "clear_bullets: empty list"
   | _ :: tail -> t.bullets <- [] :: tail
 
+(** Combinators for wrapping elements *)
 module Wrap = struct
   let wrap before after f t = sequence [ write before |=> f; write after ] t
   let parens = wrap "(" ")"
