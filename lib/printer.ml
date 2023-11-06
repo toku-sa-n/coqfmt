@@ -29,7 +29,7 @@ let create () =
 let sequence xs printer = List.iter (fun x -> x printer) xs
 let map_sequence f xs = sequence (List.map f xs)
 
-let calculate_indent t =
+let indents_for_bullets t =
   let num_bullets = function
     | Proof_bullet.Dash n | Proof_bullet.Plus n | Proof_bullet.Star n -> n
   in
@@ -37,20 +37,19 @@ let calculate_indent t =
     (* +1 for the space after a bullet. *)
     List.fold_left (fun acc b -> acc + num_bullets b + tab_size + 1) 0 bullets
   in
-  let indents_for_bullets =
-    List.fold_left
-      (fun acc b -> acc + indents_for_bullets_in_single_block b)
-      0 t.bullets
-    + (tab_size * (List.length t.bullets - 1))
-  in
-  t.indent_spaces + indents_for_bullets
+  List.fold_left
+    (fun acc b -> acc + indents_for_bullets_in_single_block b)
+    0 t.bullets
+  + (tab_size * (List.length t.bullets - 1))
+
+let calculate_indent t = t.indent_spaces + indents_for_bullets t
 
 let write s t =
   let string_to_push =
     if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
   in
   let new_columns = t.columns + String.length string_to_push in
-  if t.hard_fail_on_exceeding_column_limit && new_columns >= columns_limit then
+  if t.hard_fail_on_exceeding_column_limit && new_columns > columns_limit then
     raise Exceeded_column_limit;
 
   Buffer.add_string t.buffer string_to_push;
@@ -89,7 +88,7 @@ let indented f = sequence [ increase_indent; f; decrease_indent ]
 let ( |=> ) hd p t =
   hd t;
   let l = t.indent_spaces in
-  t.indent_spaces <- t.columns;
+  t.indent_spaces <- t.columns - indents_for_bullets t;
   p t;
   t.indent_spaces <- l
 
@@ -142,16 +141,8 @@ let copy_printer_by_value t =
     bullets = t.bullets;
   }
 
-let overwrite_printer src dst =
-  Buffer.clear dst.buffer;
-  Buffer.add_string dst.buffer (Buffer.contents src.buffer);
-  dst.indent_spaces <- src.indent_spaces;
-  dst.columns <- src.columns;
-  dst.printed_newline <- src.printed_newline;
-  dst.bullets <- src.bullets
-
-let ( <-|> ) horizontal vertical printer =
-  let hor_printer =
+let can_pp_oneline f printer =
+  let printer_backup =
     {
       (copy_printer_by_value printer) with
       hard_fail_on_exceeding_column_limit = true;
@@ -159,11 +150,17 @@ let ( <-|> ) horizontal vertical printer =
   in
 
   try
-    horizontal hor_printer;
-    overwrite_printer hor_printer printer
-  with Exceeded_column_limit ->
-    if printer.hard_fail_on_exceeding_column_limit then
-      raise Exceeded_column_limit
-    else vertical printer
+    f printer_backup;
+    true
+  with Exceeded_column_limit -> false
+
+let try_pp_oneline f printer =
+  if can_pp_oneline f printer then
+    let () = f printer in
+    true
+  else false
+
+let ( <-|> ) horizontal vertical printer =
+  if try_pp_oneline horizontal printer then () else vertical printer
 
 let contents t = Buffer.contents t.buffer

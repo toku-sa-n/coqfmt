@@ -900,23 +900,35 @@ and pp_gen_tactic_expr_r = function
           [ pp_raw_tactic_expr first; write "; "; pp_raw_tactic_expr second ]
       in
       let ver =
-        let rec loop tactic =
-          match tactic.CAst.v with
-          | Tacexpr.TacThen (first, second) ->
-              sequence
-                [
-                  loop first;
-                  write ";";
-                  newline;
-                  indented (pp_raw_tactic_expr second);
-                ]
-          | _ -> pp_raw_tactic_expr tactic
+        let tactics =
+          let rec loop tactic =
+            match tactic.CAst.v with
+            | Tacexpr.TacThen (first, second) -> second :: loop first
+            | _ -> [ tactic ]
+          in
+          second :: loop first |> List.rev
         in
 
-        sequence
-          [
-            loop first; write ";"; newline; indented (pp_raw_tactic_expr second);
-          ]
+        let rec loop tactics is_first printer =
+          match (tactics, is_first) with
+          | [], _ -> nop printer
+          | [ h ], _ -> (
+              let pp = pp_raw_tactic_expr h in
+
+              match can_pp_oneline (sequence [ space; pp ]) printer with
+              | true -> sequence [ space; pp ] printer
+              | false -> sequence [ newline; pp ] printer)
+          | h :: t, true ->
+              sequence [ pp_raw_tactic_expr h; write ";"; loop t false ] printer
+          | h :: t, false -> (
+              let pp = sequence [ pp_raw_tactic_expr h; write ";" ] in
+
+              match can_pp_oneline (sequence [ space; pp ]) printer with
+              | true -> sequence [ space; pp; loop t false ] printer
+              | false -> sequence [ newline; pp; loop t false ] printer)
+        in
+
+        loop tactics true
       in
 
       hor <-|> ver
