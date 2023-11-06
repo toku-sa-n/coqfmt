@@ -44,6 +44,7 @@ val bullet_appears : Proof_bullet.t -> t -> unit
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
 
+(** Combinators for frequently used strings *)
 module Str : sig
   val space : t -> unit
   (** Write out a space. *)
@@ -70,6 +71,7 @@ module Wrap : sig
   (** Write out double quotes around the given function. *)
 end
 
+(** Combinators for arranging elements *)
 module Lineup : sig
   val map_with_seps :
     sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
