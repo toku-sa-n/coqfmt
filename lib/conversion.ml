@@ -130,3 +130,21 @@ let id_of_raw_generic_argument arg =
       ] ->
       Some (Serlib.Ser_names.Id.t_of_sexp rems)
   | _ -> None
+
+let hyp_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "hyp" ] ];
+          ];
+        List rems;
+      ] ->
+      Some
+        (List.map
+           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
+           rems)
+  | _ -> None
