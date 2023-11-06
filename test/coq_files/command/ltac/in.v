@@ -1,1 +1,1 @@
-Ltac invert H:=inversion H;subst;clear H.
+Ltac foo:=simpl.
