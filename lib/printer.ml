@@ -56,18 +56,20 @@ let write s t =
   t.printed_newline <- false;
   t.columns <- new_columns
 
-let space = write " "
-let dot = write "."
-
 let newline t =
   if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true;
   t.columns <- 0
 
-let blankline t =
-  newline t;
-  newline t
+module Str = struct
+  let space = write " "
+  let dot = write "."
+
+  let blankline t =
+    newline t;
+    newline t
+end
 
 let start_subproof t = t.bullets <- [] :: t.bullets
 
@@ -129,8 +131,8 @@ module Lineup = struct
 
   let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
   let map_commad f = map_with_seps ~sep:(write ", ") f
-  let spaced = with_seps ~sep:space
-  let map_spaced f = map_with_seps ~sep:space f
+  let spaced = with_seps ~sep:Str.space
+  let map_spaced f = map_with_seps ~sep:Str.space f
   let map_lined f = map_with_seps ~sep:newline f
   let map_bard f = map_with_seps ~sep:(write " | ") f
 end

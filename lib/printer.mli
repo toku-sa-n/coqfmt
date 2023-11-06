@@ -13,17 +13,8 @@ val map_sequence : ('a -> t -> unit) -> 'a list -> t -> unit
 val write : string -> t -> unit
 (** Write out the given string. *)
 
-val space : t -> unit
-(** Write out a space. *)
-
-val dot : t -> unit
-(** Write out a dot. *)
-
 val newline : t -> unit
 (** Write out a newline. *)
-
-val blankline : t -> unit
-(** Write out a blank line. *)
 
 val start_subproof : t -> unit
 (** Start a subproof. *)
@@ -52,6 +43,17 @@ val bullet_appears : Proof_bullet.t -> t -> unit
 
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
+
+module Str : sig
+  val space : t -> unit
+  (** Write out a space. *)
+
+  val dot : t -> unit
+  (** Write out a dot. *)
+
+  val blankline : t -> unit
+  (** Write out a blank line. *)
+end
 
 (** Combinators for wrapping elements *)
 module Wrap : sig
