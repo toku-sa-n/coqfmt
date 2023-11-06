@@ -1220,13 +1220,16 @@ let pp_synterp_vernac_expr = function
 
       sequence
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
-  | Vernacexpr.VernacReservedNotation (false, (notation, [ modifier ])) ->
+  | Vernacexpr.VernacReservedNotation (false, (notation, modifiers)) ->
       sequence
         [
           write "Reserved Notation ";
           doublequoted (pp_lstring notation);
           space;
-          parens (pp_syntax_modifier modifier.v);
+          parens
+            (map_commad
+               (fun modifier -> pp_syntax_modifier modifier.CAst.v)
+               modifiers);
           write ".";
         ]
   | Vernacexpr.VernacSetOption (false, names, options) ->
