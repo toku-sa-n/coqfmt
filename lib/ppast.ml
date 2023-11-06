@@ -944,7 +944,10 @@ and pp_gen_tactic_expr_r = function
       sequence [ write "try "; pp_tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_tacdef_body _ = write "Ltac foo := simpl"
+let pp_tacdef_body = function
+  | Tacexpr.TacticDefinition _ -> write "Ltac foo := simpl"
+  | Tacexpr.TacticRedefinition _ ->
+      fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
   let try_pp_raw_tactic_expr expr =
