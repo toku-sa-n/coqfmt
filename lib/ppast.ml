@@ -1095,9 +1095,15 @@ let pp_notation_declaration = function
       {
         ntn_decl_string;
         ntn_decl_interp;
-        ntn_decl_scope = None;
+        ntn_decl_scope;
         ntn_decl_modifiers = [];
       } ->
+      let pp_scope =
+        match ntn_decl_scope with
+        | None -> nop
+        | Some scope -> sequence [ write " : "; write scope ]
+      in
+
       sequence
         [
           newline;
@@ -1112,6 +1118,7 @@ let pp_notation_declaration = function
                         doublequoted (pp_lstring ntn_decl_string);
                         write " := ";
                         parens (pp_constr_expr ntn_decl_interp);
+                        pp_scope;
                       ]);
                ]);
         ]
