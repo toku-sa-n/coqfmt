@@ -1306,7 +1306,7 @@ let pp_synpure_vernac_expr = function
           dot;
         ]
   | Vernacexpr.VernacCoercion
-      (CAst.{ v = AN name; loc = _ }, Some (RefClass _, _)) ->
+      (CAst.{ v = AN name; loc = _ }, Some (RefClass { v = _; loc = _ }, _)) ->
       sequence [ write "Coercion "; pp_qualid name; write " : nat >-> Foo." ]
   | Vernacexpr.VernacFixpoint (NoDischarge, [ expr ]) ->
       sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
