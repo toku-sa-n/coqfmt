@@ -13,17 +13,8 @@ val map_sequence : ('a -> t -> unit) -> 'a list -> t -> unit
 val write : string -> t -> unit
 (** Write out the given string. *)
 
-val space : t -> unit
-(** Write out a space. *)
-
-val dot : t -> unit
-(** Write out a dot. *)
-
 val newline : t -> unit
 (** Write out a newline. *)
-
-val blankline : t -> unit
-(** Write out a blank line. *)
 
 val start_subproof : t -> unit
 (** Start a subproof. *)
@@ -53,41 +44,6 @@ val bullet_appears : Proof_bullet.t -> t -> unit
 val clear_bullets : t -> unit
 (** Clear all the bullets. *)
 
-val parens : (t -> unit) -> t -> unit
-(** Write out parentheses around the given function. *)
-
-val braces : (t -> unit) -> t -> unit
-(** Write out braces around the given function. *)
-
-val brackets : (t -> unit) -> t -> unit
-(** Write out brackets around the given function. *)
-
-val doublequoted : (t -> unit) -> t -> unit
-(** Write out double quotes around the given function. *)
-
-val map_with_seps : sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them with [~sep] as
-  the delimiter. *)
-
-val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
-  comma-separatedly. *)
-
-val spaced : (t -> unit) list -> t -> unit
-(** Run the given printers space-separatedly. *)
-
-val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
-  space-separatedly. *)
-
-val map_lined : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
-  line-separatedly. *)
-
-val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
-(** Map the elements of the given list to printers and run them
-  bar-separatedly. *)
-
 val ( <-|> ) : (t -> unit) -> (t -> unit) -> t -> unit
 (** Try running the first printer. If the result fits in the columns limit, use
   the result, and if not, runs the second printer. *)
@@ -97,3 +53,59 @@ val can_pp_oneline : (t -> unit) -> t -> bool
 
 val contents : t -> string
 (** Get the contents of the printer. *)
+
+(* TODO: Move below modules into newly-created .ml and .mli files *)
+
+(** Combinators for frequently used strings *)
+module Str : sig
+  val space : t -> unit
+  (** Write out a space. *)
+
+  val dot : t -> unit
+  (** Write out a dot. *)
+
+  val blankline : t -> unit
+  (** Write out a blank line. *)
+end
+
+(** Combinators for wrapping elements *)
+module Wrap : sig
+  val parens : (t -> unit) -> t -> unit
+  (** Write out parentheses around the given function. *)
+
+  val braces : (t -> unit) -> t -> unit
+  (** Write out braces around the given function. *)
+
+  val brackets : (t -> unit) -> t -> unit
+  (** Write out brackets around the given function. *)
+
+  val doublequoted : (t -> unit) -> t -> unit
+  (** Write out double quotes around the given function. *)
+end
+
+(** Combinators for arranging elements *)
+module Lineup : sig
+  val map_with_seps :
+    sep:(t -> unit) -> ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them with [~sep] as
+  the delimiter. *)
+
+  val map_commad : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
+  comma-separatedly. *)
+
+  val spaced : (t -> unit) list -> t -> unit
+  (** Run the given printers space-separatedly. *)
+
+  val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
+  space-separatedly. *)
+
+  val map_lined : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
+  line-separatedly. *)
+
+  val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
+  bar-separatedly. *)
+end

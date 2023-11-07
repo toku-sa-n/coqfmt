@@ -1,4 +1,7 @@
 open Printer
+open Printer.Wrap
+open Printer.Lineup
+open Printer.Str
 open Ltac_plugin
 
 exception NotImplemented of string

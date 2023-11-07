@@ -3,9 +3,7 @@ type t = {
   mutable indent_spaces : int;
   mutable columns : int;
   mutable printed_newline : bool;
-  (* TODO: Rename this as it is used not only for detecting the columns limit,
-     but also the appearances of newlines. *)
-  hard_fail_on_exceeding_column_limit : bool;
+  fail_on_overflow : bool;
   mutable bullets : Proof_bullet.t list list;
 }
 
@@ -22,7 +20,7 @@ let create () =
     indent_spaces = 0;
     columns = 0;
     printed_newline = false;
-    hard_fail_on_exceeding_column_limit = false;
+    fail_on_overflow = false;
     bullets = [ [] ];
   }
 
@@ -49,25 +47,27 @@ let write s t =
     if t.printed_newline then String.make (calculate_indent t) ' ' ^ s else s
   in
   let new_columns = t.columns + String.length string_to_push in
-  if t.hard_fail_on_exceeding_column_limit && new_columns > columns_limit then
+  if t.fail_on_overflow && new_columns > columns_limit then
     raise Exceeded_column_limit;
 
   Buffer.add_string t.buffer string_to_push;
   t.printed_newline <- false;
   t.columns <- new_columns
 
-let space = write " "
-let dot = write "."
-
 let newline t =
-  if t.hard_fail_on_exceeding_column_limit then raise Exceeded_column_limit;
+  if t.fail_on_overflow then raise Exceeded_column_limit;
   Buffer.add_char t.buffer '\n';
   t.printed_newline <- true;
   t.columns <- 0
 
-let blankline t =
-  newline t;
-  newline t
+module Str = struct
+  let space = write " "
+  let dot = write "."
+
+  let blankline t =
+    newline t;
+    newline t
+end
 
 let start_subproof t = t.bullets <- [] :: t.bullets
 
@@ -112,22 +112,28 @@ let clear_bullets t =
   | [] -> failwith "clear_bullets: empty list"
   | _ :: tail -> t.bullets <- [] :: tail
 
-let wrap before after f t = sequence [ write before |=> f; write after ] t
-let parens = wrap "(" ")"
-let braces = wrap "{" "}"
-let brackets = wrap "[" "]"
-let doublequoted = wrap "\"" "\""
+module Wrap = struct
+  let wrap before after f t = sequence [ write before |=> f; write after ] t
+  let parens = wrap "(" ")"
+  let braces = wrap "{" "}"
+  let brackets = wrap "[" "]"
+  let doublequoted = wrap "\"" "\""
+end
 
-let with_seps ~sep xs =
-  sequence
-    (List.mapi (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ]) xs)
+module Lineup = struct
+  let with_seps ~sep xs =
+    sequence
+      (List.mapi
+         (fun i x -> match i with 0 -> x | _ -> sequence [ sep; x ])
+         xs)
 
-let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
-let map_commad f = map_with_seps ~sep:(write ", ") f
-let spaced = with_seps ~sep:space
-let map_spaced f = map_with_seps ~sep:space f
-let map_lined f = map_with_seps ~sep:newline f
-let map_bard f = map_with_seps ~sep:(write " | ") f
+  let map_with_seps ~sep f xs = with_seps ~sep (List.map f xs)
+  let map_commad f = map_with_seps ~sep:(write ", ") f
+  let spaced = with_seps ~sep:Str.space
+  let map_spaced f = map_with_seps ~sep:Str.space f
+  let map_lined f = map_with_seps ~sep:newline f
+  let map_bard f = map_with_seps ~sep:(write " | ") f
+end
 
 let copy_printer_by_value t =
   let buffer = Buffer.create 16 in
@@ -137,16 +143,13 @@ let copy_printer_by_value t =
     indent_spaces = t.indent_spaces;
     columns = t.columns;
     printed_newline = t.printed_newline;
-    hard_fail_on_exceeding_column_limit = t.hard_fail_on_exceeding_column_limit;
+    fail_on_overflow = t.fail_on_overflow;
     bullets = t.bullets;
   }
 
 let can_pp_oneline f printer =
   let printer_backup =
-    {
-      (copy_printer_by_value printer) with
-      hard_fail_on_exceeding_column_limit = true;
-    }
+    { (copy_printer_by_value printer) with fail_on_overflow = true }
   in
 
   try
