@@ -1134,6 +1134,7 @@ let pp_showable = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
+  | Vernacexpr.VernacDeclareCustomEntry _ -> write "Declare Custom Entry com."
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacEndSegment name ->
