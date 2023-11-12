@@ -1,0 +1,1 @@
+Declare     Custom  Entry   com.
