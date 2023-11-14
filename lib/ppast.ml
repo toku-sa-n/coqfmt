@@ -603,7 +603,6 @@ let pp_syntax_modifier = function
         ]
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
-  | Vernacexpr.SetItemScope _ -> write "in custom com"
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
