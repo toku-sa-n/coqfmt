@@ -22,6 +22,7 @@ let generally_parens_needed = function
   | _ -> false
 
 let nop _ = ()
+let pp_int n = write (string_of_int n)
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident CAst.{ v; loc = _ } = pp_id v
 
@@ -588,9 +589,16 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
-  | Vernacexpr.SetEntryType (name, ETConstr (InCustomEntry scope, None, _)) ->
+  | Vernacexpr.SetEntryType
+      (name, ETConstr (InCustomEntry scope, None, NumLevel level)) ->
       sequence
-        [ write name; write " custom "; write scope; write " at level 99" ]
+        [
+          write name;
+          write " custom ";
+          write scope;
+          write " at level ";
+          pp_int level;
+        ]
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
   | Vernacexpr.SetLevel level ->
