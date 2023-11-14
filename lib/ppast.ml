@@ -589,6 +589,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetCustomEntry _ -> write "in custom com"
   | Vernacexpr.SetEntryType
       (name, ETConstr (InCustomEntry scope, None, NumLevel level)) ->
       sequence
@@ -601,6 +602,7 @@ let pp_syntax_modifier = function
         ]
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
+  | Vernacexpr.SetItemScope _ -> write "in custom com"
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
