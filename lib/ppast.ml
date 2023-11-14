@@ -589,6 +589,8 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetCustomEntry (name, None) ->
+      sequence [ write "in custom "; write name ]
   | Vernacexpr.SetEntryType
       (name, ETConstr (InCustomEntry scope, None, NumLevel level)) ->
       sequence
