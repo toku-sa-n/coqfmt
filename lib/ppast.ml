@@ -588,7 +588,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
-  | Vernacexpr.SetEntryType (name, ETConstr (InCustomEntry scope, _, _)) ->
+  | Vernacexpr.SetEntryType (name, ETConstr (InCustomEntry scope, None, _)) ->
       sequence
         [ write name; write " custom "; write scope; write " at level 99" ]
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
