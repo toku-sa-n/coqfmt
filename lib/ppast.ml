@@ -588,6 +588,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetEntryType _ -> write "e custom com at level 99"
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
   | Vernacexpr.SetLevel level ->
@@ -1174,11 +1175,16 @@ let pp_synterp_vernac_expr = function
         | Some scope -> sequence [ write " : "; write scope ]
       in
 
+      let conditional_parens expr =
+        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
+        else pp_constr_expr expr
+      in
+
       let hor =
         sequence
           [
             space;
-            parens (pp_constr_expr expr);
+            conditional_parens expr;
             (if List.length modifiers > 0 then pp_modifiers else nop);
             pp_scope;
             dot;
@@ -1192,7 +1198,7 @@ let pp_synterp_vernac_expr = function
             indented
               (sequence
                  [
-                   parens (pp_constr_expr expr);
+                   conditional_parens expr;
                    (if List.length modifiers > 0 then pp_modifiers else nop);
                    pp_scope;
                    dot;
