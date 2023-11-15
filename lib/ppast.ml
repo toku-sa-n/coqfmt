@@ -603,7 +603,8 @@ let pp_syntax_modifier = function
         ]
   | Vernacexpr.SetItemLevel ([ name ], None, NextLevel) ->
       sequence [ write name; write " at next level" ]
-  | Vernacexpr.SetItemLevel (_, _, _) -> write "x at level 0"
+  | Vernacexpr.SetItemLevel ([ name ], _, _) ->
+      sequence [ write name; write " at level 0" ]
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
