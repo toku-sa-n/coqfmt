@@ -606,8 +606,8 @@ let pp_syntax_modifier = function
           space;
           pp_production_level level;
         ]
-  | Vernacexpr.SetEntryType (name, ETConstr (InConstrEntry, None, _)) ->
-      sequence [ write name; write " constr at level 0" ]
+  | Vernacexpr.SetEntryType (name, ETConstr (InConstrEntry, None, level)) ->
+      sequence [ write name; write " constr "; pp_production_level level ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
       sequence [ write name; space; pp_production_level level ]
   | Vernacexpr.SetLevel level ->
