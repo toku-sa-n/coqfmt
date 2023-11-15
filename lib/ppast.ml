@@ -606,6 +606,7 @@ let pp_syntax_modifier = function
           space;
           pp_production_level level;
         ]
+  | Vernacexpr.SetEntryType _ -> write "x constr at level 0"
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
       sequence [ write name; space; pp_production_level level ]
   | Vernacexpr.SetLevel level ->
