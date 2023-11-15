@@ -601,7 +601,8 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
   | Vernacexpr.SetCustomEntry (name, None) ->
       sequence [ write "in custom "; write name ]
-  | Vernacexpr.SetCustomEntry (_, _) -> write "in custom com at level 0"
+  | Vernacexpr.SetCustomEntry (name, _) ->
+      sequence [ write "in custom "; write name; write " at level 0" ]
   | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
       spaced [ write name; pp_notation_entry entry; pp_production_level level ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
