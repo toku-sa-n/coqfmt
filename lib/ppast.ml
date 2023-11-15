@@ -590,24 +590,19 @@ let pp_production_level = function
   | Extend.NumLevel n -> sequence [ write "at level "; pp_int n ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_notation_entry = function
+  | Constrexpr.InConstrEntry -> write "constr"
+  | Constrexpr.InCustomEntry scope ->
+      sequence [ write "custom"; space; write scope ]
+
 let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
   | Vernacexpr.SetAssoc RightA -> write "right associativity"
   | Vernacexpr.SetAssoc NonA -> write "no associativity"
   | Vernacexpr.SetCustomEntry (name, None) ->
       sequence [ write "in custom "; write name ]
-  | Vernacexpr.SetEntryType (name, ETConstr (InCustomEntry scope, None, level))
-    ->
-      sequence
-        [
-          write name;
-          write " custom ";
-          write scope;
-          space;
-          pp_production_level level;
-        ]
-  | Vernacexpr.SetEntryType (name, ETConstr (InConstrEntry, None, level)) ->
-      sequence [ write name; write " constr "; pp_production_level level ]
+  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
+      spaced [ write name; pp_notation_entry entry; pp_production_level level ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
       sequence [ write name; space; pp_production_level level ]
   | Vernacexpr.SetLevel level ->
