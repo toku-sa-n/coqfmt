@@ -1173,18 +1173,34 @@ let pp_synterp_vernac_expr = function
           ntn_decl_scope = scope;
           ntn_decl_modifiers = modifiers;
         } ) ->
-      let pp_modifiers printer =
-        sequence
-          [
-            space;
-            parens
-              (map_commad
-                 (fun modifier ->
-                   let open CAst in
-                   pp_syntax_modifier modifier.v)
-                 modifiers);
-          ]
-          printer
+      let pp_modifiers =
+        let hor =
+          sequence
+            [
+              space;
+              parens
+                (map_commad
+                   (fun modifier ->
+                     let open CAst in
+                     pp_syntax_modifier modifier.v)
+                   modifiers);
+            ]
+        in
+        let ver =
+          sequence
+            [
+              space;
+              parens
+                (map_with_seps
+                   ~sep:(sequence [ comma; newline ])
+                   (fun modifier ->
+                     let open CAst in
+                     pp_syntax_modifier modifier.v)
+                   modifiers);
+            ]
+        in
+
+        hor <-|> ver
       in
 
       (* We cannot use `Option.value` here because the `Option` module is
