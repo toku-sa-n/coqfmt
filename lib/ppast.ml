@@ -34,8 +34,8 @@ let pp_lname CAst.{ v; loc = _ } = pp_name v
 let pp_lstring CAst.{ v; loc = _ } = write v
 
 let pp_definition_object_kind = function
-  | Decls.Example -> write "Example"
   | Decls.Definition -> write "Definition"
+  | Decls.Example -> write "Example"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sign = function NumTok.SPlus -> nop | NumTok.SMinus -> write "-"
