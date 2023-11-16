@@ -1180,9 +1180,7 @@ let pp_synterp_vernac_expr = function
               space;
               parens
                 (map_with_seps ~sep
-                   (fun modifier ->
-                     let open CAst in
-                     pp_syntax_modifier modifier.v)
+                   (fun modifier -> pp_syntax_modifier modifier.CAst.v)
                    modifiers);
             ]
         in
