@@ -613,6 +613,7 @@ let pp_syntax_modifier = function
       sequence [ write name; space; pp_production_level level ]
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
+  | Vernacexpr.SetOnlyParsing -> write "only parsing"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_gen_tactic_arg = function
