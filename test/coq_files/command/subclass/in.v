@@ -1,0 +1,1 @@
+SubClass foo:=nat.
