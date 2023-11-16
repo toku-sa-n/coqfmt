@@ -64,6 +64,9 @@ module Str : sig
   val dot : t -> unit
   (** Write out a dot. *)
 
+  val comma : t -> unit
+  (** Write out a comma. *)
+
   val blankline : t -> unit
   (** Write out a blank line. *)
 end
