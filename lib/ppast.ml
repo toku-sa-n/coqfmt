@@ -16,9 +16,8 @@ let generally_parens_needed = function
   | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
   | Constrexpr.CNotation _ | Constrexpr.CProdN _ ->
       true
-  | Constrexpr.CAppExpl ((name, None), [ _ ])
-    when Libnames.string_of_qualid name <> ".." ->
-      true
+  | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
+      Libnames.string_of_qualid name <> ".."
   | _ -> false
 
 let nop _ = ()
