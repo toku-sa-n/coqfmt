@@ -63,6 +63,7 @@ let newline t =
 module Str = struct
   let space = write " "
   let dot = write "."
+  let comma = write ","
 
   let blankline t =
     newline t;
