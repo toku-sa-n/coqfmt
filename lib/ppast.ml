@@ -1174,31 +1174,20 @@ let pp_synterp_vernac_expr = function
           ntn_decl_modifiers = modifiers;
         } ) ->
       let pp_modifiers =
-        let hor =
+        let pp sep =
           sequence
             [
               space;
               parens
-                (map_commad
+                (map_with_seps ~sep
                    (fun modifier ->
                      let open CAst in
                      pp_syntax_modifier modifier.v)
                    modifiers);
             ]
         in
-        let ver =
-          sequence
-            [
-              space;
-              parens
-                (map_with_seps
-                   ~sep:(sequence [ comma; newline ])
-                   (fun modifier ->
-                     let open CAst in
-                     pp_syntax_modifier modifier.v)
-                   modifiers);
-            ]
-        in
+        let hor = pp (write ", ") in
+        let ver = pp (sequence [ write ","; newline ]) in
 
         hor <-|> ver
       in
