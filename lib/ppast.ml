@@ -37,6 +37,7 @@ let pp_definition_object_kind = function
   | Decls.Coercion -> write "Coercion"
   | Decls.Definition -> write "Definition"
   | Decls.Example -> write "Example"
+  | Decls.SubClass -> write "SubClass"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sign = function NumTok.SPlus -> nop | NumTok.SMinus -> write "-"
