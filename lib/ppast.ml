@@ -294,7 +294,8 @@ and pp_constr_expr_r = function
                       (Extend.NumLevel _, Extend.BorderProd (Right, None)) ) )
                 ->
                   op_level h.v > op_level op
-              | _ -> op_level h.v >= op_level op
+              | _ ->
+                  List.length init_replacers <> 1 && op_level h.v >= op_level op
             in
             sequence
               [
