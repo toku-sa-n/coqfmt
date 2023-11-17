@@ -1366,6 +1366,9 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacFixpoint (NoDischarge, [ expr ]) ->
       sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
+  | Vernacexpr.VernacLocate (LocateAny CAst.{ v = Constrexpr.AN name; loc = _ })
+    ->
+      sequence [ write "Locate "; pp_qualid name; dot ]
   | Vernacexpr.VernacLocate
       (LocateAny CAst.{ v = Constrexpr.ByNotation (name, None); loc = _ }) ->
       sequence [ write "Locate "; doublequoted (write name); dot ]
