@@ -283,7 +283,10 @@ and pp_constr_expr_r = function
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
-              | _, Some LeftA, Some Left, _ | _, Some RightA, Some Right, _ ->
+              | _, Some LeftA, Some Left, _
+              | _, Some LeftA, None, _
+              | _, Some RightA, Some Right, _
+              | _, Some RightA, None, _ ->
                   op_level h.v > op_level op
               | ( _,
                   None,
