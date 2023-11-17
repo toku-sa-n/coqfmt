@@ -278,7 +278,8 @@ and pp_constr_expr_r = function
             let parens_needed =
               match (h.v, assoc, side, h_keys) with
               | Constrexpr.CLambdaN _, _, _, _ -> true
-              | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "_" ->
+              | Constrexpr.CNotation (_, (_, n), _), _, _, _
+                when n = "_" || n = "( _ )" ->
                   false
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
