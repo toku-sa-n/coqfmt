@@ -1278,8 +1278,8 @@ let pp_synterp_vernac_expr = function
                modifiers);
           write ".";
         ]
-  | Vernacexpr.VernacSetOption (false, _, OptionUnset) ->
-      write "Unset Printing Notations."
+  | Vernacexpr.VernacSetOption (false, names, OptionUnset) ->
+      sequence [ write "Unset "; map_spaced write names; dot ]
   | Vernacexpr.VernacSetOption (false, names, options) ->
       sequence
         [
