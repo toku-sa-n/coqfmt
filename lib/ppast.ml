@@ -614,6 +614,8 @@ let pp_syntax_modifier = function
       in
 
       sequence [ write "in custom "; write name; pp_level ]
+  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, DefaultLevel)) ->
+      spaced [ write name; pp_notation_entry entry ]
   | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
       spaced [ write name; pp_notation_entry entry; pp_production_level level ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
