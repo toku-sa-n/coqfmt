@@ -1249,8 +1249,14 @@ let pp_synterp_vernac_expr = function
             hor <-|> ver
       in
 
+      let parens_needed expr =
+        match expr.CAst.v with
+        | Constrexpr.CLetIn _ -> true
+        | _ -> generally_parens_needed expr.CAst.v
+      in
+
       let conditional_parens expr =
-        if generally_parens_needed expr.CAst.v then parens (pp_constr_expr expr)
+        if parens_needed expr then parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
