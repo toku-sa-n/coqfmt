@@ -14,8 +14,13 @@ exception NotImplemented of string
     function to return a `true` in such cases. *)
 let generally_parens_needed = function
   | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
-  | Constrexpr.CNotation _ | Constrexpr.CProdN _ ->
+  | Constrexpr.CProdN _ ->
       true
+  | Constrexpr.CNotation (_, (_, notation), _) ->
+      let parts = String.split_on_char ' ' notation in
+      let enclosed = List.hd parts = "[" && List.rev parts |> List.hd = "]" in
+
+      List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
       Libnames.string_of_qualid name <> ".."
   | _ -> false
