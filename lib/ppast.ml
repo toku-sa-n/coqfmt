@@ -1225,7 +1225,13 @@ let pp_synterp_vernac_expr = function
       let pp_scope =
         match scope with
         | None -> nop
-        | Some scope -> sequence [ write " : "; write scope ]
+        | Some scope ->
+            let hor = sequence [ write " : "; write scope ] in
+            let ver =
+              sequence [ newline; sequence [ write ": "; write scope ] ]
+            in
+
+            hor <-|> ver
       in
 
       let conditional_parens expr =
