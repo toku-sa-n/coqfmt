@@ -828,6 +828,7 @@ let pp_raw_atomic_tactic_expr = function
         let open Locus in
         match in_bindings with
         | { onhyps = Some []; concl_occs = AllOccurrences } -> nop
+        | { onhyps = None; concl_occs = AllOccurrences } -> write " in *"
         | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
             sequence [ write " in "; pp_hyp_location_expr name ]
         | _ -> fun printer -> raise (NotImplemented (contents printer))
