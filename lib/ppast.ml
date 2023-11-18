@@ -1544,6 +1544,8 @@ let separator current next =
   | _, VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), _
   | _, VernacSynPure (VernacCoercion _)
+  | VernacSynterp (VernacImport _), _
+  | _, VernacSynterp (VernacImport _)
   | _, VernacSynterp (VernacDefineModule _)
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
