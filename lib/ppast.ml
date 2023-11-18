@@ -855,13 +855,20 @@ let pp_raw_atomic_tactic_expr = function
         replacee,
         { onhyps = None; concl_occs = AllOccurrences },
         false,
-        None ) ->
+        eqn ) ->
+      let pp_eqn =
+        match eqn with
+        | None -> nop
+        | Some x -> sequence [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
+      in
+
       sequence
         [
           write "remember ";
           pp_constr_expr_with_parens replacee;
           write " as ";
           pp_name replacer;
+          pp_eqn;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
