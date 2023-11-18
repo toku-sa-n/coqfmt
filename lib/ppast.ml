@@ -14,8 +14,20 @@ exception NotImplemented of string
     function to return a `true` in such cases. *)
 let generally_parens_needed = function
   | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
-  | Constrexpr.CNotation _ | Constrexpr.CProdN _ ->
+  | Constrexpr.CProdN _ ->
       true
+  | Constrexpr.CNotation (_, (_, notation), _) ->
+      let parts = String.split_on_char ' ' notation in
+      let enclosed_by a b =
+        List.hd parts |> String.starts_with ~prefix:a
+        && List.rev parts |> List.hd |> String.ends_with ~suffix:b
+      in
+      let enclosed =
+        enclosed_by "(" ")" || enclosed_by "{" "}" || enclosed_by "<" ">"
+        || enclosed_by "[" "]"
+      in
+
+      List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
       Libnames.string_of_qualid name <> ".."
   | _ -> false
@@ -1226,7 +1238,13 @@ let pp_synterp_vernac_expr = function
       let pp_scope =
         match scope with
         | None -> nop
-        | Some scope -> sequence [ write " : "; write scope ]
+        | Some scope ->
+            let hor = sequence [ write " : "; write scope ] in
+            let ver =
+              sequence [ newline; sequence [ write ": "; write scope ] ]
+            in
+
+            hor <-|> ver
       in
 
       let conditional_parens expr =
