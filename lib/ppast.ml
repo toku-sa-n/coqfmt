@@ -630,7 +630,7 @@ let pp_syntax_modifier = function
       spaced [ write name; pp_notation_entry entry ]
   | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
       spaced [ write name; pp_notation_entry entry; pp_production_level level ]
-  | Vernacexpr.SetEntryType (name, ETPattern _) ->
+  | Vernacexpr.SetEntryType (name, ETPattern (false, None)) ->
       sequence [ write name; write " pattern" ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
       sequence [ write name; space; pp_production_level level ]
