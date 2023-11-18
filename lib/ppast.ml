@@ -18,7 +18,11 @@ let generally_parens_needed = function
       true
   | Constrexpr.CNotation (_, (_, notation), _) ->
       let parts = String.split_on_char ' ' notation in
-      let enclosed = List.hd parts = "[" && List.rev parts |> List.hd = "]" in
+      let enclosed_by a b =
+        List.hd parts |> String.starts_with ~prefix:a
+        && List.rev parts |> List.hd |> String.ends_with ~suffix:b
+      in
+      let enclosed = enclosed_by "[" "]" || enclosed_by "<" ">" in
 
       List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
