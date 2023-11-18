@@ -22,7 +22,9 @@ let generally_parens_needed = function
         List.hd parts |> String.starts_with ~prefix:a
         && List.rev parts |> List.hd |> String.ends_with ~suffix:b
       in
-      let enclosed = enclosed_by "[" "]" || enclosed_by "<" ">" in
+      let enclosed =
+        enclosed_by "[" "]" || enclosed_by "<" ">" || enclosed_by "(" ")"
+      in
 
       List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
