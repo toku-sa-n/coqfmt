@@ -768,7 +768,20 @@ let pp_bindings = function
                pp_constr_expr replacer;
              ])
       in
-      sequence [ write " with "; map_spaced pp_one_binding bindings ]
+
+      let hor =
+        sequence [ write " with "; map_spaced pp_one_binding bindings ]
+      in
+      let ver =
+        sequence
+          [
+            newline;
+            indented
+              (sequence [ write "with "; map_spaced pp_one_binding bindings ]);
+          ]
+      in
+
+      hor <-|> ver
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
