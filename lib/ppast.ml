@@ -1397,6 +1397,18 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
+        | Some
+            (Cbv
+              {
+                rBeta = true;
+                rMatch = true;
+                rFix = true;
+                rCofix = true;
+                rZeta = true;
+                rDelta = true;
+                rConst = [];
+              }) ->
+            write "Eval compute in"
         | Some (CbvVm None) -> write "Compute"
         | None -> write "Check"
         | _ -> fun printer -> raise (NotImplemented (contents printer))
@@ -1566,6 +1578,37 @@ let separator current next =
   | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
   | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
   | _, VernacSynPure (VernacProof _)
+  (* `Eval compute in` *)
+  | ( VernacSynPure
+        (VernacCheckMayEval
+          ( Some
+              (Cbv
+                {
+                  rBeta = true;
+                  rMatch = true;
+                  rFix = true;
+                  rCofix = true;
+                  rZeta = true;
+                  rDelta = true;
+                  rConst = [];
+                }),
+            _,
+            _ )),
+      VernacSynPure
+        (VernacCheckMayEval
+          ( Some
+              (Cbv
+                {
+                  rBeta = true;
+                  rMatch = true;
+                  rFix = true;
+                  rCofix = true;
+                  rZeta = true;
+                  rDelta = true;
+                  rConst = [];
+                }),
+            _,
+            _ )) )
   (* `Compute` *)
   | ( VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)),
       VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)) )
