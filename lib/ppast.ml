@@ -590,7 +590,7 @@ let pp_fixpoint_expr = function
           pp_return_type;
           write " :=";
           newline;
-          indented (sequence [ pp_constr_expr body_def; dot ]);
+          indented (pp_constr_expr body_def);
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -1440,8 +1440,15 @@ let pp_synpure_vernac_expr = function
           pp_qualid dst;
           dot;
         ]
-  | Vernacexpr.VernacFixpoint (NoDischarge, [ expr ]) ->
-      sequence [ write "Fixpoint "; pp_fixpoint_expr expr ]
+  | Vernacexpr.VernacFixpoint (NoDischarge, exprs) ->
+      sequence
+        [
+          write "Fixpoint ";
+          map_with_seps
+            ~sep:(sequence [ newline; write "with " ])
+            pp_fixpoint_expr exprs;
+          dot;
+        ]
   | Vernacexpr.VernacLocate (LocateAny CAst.{ v = Constrexpr.AN name; loc = _ })
     ->
       sequence [ write "Locate "; pp_qualid name; dot ]
