@@ -338,23 +338,17 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], _ ->
-                  sequence
-                    [ pp_constr_expr x; printers t [] local_assums zs patterns ]
-              | [], _ -> printers t [] local_assums zs patterns
-              | xs, [] ->
-                  sequence
-                    [
-                      map_with_seps ~sep:(write "; ") pp_constr_expr xs;
-                      printers t [] local_assums zs patterns;
-                    ]
+              | [ x ], _ -> pp_constr_expr x
+              | [], _ -> nop
+              | xs, [] -> map_with_seps ~sep:(write "; ") pp_constr_expr xs
               | x :: xs, sep :: seps ->
                   sequence
                     [
                       pp_constr_expr x; write (get_sep sep); space; loop xs seps;
                     ]
             in
-            loop elems seps
+
+            sequence [ loop elems seps; printers t [] local_assums zs patterns ]
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
