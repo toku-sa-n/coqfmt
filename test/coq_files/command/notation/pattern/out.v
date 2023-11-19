@@ -1,3 +1,3 @@
 Notation "( p )" := p (p pattern).
 
-Definition id {X} (x : X) := (x).
+Definition id {X : _} (x : X) := (x).
