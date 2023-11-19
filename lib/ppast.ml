@@ -271,10 +271,9 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
-
-      let pp_single unparsings replacers local_assums entry_keys patterns =
+      let rec printers unparsings replacers local_assums entry_keys patterns =
         match (unparsings, replacers, local_assums, entry_keys, patterns) with
-        | [], [], [], [], [] -> (nop, [], [], [], [], [])
+        | [], [], [], [], [] -> nop
         | [], _ :: _, _, _, _ -> failwith "Too many replacers."
         | [], _, _ :: _, _, _ -> failwith "Too many local assumptions."
         | [], _, _, _ :: _, _ -> failwith "Too many entry keys."
@@ -316,17 +315,19 @@ and pp_constr_expr_r = function
               | _ ->
                   List.length init_replacers <> 1 && op_level h.v >= op_level op
             in
-
-            ( pp_constr_expr_with_parens_conditionally parens_needed h,
-              t_u,
-              t_r,
-              local_assums,
-              t_keys,
-              patterns )
+            sequence
+              [
+                pp_constr_expr_with_parens_conditionally parens_needed h;
+                printers t_u t_r local_assums t_keys patterns;
+              ]
         | Ppextend.UnpMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: t, _, _, _ :: keys, (h_p, _) :: t_p ->
-            (pp_cases_pattern_expr h_p, t, replacers, local_assums, keys, t_p)
+            sequence
+              [
+                pp_cases_pattern_expr h_p;
+                printers t replacers local_assums keys t_p;
+              ]
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few entry keys."
         | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs, _ ->
@@ -335,41 +336,25 @@ and pp_constr_expr_r = function
               | Ppextend.UnpCut (PpBrk _) -> ";"
               | _ -> failwith "TODO"
             in
-
-            let rec loop elems seps is_first printer =
-              match (elems, seps, is_first) with
-              | [], _, _ -> nop printer
-              | [ h ], _, true -> pp_constr_expr h printer
-              | [ h ], _, false -> (
-                  let pp = pp_constr_expr h in
-
-                  match can_pp_oneline (sequence [ space; pp ]) printer with
-                  | true -> sequence [ space; pp ] printer
-                  | false -> sequence [ newline; pp ] printer)
-              | h :: t, [], true ->
+            let rec loop elems seps =
+              match (elems, seps) with
+              | [ x ], _ ->
                   sequence
-                    [ pp_constr_expr h; write ";"; loop t [] false ]
-                    printer
-              | h :: t, [], false -> (
-                  let pp = sequence [ pp_constr_expr h; write ";" ] in
-
-                  match can_pp_oneline (sequence [ space; pp ]) printer with
-                  | true -> sequence [ space; pp; loop t [] false ] printer
-                  | false -> sequence [ newline; pp; loop t [] false ] printer)
-              | h :: t, sep :: seps, true ->
+                    [ pp_constr_expr x; printers t [] local_assums zs patterns ]
+              | [], _ -> printers t [] local_assums zs patterns
+              | xs, [] ->
                   sequence
-                    [ pp_constr_expr h; write (get_sep sep); loop t seps false ]
-                    printer
-              | h :: t, sep :: seps, false -> (
-                  let pp = sequence [ pp_constr_expr h; write (get_sep sep) ] in
-
-                  match can_pp_oneline (sequence [ space; pp ]) printer with
-                  | true -> sequence [ space; pp; loop t seps false ] printer
-                  | false -> sequence [ newline; pp; loop t seps false ] printer
-                  )
+                    [
+                      map_with_seps ~sep:(write "; ") pp_constr_expr xs;
+                      printers t [] local_assums zs patterns;
+                    ]
+              | x :: xs, sep :: seps ->
+                  sequence
+                    [
+                      pp_constr_expr x; write (get_sep sep); space; loop xs seps;
+                    ]
             in
-
-            (loop elems seps true, t, [], local_assums, zs, patterns)
+            loop elems seps
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
@@ -379,39 +364,28 @@ and pp_constr_expr_r = function
             assums,
             _ :: keys,
             _ ) ->
-            (map_spaced pp_local_binder_expr assums, t, xs, [], keys, patterns)
-        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _, _ ->
-            ( (fun printer -> raise (NotImplemented (contents printer))),
-              [],
-              [],
-              [],
-              [],
-              [] )
-        | Ppextend.UnpTerminal s :: t, xs, _, keys, _ ->
-            (write s, t, xs, local_assums, keys, patterns)
-        | Ppextend.UnpBox (_, xs) :: t, _, _, keys, _ ->
-            (nop, List.map snd xs @ t, replacers, local_assums, keys, patterns)
-        | Ppextend.UnpCut (PpBrk _) :: t, xs, _, keys, _ ->
-            (space <-|> newline, t, xs, local_assums, keys, patterns)
-        | Ppextend.UnpCut PpFnl :: _, _, _, _, _ -> failwith "TODO"
-      in
-
-      let rec pp unparsings replacers local_assums entry_keys patterns =
-        match
-          pp_single unparsings replacers local_assums entry_keys patterns
-        with
-        | p, [], [], [], [], [] -> p
-        | p, unparsings, replacers, local_assums, entry_keys, patterns ->
             sequence
-              [ p; pp unparsings replacers local_assums entry_keys patterns ]
-      and _pp_or_cut unparsings replacers local_assums entry_keys patterns =
-        match unparsings with
-        | Ppextend.UnpCut (PpBrk _) :: _ ->
-            pp unparsings replacers local_assums entry_keys patterns
-        | _ -> pp unparsings replacers local_assums entry_keys patterns
+              [
+                map_spaced pp_local_binder_expr assums;
+                printers t xs [] keys patterns;
+              ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, xs, _, keys, _ ->
+            sequence [ write s; printers t xs local_assums keys patterns ]
+        | Ppextend.UnpBox (_, xs) :: t, _, _, keys, _ ->
+            printers (List.map snd xs @ t) replacers local_assums keys patterns
+        | Ppextend.UnpCut _ :: t, xs, _, keys, _ ->
+            let hor =
+              sequence [ space; printers t xs local_assums keys patterns ]
+            in
+            let ver =
+              sequence [ newline; printers t xs local_assums keys patterns ]
+            in
+            hor <-|> ver
       in
 
-      pp printing_rule.notation_printing_unparsing init_replacers
+      printers printing_rule.notation_printing_unparsing init_replacers
         (List.flatten local_assums)
         entry_keys init_patterns
   | Constrexpr.CPrim prim -> pp_prim_token prim
