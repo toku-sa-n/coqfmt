@@ -271,6 +271,135 @@ and pp_constr_expr_r = function
       in
 
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
+
+      let rec pp unparsings replacers local_assums entry_keys patterns =
+        match (unparsings, replacers, local_assums, entry_keys, patterns) with
+        | [], [], [], [], [] -> nop
+        | [], _ :: _, _, _, _ -> failwith "Too many replacers."
+        | [], _, _ :: _, _, _ -> failwith "Too many local assumptions."
+        | [], _, _, _ :: _, _ -> failwith "Too many entry keys."
+        | [], _, _, _, _ :: _ -> failwith "Too many patterns."
+        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys, _
+          ->
+            (* CProdN denotes a `forall foo, ... ` value. This value needs to be
+               enclosed by parentheses if it is not on the rightmost position,
+               otherwise all expressions will be in the scope of the `forall
+               foo`.
+
+               For example, `(forall x, f x = x) -> (forall x, f x = x)` is
+               valid, but `forall x, f x = x -> forall x, f x = x` will be
+               interpreted as `forall x, (f x = x -> forall x, f x = x).` which
+               is invalid. Certainly, these two have different meanings, and
+               thus lhs' `forall` needs parentheses.*)
+            let parens_needed =
+              match (h.v, assoc, side, h_keys) with
+              | Constrexpr.CLambdaN _, _, _, _ -> true
+              | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "( _ )" ->
+                  false
+              | Constrexpr.CProdN _, _, _, _ -> t_u <> []
+              | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
+                  op_level h.v >= op_level op
+              | _, Some LeftA, Some Left, _
+              | _, Some LeftA, None, _
+              | _, Some RightA, Some Right, _
+              | _, Some RightA, None, _ ->
+                  op_level h.v > op_level op
+              | ( _,
+                  None,
+                  None,
+                  Extend.ETConstr
+                    ( Constrexpr.InConstrEntry,
+                      None,
+                      (Extend.NumLevel _, Extend.BorderProd (Right, None)) ) )
+                ->
+                  op_level h.v > op_level op
+              | _ ->
+                  List.length init_replacers <> 1 && op_level h.v >= op_level op
+            in
+            sequence
+              [
+                pp_constr_expr_with_parens_conditionally parens_needed h;
+                pp t_u t_r local_assums t_keys patterns;
+              ]
+        | Ppextend.UnpMetaVar _ :: _, _, _, _, _ ->
+            failwith "Too few replacers."
+        | Ppextend.UnpBinderMetaVar _ :: t, _, _, _ :: keys, (h_p, _) :: t_p ->
+            sequence
+              [
+                pp_cases_pattern_expr h_p; pp t replacers local_assums keys t_p;
+              ]
+        | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
+            failwith "Too few entry keys."
+        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs, _ ->
+            let get_sep = function
+              | Ppextend.UnpTerminal s -> s
+              | Ppextend.UnpCut (PpBrk _) -> ";"
+              | _ -> failwith "TODO"
+            in
+
+            let rec loop elems seps is_first printer =
+              match (elems, seps, is_first) with
+              | [], _, _ -> nop printer
+              | [ h ], _, true -> pp_constr_expr h printer
+              | [ h ], _, false -> (
+                  let pp = pp_constr_expr h in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp ] printer
+                  | false -> sequence [ newline; pp ] printer)
+              | h :: t, [], true ->
+                  sequence
+                    [ pp_constr_expr h; write ";"; loop t [] false ]
+                    printer
+              | h :: t, [], false -> (
+                  let pp = sequence [ pp_constr_expr h; write ";" ] in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp; loop t [] false ] printer
+                  | false -> sequence [ newline; pp; loop t [] false ] printer)
+              | h :: t, sep :: seps, true ->
+                  sequence
+                    [ pp_constr_expr h; write (get_sep sep); loop t seps false ]
+                    printer
+              | h :: t, sep :: seps, false -> (
+                  let pp = sequence [ pp_constr_expr h; write (get_sep sep) ] in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp; loop t seps false ] printer
+                  | false -> sequence [ newline; pp; loop t seps false ] printer
+                  )
+            in
+
+            sequence [ loop elems seps true; pp t [] local_assums zs patterns ]
+        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
+            raise (NotImplemented "")
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
+            raise (NotImplemented "Too few entry keys.")
+        | ( Ppextend.UnpBinderListMetaVar (true, true, [ _ ]) :: t,
+            xs,
+            assums,
+            _ :: keys,
+            _ ) ->
+            sequence
+              [
+                map_spaced pp_local_binder_expr assums; pp t xs [] keys patterns;
+              ]
+        | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _, _ ->
+            fun printer -> raise (NotImplemented (contents printer))
+        | Ppextend.UnpTerminal s :: t, xs, _, keys, _ ->
+            sequence [ write s; pp t xs local_assums keys patterns ]
+        | Ppextend.UnpBox (_, xs) :: t, _, _, keys, _ ->
+            pp (List.map snd xs @ t) replacers local_assums keys patterns
+        | Ppextend.UnpCut (PpBrk _) :: t, xs, _, keys, _ ->
+            let hor = sequence [ space; pp t xs local_assums keys patterns ] in
+            let ver =
+              sequence [ newline; pp t xs local_assums keys patterns ]
+            in
+
+            hor <-|> ver
+        | Ppextend.UnpCut PpFnl :: _, _, _, _, _ -> failwith "TODO"
+      in
+
       let rec pp unparsings replacers local_assums entry_keys patterns =
         match (unparsings, replacers, local_assums, entry_keys, patterns) with
         | [], [], [], [], [] -> nop
