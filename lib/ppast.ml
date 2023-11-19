@@ -1504,7 +1504,7 @@ let pp_synpure_vernac_expr = function
         [
           write "Fixpoint ";
           map_with_seps
-            ~sep:(sequence [ newline; write "with " ])
+            ~sep:(sequence [ blankline; write "with " ])
             pp_fixpoint_expr exprs;
           dot;
         ]
@@ -1586,7 +1586,7 @@ let pp_synpure_vernac_expr = function
         [
           write "Inductive ";
           map_with_seps
-            ~sep:(sequence [ newline; write "with " ])
+            ~sep:(sequence [ blankline; write "with " ])
             pp_single_inductive inductives;
           dot;
         ]
