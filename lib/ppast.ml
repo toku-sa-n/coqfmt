@@ -668,6 +668,18 @@ let rec pp_gen_tactic_arg = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
+  | Genredexpr.Cbv
+      Genredexpr.
+        {
+          rBeta = true;
+          rMatch = true;
+          rFix = true;
+          rCofix = true;
+          rZeta = true;
+          rDelta = true;
+          rConst = [];
+        } ->
+      write "cbv"
   | Genredexpr.Simpl
       ( Genredexpr.
           {
