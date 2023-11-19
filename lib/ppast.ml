@@ -338,8 +338,8 @@ and pp_constr_expr_r = function
             in
             let rec loop elems seps =
               match (elems, seps) with
-              | [ x ], _ -> pp_constr_expr x
               | [], _ -> nop
+              | [ x ], _ -> pp_constr_expr x
               | xs, [] -> map_with_seps ~sep:(write "; ") pp_constr_expr xs
               | x :: xs, sep :: seps ->
                   sequence
