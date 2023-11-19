@@ -668,6 +668,7 @@ let rec pp_gen_tactic_arg = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
+  | Genredexpr.Cbv _ -> write "cbv"
   | Genredexpr.Simpl
       ( Genredexpr.
           {
