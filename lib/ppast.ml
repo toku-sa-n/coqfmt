@@ -404,6 +404,11 @@ and pp_constr_expr_r = function
         | p, unparsings, replacers, local_assums, entry_keys, patterns ->
             sequence
               [ p; pp unparsings replacers local_assums entry_keys patterns ]
+      and _pp_or_cut unparsings replacers local_assums entry_keys patterns =
+        match unparsings with
+        | Ppextend.UnpCut (PpBrk _) :: _ ->
+            pp unparsings replacers local_assums entry_keys patterns
+        | _ -> pp unparsings replacers local_assums entry_keys patterns
       in
 
       pp printing_rule.notation_printing_unparsing init_replacers
