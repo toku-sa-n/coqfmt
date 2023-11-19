@@ -336,19 +336,42 @@ and pp_constr_expr_r = function
               | Ppextend.UnpCut (PpBrk _) -> ";"
               | _ -> failwith "TODO"
             in
-            let rec loop elems seps =
-              match (elems, seps) with
-              | [], _ -> nop
-              | [ x ], _ -> pp_constr_expr x
-              | xs, [] -> map_with_seps ~sep:(write "; ") pp_constr_expr xs
-              | x :: xs, sep :: seps ->
+
+            let rec loop elems seps is_first printer =
+              match (elems, seps, is_first) with
+              | [], _, _ -> nop printer
+              | [ h ], _, true -> pp_constr_expr h printer
+              | [ h ], _, false -> (
+                  let pp = pp_constr_expr h in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp ] printer
+                  | false -> sequence [ newline; pp ] printer)
+              | h :: t, [], true ->
                   sequence
-                    [
-                      pp_constr_expr x; write (get_sep sep); space; loop xs seps;
-                    ]
+                    [ pp_constr_expr h; write ";"; loop t [] false ]
+                    printer
+              | h :: t, [], false -> (
+                  let pp = sequence [ pp_constr_expr h; write ";" ] in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp; loop t [] false ] printer
+                  | false -> sequence [ newline; pp; loop t [] false ] printer)
+              | h :: t, sep :: seps, true ->
+                  sequence
+                    [ pp_constr_expr h; write (get_sep sep); loop t seps false ]
+                    printer
+              | h :: t, sep :: seps, false -> (
+                  let pp = sequence [ pp_constr_expr h; write (get_sep sep) ] in
+
+                  match can_pp_oneline (sequence [ space; pp ]) printer with
+                  | true -> sequence [ space; pp; loop t seps false ] printer
+                  | false -> sequence [ newline; pp; loop t seps false ] printer
+                  )
             in
 
-            sequence [ loop elems seps; printers t [] local_assums zs patterns ]
+            sequence
+              [ loop elems seps true; printers t [] local_assums zs patterns ]
         | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
@@ -369,14 +392,16 @@ and pp_constr_expr_r = function
             sequence [ write s; printers t xs local_assums keys patterns ]
         | Ppextend.UnpBox (_, xs) :: t, _, _, keys, _ ->
             printers (List.map snd xs @ t) replacers local_assums keys patterns
-        | Ppextend.UnpCut _ :: t, xs, _, keys, _ ->
+        | Ppextend.UnpCut (PpBrk _) :: t, xs, _, keys, _ ->
             let hor =
               sequence [ space; printers t xs local_assums keys patterns ]
             in
             let ver =
               sequence [ newline; printers t xs local_assums keys patterns ]
             in
+
             hor <-|> ver
+        | Ppextend.UnpCut PpFnl :: _, _, _, _, _ -> failwith "TODO"
       in
 
       printers printing_rule.notation_printing_unparsing init_replacers
