@@ -876,7 +876,7 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_raw_atomic_tactic_expr = function
+let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
       let pp_in_clause =
         match in_clause with
@@ -900,6 +900,16 @@ let pp_raw_atomic_tactic_expr = function
           write " : ";
           pp_constr_expr expr;
           write ")";
+        ]
+  | Tacexpr.TacAssert (false, true, Some (Some by), Some name, expr) ->
+      sequence
+        [
+          write "assert (";
+          pp_intro_pattern_expr name.v;
+          write " : ";
+          pp_constr_expr expr;
+          write ") by ";
+          pp_raw_tactic_expr by;
         ]
   | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
@@ -976,7 +986,7 @@ let pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
+and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
   pp_gen_tactic_expr_r v
 
 and pp_gen_tactic_expr_r = function
