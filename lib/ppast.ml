@@ -533,9 +533,19 @@ let pp_definition_expr = function
         ]
   | Vernacexpr.DefineBody (args, None, def_body, return_ty) ->
       let pp_args =
-        map_sequence
-          (fun arg -> sequence [ space; pp_local_binder_expr arg ])
-          args
+        let hor =
+          map_sequence
+            (fun arg -> sequence [ space; pp_local_binder_expr arg ])
+            args
+        in
+        let ver =
+          map_sequence
+            (fun arg ->
+              sequence [ newline; indented (pp_local_binder_expr arg) ])
+            args
+        in
+
+        hor <-|> ver
       in
 
       let pp_return_ty =
