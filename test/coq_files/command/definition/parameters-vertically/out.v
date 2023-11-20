@@ -1,3 +1,3 @@
 Definition foo
   (loooooooooooooooooooooooooooooooong : nat)
-  (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa : nat) := 1.
+  (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa : nat) := 0.
