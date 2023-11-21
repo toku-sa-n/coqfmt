@@ -100,6 +100,9 @@ module Lineup : sig
   val spaced : (t -> unit) list -> t -> unit
   (** Run the given printers space-separatedly. *)
 
+  val lined : (t -> unit) list -> t -> unit
+  (** Run the given printers one per line. *)
+
   val map_spaced : ('a -> t -> unit) -> 'a list -> t -> unit
   (** Map the elements of the given list to printers and run them
   space-separatedly. *)

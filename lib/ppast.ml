@@ -203,10 +203,9 @@ and pp_constr_expr_r = function
           pp_constr_expr cond;
           newline;
           indented
-            (sequence
+            (lined
                [
                  write "then " |=> pp_constr_expr t;
-                 newline;
                  write "else " |=> pp_constr_expr f;
                ]);
         ]
