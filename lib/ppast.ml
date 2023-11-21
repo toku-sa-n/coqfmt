@@ -205,11 +205,9 @@ and pp_constr_expr_r = function
           indented
             (sequence
                [
-                 write "then ";
-                 pp_constr_expr t;
+                 write "then " |=> pp_constr_expr t;
                  newline;
-                 write "else ";
-                 pp_constr_expr f;
+                 write "else " |=> pp_constr_expr f;
                ]);
         ]
   | Constrexpr.CLambdaN (args, body) ->
