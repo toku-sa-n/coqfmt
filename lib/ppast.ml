@@ -994,42 +994,90 @@ and pp_raw_tactic_expr_r = function
       let rec loop idents replacers =
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
-        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
-            match
-              ( Conversion.constr_expr_of_raw_generic_argument args,
-                Conversion.destruction_arg_of_raw_generic_argument args,
-                Conversion.intro_pattern_list_of_raw_generic_argument args,
-                Conversion.clause_expr_of_raw_generic_argument args,
-                Conversion.bindings_list_of_raw_generic_argument args,
-                Conversion.id_of_raw_generic_argument args,
-                Conversion.hyp_of_raw_generic_argument args )
-            with
-            | None, None, None, None, None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _, _, _, _, _ ->
-                pp_constr_expr_with_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _, _, _, _, _ ->
-                pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps, _, _, _, _ ->
-                let open CAst in
-                map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
-                :: loop t_ids t_reps
-            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _, _, _
-              ->
-                pp_hyp_location_expr name :: loop t_ids t_reps
-            | _, _, _, _, Some bindings, _, _ ->
-                let pp_binding = function
-                  | Tactypes.ImplicitBindings [ x ] ->
-                      pp_constr_expr_with_parens x
-                  | _ ->
-                      fun printer -> raise (NotImplemented (contents printer))
-                in
+        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps ->
+            let try_pp_constr_expr =
+              match Conversion.constr_expr_of_raw_generic_argument args with
+              | Some expr -> Some (pp_constr_expr_with_parens expr)
+              | None -> None
+            in
 
-                map_commad pp_binding bindings :: loop t_ids t_reps
-            | _, _, _, _, _, Some id, _ -> pp_id id :: loop t_ids t_reps
-            | _, _, _, _, _, _, Some [ name ] ->
-                pp_lident name :: loop t_ids t_reps
-            | _ ->
-                [ (fun printer -> raise (NotImplemented (contents printer))) ])
+            let try_pp_destruction_arg =
+              match Conversion.destruction_arg_of_raw_generic_argument args with
+              | Some expr -> Some (pp_destruction_arg expr)
+              | None -> None
+            in
+
+            let try_pp_intro_pattern_expr =
+              match
+                Conversion.intro_pattern_list_of_raw_generic_argument args
+              with
+              | Some exprs ->
+                  Some
+                    (map_spaced
+                       (fun expr -> pp_intro_pattern_expr expr.CAst.v)
+                       exprs)
+              | None -> None
+            in
+
+            let try_pp_clause_expr =
+              match Conversion.clause_expr_of_raw_generic_argument args with
+              | Some { onhyps = Some [ name ]; concl_occs = _ } ->
+                  Some (pp_hyp_location_expr name)
+              | Some _ ->
+                  Some
+                    (fun printer -> raise (NotImplemented (contents printer)))
+              | None -> None
+            in
+
+            let try_pp_bindings =
+              match Conversion.bindings_list_of_raw_generic_argument args with
+              | Some bindings ->
+                  Some
+                    (map_commad
+                       (function
+                         | Tactypes.ImplicitBindings [ x ] ->
+                             pp_constr_expr_with_parens x
+                         | _ ->
+                             fun printer ->
+                               raise (NotImplemented (contents printer)))
+                       bindings)
+              | None -> None
+            in
+
+            let try_pp_id =
+              match Conversion.id_of_raw_generic_argument args with
+              | Some id -> Some (pp_id id)
+              | None -> None
+            in
+
+            let try_pp_hyp =
+              match Conversion.hyp_of_raw_generic_argument args with
+              | Some [ name ] -> Some (pp_lident name)
+              | Some _ ->
+                  Some
+                    (fun printer -> raise (NotImplemented (contents printer)))
+              | None -> None
+            in
+
+            let printers =
+              [
+                try_pp_constr_expr;
+                try_pp_destruction_arg;
+                try_pp_intro_pattern_expr;
+                try_pp_clause_expr;
+                try_pp_bindings;
+                try_pp_id;
+                try_pp_hyp;
+              ]
+            in
+
+            let rec try_pp = function
+              | [] -> loop t_ids t_reps
+              | None :: t -> try_pp t
+              | Some x :: _ -> x :: loop t_ids t_reps
+            in
+
+            try_pp printers
         | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
