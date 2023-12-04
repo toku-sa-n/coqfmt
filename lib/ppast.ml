@@ -995,68 +995,54 @@ and pp_raw_tactic_expr_r = function
         match (idents, replacers) with
         | "#" :: _, [] -> failwith "Too few replacers."
         | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps ->
+            let try_pp converter pp =
+              match converter args with Some x -> Some (pp x) | None -> None
+            in
+
             let try_pp_constr_expr =
-              match Conversion.constr_expr_of_raw_generic_argument args with
-              | Some expr -> Some (pp_constr_expr_with_parens expr)
-              | None -> None
+              try_pp Conversion.constr_expr_of_raw_generic_argument
+                pp_constr_expr_with_parens
             in
 
             let try_pp_destruction_arg =
-              match Conversion.destruction_arg_of_raw_generic_argument args with
-              | Some expr -> Some (pp_destruction_arg expr)
-              | None -> None
+              try_pp Conversion.destruction_arg_of_raw_generic_argument
+                pp_destruction_arg
             in
 
             let try_pp_intro_pattern_expr =
-              match
-                Conversion.intro_pattern_list_of_raw_generic_argument args
-              with
-              | Some exprs ->
-                  Some
-                    (map_spaced
-                       (fun expr -> pp_intro_pattern_expr expr.CAst.v)
-                       exprs)
-              | None -> None
+              try_pp Conversion.intro_pattern_list_of_raw_generic_argument
+                (map_spaced (fun expr -> pp_intro_pattern_expr expr.CAst.v))
             in
 
             let try_pp_clause_expr =
-              match Conversion.clause_expr_of_raw_generic_argument args with
-              | Some { onhyps = Some [ name ]; concl_occs = _ } ->
-                  Some (pp_hyp_location_expr name)
-              | Some _ ->
-                  Some
-                    (fun printer -> raise (NotImplemented (contents printer)))
-              | None -> None
+              let pp = function
+                | { Locus.onhyps = Some [ name ]; concl_occs = _ } ->
+                    pp_hyp_location_expr name
+                | _ -> fun printer -> raise (NotImplemented (contents printer))
+              in
+
+              try_pp Conversion.clause_expr_of_raw_generic_argument pp
             in
 
             let try_pp_bindings =
-              match Conversion.bindings_list_of_raw_generic_argument args with
-              | Some bindings ->
-                  Some
-                    (map_commad
-                       (function
-                         | Tactypes.ImplicitBindings [ x ] ->
-                             pp_constr_expr_with_parens x
-                         | _ ->
-                             fun printer ->
-                               raise (NotImplemented (contents printer)))
-                       bindings)
-              | None -> None
+              try_pp Conversion.bindings_list_of_raw_generic_argument
+                (map_commad (function
+                  | Tactypes.ImplicitBindings [ x ] ->
+                      pp_constr_expr_with_parens x
+                  | _ ->
+                      fun printer -> raise (NotImplemented (contents printer))))
             in
 
             let try_pp_id =
-              match Conversion.id_of_raw_generic_argument args with
-              | Some id -> Some (pp_id id)
-              | None -> None
+              try_pp Conversion.id_of_raw_generic_argument pp_id
             in
 
             let try_pp_hyp =
-              match Conversion.hyp_of_raw_generic_argument args with
-              | Some [ name ] -> Some (pp_lident name)
-              | Some _ ->
-                  Some
-                    (fun printer -> raise (NotImplemented (contents printer)))
-              | None -> None
+              let pp = function
+                | [ name ] -> pp_lident name
+                | _ -> fun printer -> raise (NotImplemented (contents printer))
+              in
+              try_pp Conversion.hyp_of_raw_generic_argument pp
             in
 
             let printers =
