@@ -803,7 +803,7 @@ let pp_or_var = function
           [ write " as"; newline; indented (pp_or_and_intro_pattern_expr v) ]
       in
       hor <-|> ver
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Locus.ArgVar ident -> pp_lident ident
 
 let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
@@ -999,18 +999,23 @@ and pp_raw_tactic_expr_r = function
               match converter args with Some x -> Some (pp x) | None -> None
             in
 
+            let try_pp_always converter pp =
+              try_pp converter (fun x -> Some (pp x))
+            in
+
             let try_pp_constr_expr =
-              try_pp Conversion.constr_expr_of_raw_generic_argument
+              try_pp_always Conversion.constr_expr_of_raw_generic_argument
                 pp_constr_expr_with_parens
             in
 
             let try_pp_destruction_arg =
-              try_pp Conversion.destruction_arg_of_raw_generic_argument
+              try_pp_always Conversion.destruction_arg_of_raw_generic_argument
                 pp_destruction_arg
             in
 
             let try_pp_intro_pattern_expr =
-              try_pp Conversion.intro_pattern_list_of_raw_generic_argument
+              try_pp_always
+                Conversion.intro_pattern_list_of_raw_generic_argument
                 (map_spaced (fun expr -> pp_intro_pattern_expr expr.CAst.v))
             in
 
@@ -1021,11 +1026,11 @@ and pp_raw_tactic_expr_r = function
                 | _ -> fun printer -> raise (NotImplemented (contents printer))
               in
 
-              try_pp Conversion.clause_expr_of_raw_generic_argument pp
+              try_pp_always Conversion.clause_expr_of_raw_generic_argument pp
             in
 
             let try_pp_bindings =
-              try_pp Conversion.bindings_list_of_raw_generic_argument
+              try_pp_always Conversion.bindings_list_of_raw_generic_argument
                 (map_commad (function
                   | Tactypes.ImplicitBindings [ x ] ->
                       pp_constr_expr_with_parens x
@@ -1034,7 +1039,7 @@ and pp_raw_tactic_expr_r = function
             in
 
             let try_pp_id =
-              try_pp Conversion.id_of_raw_generic_argument pp_id
+              try_pp_always Conversion.id_of_raw_generic_argument pp_id
             in
 
             let try_pp_hyp =
@@ -1042,7 +1047,20 @@ and pp_raw_tactic_expr_r = function
                 | [ name ] -> pp_lident name
                 | _ -> fun printer -> raise (NotImplemented (contents printer))
               in
-              try_pp Conversion.hyp_of_raw_generic_argument pp
+
+              try_pp_always Conversion.hyp_of_raw_generic_argument pp
+            in
+
+            let try_nat_or_var =
+              let pp = function
+                | [] -> None
+                | [ Locus.ArgArg name ] -> Some (pp_int name)
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.nat_or_var_of_raw_generic_argument pp
             in
 
             let printers =
@@ -1054,13 +1072,14 @@ and pp_raw_tactic_expr_r = function
                 try_pp_bindings;
                 try_pp_id;
                 try_pp_hyp;
+                try_nat_or_var;
               ]
             in
 
             let rec try_pp = function
-              | [] -> loop t_ids t_reps
+              | [] | Some None :: _ -> loop t_ids t_reps
               | None :: t -> try_pp t
-              | Some x :: _ -> x :: loop t_ids t_reps
+              | Some (Some x) :: _ -> x :: loop t_ids t_reps
             in
 
             try_pp printers
@@ -1069,6 +1088,7 @@ and pp_raw_tactic_expr_r = function
         | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
+
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]

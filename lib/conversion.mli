@@ -44,3 +44,8 @@ val hyp_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Names.lident list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Names.lident list]. *)
+
+val nat_or_var_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> int Locus.or_var list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [int Locus.or_var list]. *)
