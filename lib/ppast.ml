@@ -981,9 +981,9 @@ let rec pp_raw_atomic_tactic_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_gen_tactic_expr_r v
+  pp_raw_tactic_expr_r v
 
-and pp_gen_tactic_expr_r = function
+and pp_raw_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
       let id = Names.KerName.label alias |> Names.Label.to_string in
