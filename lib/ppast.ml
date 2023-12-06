@@ -1335,7 +1335,7 @@ let pp_showable = function
 
 let pp_hints_expr = function
   | Vernacexpr.HintsResolve
-      [ ({ hint_priority = _; hint_pattern = _ }, true, _) ] ->
+      [ ({ hint_priority = None; hint_pattern = _ }, true, _) ] ->
       write "Hint Resolve eq_refl"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
