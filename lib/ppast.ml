@@ -1334,7 +1334,7 @@ let pp_showable = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_hints_expr = function
-  | Vernacexpr.HintsResolve [ _ ] -> write "Hint Resolve eq_refl"
+  | Vernacexpr.HintsResolve [ (_, _, _) ] -> write "Hint Resolve eq_refl"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
