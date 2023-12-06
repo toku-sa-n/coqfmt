@@ -1,4 +1,5 @@
 Theorem foo : 1 = 1.
-Proof with auto.
+Proof.
   simpl...
+  reflexivity.
 Qed.
