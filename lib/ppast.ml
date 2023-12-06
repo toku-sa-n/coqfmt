@@ -1651,7 +1651,7 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
-  | Vernacexpr.VernacProof _ -> write "Proof with auto."
+  | Vernacexpr.VernacProof (_, _) -> write "Proof with auto."
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
