@@ -1650,12 +1650,7 @@ let pp_synpure_vernac_expr = function
           hor <-|> ver;
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
-  | Vernacexpr.VernacProof (with_clause, None) ->
-      let pp_with =
-        match with_clause with Some _ -> write " with auto" | None -> nop
-      in
-
-      sequence [ write "Proof"; pp_with; dot ]
+  | Vernacexpr.VernacProof (None, None) -> write "Proof."
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
