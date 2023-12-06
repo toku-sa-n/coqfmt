@@ -1655,7 +1655,7 @@ let pp_synpure_vernac_expr = function
         match with_clause with Some _ -> write " with auto" | None -> nop
       in
 
-      sequence [ write "Proof."; pp_with; dot ]
+      sequence [ write "Proof"; pp_with; dot ]
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
