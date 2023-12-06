@@ -177,3 +177,15 @@ let auto_using_of_raw_generic_argument arg =
       ] ->
       Some (List.map Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
   | _ -> None
+
+let ltac_use_default_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ltac_use_default" ] ];
+        rems;
+      ] ->
+      Some (Sexplib.Std.bool_of_sexp rems)
+  | _ -> None

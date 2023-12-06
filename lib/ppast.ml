@@ -1196,7 +1196,15 @@ let pp_ltac =
     | Some _ -> Some (fun printer -> raise (NotImplemented (contents printer)))
   in
 
-  let pp_funcs = [ try_pp_raw_tactic_expr; try_pp_tacdef_body ] in
+  let try_pp_ltac_use_default expr =
+    match Conversion.ltac_use_default_of_raw_generic_argument expr with
+    | Some true -> Some (write "..")
+    | Some false | None -> None
+  in
+
+  let pp_funcs =
+    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
+  in
 
   let rec pp fs expr =
     match fs with
@@ -1637,6 +1645,7 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
+  | Vernacexpr.VernacProof _ -> write "Proof with auto."
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
