@@ -1183,20 +1183,34 @@ let pp_tacdef_body = function
       fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
-  let try_pp_raw_tactic_expr expr =
-    match Conversion.raw_tactic_expr_of_raw_generic_argument expr with
-    | None -> None
-    | Some t -> Some (sequence [ pp_raw_tactic_expr t; dot ])
+  let try_pp conversion pp expr =
+    match conversion expr with Some x -> Some (pp x) | None -> None
   in
 
-  let try_pp_tacdef_body expr =
-    match Conversion.tacdef_body_of_raw_generic_argument expr with
-    | None -> None
-    | Some [ t ] -> Some (sequence [ pp_tacdef_body t; dot ])
-    | Some _ -> Some (fun printer -> raise (NotImplemented (contents printer)))
+  let try_pp_raw_tactic_expr =
+    let pp expr = sequence [ pp_raw_tactic_expr expr; dot ] in
+
+    try_pp Conversion.raw_tactic_expr_of_raw_generic_argument pp
   in
 
-  let pp_funcs = [ try_pp_raw_tactic_expr; try_pp_tacdef_body ] in
+  let try_pp_tacdef_body =
+    let pp = function
+      | [ t ] -> sequence [ pp_tacdef_body t; dot ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer))
+    in
+
+    try_pp Conversion.tacdef_body_of_raw_generic_argument pp
+  in
+
+  let try_pp_ltac_use_default =
+    let pp = function true -> write ".." | false -> nop in
+
+    try_pp Conversion.ltac_use_default_of_raw_generic_argument pp
+  in
+
+  let pp_funcs =
+    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
+  in
 
   let rec pp fs expr =
     match fs with
