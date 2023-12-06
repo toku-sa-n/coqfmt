@@ -1651,6 +1651,10 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
+  | Vernacexpr.VernacProof (Some expr, None) -> (
+      match Conversion.ltac_of_raw_generic_argument expr with
+      | Some x -> sequence [ write "Proof with "; pp_raw_tactic_expr x; dot ]
+      | None -> fun printer -> raise (NotImplemented (contents printer)))
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
