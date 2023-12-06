@@ -986,15 +986,17 @@ and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
 and pp_raw_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
-      let id = Names.KerName.label alias |> Names.Label.to_string in
-      let init xs = List.rev xs |> List.tl |> List.rev in
+      let id = Pptactic.pr_alias_key alias |> Pp.string_of_ppcmds in
 
-      (* The last element is Coq's internal ID and we don't need it. *)
-      let init_idents = String.split_on_char '_' id |> init in
+      let init_idents = String.split_on_char ' ' id in
+      let starts_with_paren s = String.starts_with ~prefix:"(" s in
       let rec loop idents replacers =
         match (idents, replacers) with
-        | "#" :: _, [] -> failwith "Too few replacers."
-        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps ->
+        | [], [] -> []
+        | [], _ -> failwith "Too many replacers."
+        | s :: _, [] when starts_with_paren s -> failwith "Too few replacers."
+        | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
+          when starts_with_paren s ->
             let try_pp converter pp =
               match converter args with Some x -> Some (pp x) | None -> None
             in
@@ -1096,9 +1098,6 @@ and pp_raw_tactic_expr_r = function
             in
 
             try_pp printers
-        | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
-        | [], [] -> []
-        | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
 
