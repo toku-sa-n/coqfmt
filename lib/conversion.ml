@@ -166,3 +166,15 @@ let nat_or_var_of_raw_generic_argument arg =
            (Serlib.Ser_locus.or_var_of_sexp Sexplib.Std.int_of_sexp)
            rems)
   | _ -> None
+
+let auto_using_of_raw_generic_argument arg =
+  let open Sexplib.Sexp in
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "auto_using" ] ];
+        List rems;
+      ] ->
+      Some (List.map Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
+  | _ -> None

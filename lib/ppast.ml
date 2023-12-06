@@ -1051,7 +1051,7 @@ and pp_raw_tactic_expr_r = function
               try_pp_always Conversion.hyp_of_raw_generic_argument pp
             in
 
-            let try_nat_or_var =
+            let try_pp_nat_or_var =
               let pp = function
                 | [] -> None
                 | [ Locus.ArgArg name ] -> Some (pp_int name)
@@ -1063,6 +1063,18 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.nat_or_var_of_raw_generic_argument pp
             in
 
+            let try_pp_auto_using =
+              let pp = function
+                | [] -> None
+                | [ x ] -> Some (sequence [ write "using "; pp_constr_expr x ])
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.auto_using_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1072,7 +1084,8 @@ and pp_raw_tactic_expr_r = function
                 try_pp_bindings;
                 try_pp_id;
                 try_pp_hyp;
-                try_nat_or_var;
+                try_pp_nat_or_var;
+                try_pp_auto_using;
               ]
             in
 
