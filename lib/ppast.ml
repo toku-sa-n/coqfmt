@@ -1662,7 +1662,7 @@ let pp_synpure_vernac_expr = function
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
   | Vernacexpr.VernacSubproof None -> sequence [ write "{"; start_subproof ]
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
-  | Vernacexpr.VernacHints (_, _) -> write "Hint Resolve eq_refl : core."
+  | Vernacexpr.VernacHints ([ _ ], _) -> write "Hint Resolve eq_refl : core."
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function
