@@ -1333,7 +1333,10 @@ let pp_showable = function
   | Vernacexpr.ShowProof -> write "Proof"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_reference_or_constr _ = write "eq_refl"
+let pp_reference_or_constr = function
+  | Vernacexpr.HintsReference name -> pp_qualid name
+  | Vernacexpr.HintsConstr _ ->
+      fun printer -> raise (NotImplemented (contents printer))
 
 let pp_hints_expr = function
   | Vernacexpr.HintsResolve
