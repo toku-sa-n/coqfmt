@@ -992,6 +992,8 @@ and pp_raw_tactic_expr_r = function
       let starts_with_paren s = String.starts_with ~prefix:"(" s in
       let rec loop idents replacers =
         match (idents, replacers) with
+        | [], [] -> []
+        | [], _ -> failwith "Too many replacers."
         | s :: _, [] when starts_with_paren s -> failwith "Too few replacers."
         | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
           when starts_with_paren s ->
@@ -1083,8 +1085,6 @@ and pp_raw_tactic_expr_r = function
             in
 
             try_pp printers
-        | [], [] -> []
-        | [], _ -> failwith "Too many replacers."
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
 
