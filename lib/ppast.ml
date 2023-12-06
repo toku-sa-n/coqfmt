@@ -1333,7 +1333,9 @@ let pp_showable = function
   | Vernacexpr.ShowProof -> write "Proof"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_hints_expr _ = write "Hint Resolve eq_refl"
+let pp_hints_expr = function
+  | Vernacexpr.HintsResolve _ -> write "Hints Resolve eq_refl"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
