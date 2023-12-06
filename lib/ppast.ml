@@ -1333,6 +1333,8 @@ let pp_showable = function
   | Vernacexpr.ShowProof -> write "Proof"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_hints_expr _ = write "Hint Resolve eq_refl"
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1662,8 +1664,8 @@ let pp_synpure_vernac_expr = function
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
   | Vernacexpr.VernacSubproof None -> sequence [ write "{"; start_subproof ]
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
-  | Vernacexpr.VernacHints ([ scope ], _) ->
-      sequence [ write "Hint Resolve eq_refl : "; write scope; dot ]
+  | Vernacexpr.VernacHints ([ scope ], expr) ->
+      sequence [ pp_hints_expr expr; write " : "; write scope; dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function
