@@ -1165,8 +1165,8 @@ and pp_raw_tactic_expr_r = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition
-      (name, CAst.{ v = TacFun (params, body); loc = _ }) ->
+  | Tacexpr.TacticDefinition (name, CAst.{ v = TacFun (params, body); loc = _ })
+    ->
       spaced
         [
           write "Ltac";
