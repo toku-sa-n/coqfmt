@@ -704,9 +704,11 @@ let pp_syntax_modifier = function
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
   | Tacexpr.Reference name -> pp_qualid name
-  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> pp_qualid v
   | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
-      sequence [ pp_qualid name; space; map_spaced pp_gen_tactic_arg args ]
+      let pp_args =
+        map_sequence (fun x -> sequence [ space; pp_gen_tactic_arg x ]) args
+      in
+      sequence [ pp_qualid name; pp_args ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
