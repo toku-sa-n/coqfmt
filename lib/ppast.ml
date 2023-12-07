@@ -705,8 +705,8 @@ let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
   | Tacexpr.Reference name -> pp_qualid name
   | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> pp_qualid v
-  | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
-      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg ]
+  | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
+      sequence [ pp_qualid name; space; map_spaced pp_gen_tactic_arg args ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
