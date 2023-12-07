@@ -708,6 +708,7 @@ let rec pp_gen_tactic_arg = function
       let pp_args =
         map_sequence (fun x -> sequence [ space; pp_gen_tactic_arg x ]) args
       in
+
       sequence [ pp_qualid name; pp_args ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
