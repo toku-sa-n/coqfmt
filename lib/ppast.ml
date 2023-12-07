@@ -1167,13 +1167,12 @@ and pp_raw_tactic_expr_r = function
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition
       (name, CAst.{ v = TacFun (params, body); loc = _ }) ->
-      sequence
+      spaced
         [
-          write "Ltac ";
+          write "Ltac";
           pp_lident name;
-          space;
           map_spaced pp_name params;
-          write " := ";
+          write ":=";
           pp_raw_tactic_expr body;
         ]
   | Tacexpr.TacticDefinition (name, body) ->
