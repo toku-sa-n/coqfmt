@@ -892,6 +892,7 @@ let rec pp_raw_atomic_tactic_expr = function
           pp_bindings bindings;
           pp_in_clause;
         ]
+  | Tacexpr.TacApply _ -> write "eapply eq_refl"
   | Tacexpr.TacAssert (false, true, Some by, Some name, expr) ->
       let pp_by =
         match by with
