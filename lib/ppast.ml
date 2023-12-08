@@ -885,24 +885,6 @@ let pp_match_context_hyps = function
       spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_match_rule = function
-  | Tacexpr.Pat (contexts, pattern, _) ->
-      let pp_contexts =
-        map_with_seps
-          ~sep:(sequence [ comma; newline ])
-          pp_match_context_hyps contexts
-      in
-
-      sequence
-        [
-          pp_contexts;
-          newline;
-          write "|- ";
-          pp_match_pattern pattern;
-          write " => rewrite -> H1 in H2; discriminate";
-        ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
-
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
       let pp_in_clause =
@@ -1194,6 +1176,25 @@ and pp_raw_tactic_expr_r = function
       in
 
       sequence [ write "try "; pp_tactic ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+and pp_match_rule = function
+  | Tacexpr.Pat (contexts, pattern, expr) ->
+      let pp_contexts =
+        map_with_seps
+          ~sep:(sequence [ comma; newline ])
+          pp_match_context_hyps contexts
+      in
+
+      sequence
+        [
+          pp_contexts;
+          newline;
+          write "|- ";
+          pp_match_pattern pattern;
+          write " => ";
+          pp_raw_tactic_expr expr;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
