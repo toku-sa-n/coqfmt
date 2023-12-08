@@ -1185,7 +1185,9 @@ and pp_raw_tactic_expr_r = function
       sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
   | Tacexpr.TacTry tactic ->
       let parens_needed =
-        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
+        match tactic.v with
+        | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
+        | _ -> false
       in
       let pp_tactic =
         if parens_needed then parens (pp_raw_tactic_expr tactic)
