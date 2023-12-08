@@ -1414,8 +1414,8 @@ let pp_hints_expr = function
   | Vernacexpr.HintsResolve
       [ ({ hint_priority = None; hint_pattern = None }, true, expr) ] ->
       sequence [ write "Hint Resolve "; pp_reference_or_constr expr ]
-  | Vernacexpr.HintsTransparency (HintsReferences [ name ], true) ->
-      sequence [ write "Hint Transparent "; pp_qualid name ]
+  | Vernacexpr.HintsTransparency (HintsReferences names, true) ->
+      sequence [ write "Hint Transparent "; map_spaced pp_qualid names ]
   | Vernacexpr.HintsUnfold [ name ] ->
       sequence [ write "Hint Unfold "; pp_qualid name ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
