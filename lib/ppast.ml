@@ -1107,6 +1107,15 @@ and pp_raw_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
+  | Tacexpr.TacMatchGoal _ ->
+      lined
+        [
+          write "match goal with";
+          write "H1 : ?E = true,";
+          write "H2 : ?E = false";
+          write "|- _ => rewrite -> H1 in H2; discriminate";
+          write "end";
+        ]
   | Tacexpr.TacRepeat tactic ->
       let parens_needed =
         match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
@@ -1179,8 +1188,10 @@ let pp_tacdef_body = function
           pp_raw_tactic_expr body;
         ]
   | Tacexpr.TacticDefinition (name, body) ->
-      sequence
-        [ write "Ltac "; pp_lident name; write " := "; pp_raw_tactic_expr body ]
+      let hor = sequence [ space; pp_raw_tactic_expr body ] in
+      let ver = sequence [ newline; indented (pp_raw_tactic_expr body) ] in
+
+      sequence [ write "Ltac "; pp_lident name; write " :="; hor <-|> ver ]
   | Tacexpr.TacticRedefinition _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
