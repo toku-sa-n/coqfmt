@@ -1120,6 +1120,7 @@ and pp_raw_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
+  | Tacexpr.TacId [] -> nop
   | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
       lined [ write "match goal with"; pp_match_rule rule; write "end" ]
   | Tacexpr.TacRepeat tactic ->
@@ -1170,6 +1171,18 @@ and pp_raw_tactic_expr_r = function
       in
 
       hor <-|> ver
+  | Tacexpr.TacThens (first, second) ->
+      let pp_bracket_clause =
+        let prefix = function 0 -> nop | _ -> write " | " in
+
+        let pp_patterns i pattern =
+          sequence [ prefix i; pp_raw_tactic_expr pattern ]
+        in
+
+        brackets (sequence (List.mapi pp_patterns second))
+      in
+
+      sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
   | Tacexpr.TacTry tactic ->
       let parens_needed =
         match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
