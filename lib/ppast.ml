@@ -1107,7 +1107,7 @@ and pp_raw_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
-  | Tacexpr.TacMatchGoal (_, _, _) ->
+  | Tacexpr.TacMatchGoal (Once, _, _) ->
       lined
         [
           write "match goal with";
