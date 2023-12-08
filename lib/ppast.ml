@@ -1198,21 +1198,26 @@ and pp_match_rule = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition (name, CAst.{ v = TacFun (params, body); loc = _ })
-    ->
-      spaced
-        [
-          write "Ltac";
-          pp_lident name;
-          map_spaced pp_name params;
-          write ":=";
-          pp_raw_tactic_expr body;
-        ]
-  | Tacexpr.TacticDefinition (name, body) ->
-      let hor = sequence [ space; pp_raw_tactic_expr body ] in
-      let ver = sequence [ newline; indented (pp_raw_tactic_expr body) ] in
+  | Tacexpr.TacticDefinition (name, v) ->
+      let pp_params =
+        match v with
+        | CAst.{ v = TacFun (params, _); loc = _ } ->
+            map_sequence (fun x -> sequence [ space; pp_name x ]) params
+        | _ -> nop
+      in
 
-      sequence [ write "Ltac "; pp_lident name; write " :="; hor <-|> ver ]
+      let pp_body =
+        let body =
+          match v with CAst.{ v = TacFun (_, body); loc = _ } -> body | _ -> v
+        in
+
+        let hor = sequence [ space; pp_raw_tactic_expr body ] in
+        let ver = sequence [ newline; indented (pp_raw_tactic_expr body) ] in
+        hor <-|> ver
+      in
+
+      sequence
+        [ write "Ltac "; pp_lident name; pp_params; write " :="; pp_body ]
   | Tacexpr.TacticRedefinition _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
