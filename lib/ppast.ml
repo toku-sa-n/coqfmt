@@ -886,14 +886,21 @@ let pp_match_context_hyps = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_match_rule = function
-  | Tacexpr.Pat (contexts, _, _) ->
+  | Tacexpr.Pat (contexts, pattern, _) ->
       let pp_contexts =
         map_with_seps
           ~sep:(sequence [ comma; newline ])
           pp_match_context_hyps contexts
       in
 
-      lined [ pp_contexts; write "|- _ => rewrite -> H1 in H2; discriminate" ]
+      sequence
+        [
+          pp_contexts;
+          newline;
+          write "|- ";
+          pp_match_pattern pattern;
+          write " => rewrite -> H1 in H2; discriminate";
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
