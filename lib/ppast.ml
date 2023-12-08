@@ -877,7 +877,7 @@ let pp_bindings = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_match_rule = function
-  | Tacexpr.Pat _ ->
+  | Tacexpr.Pat (_, _, _) ->
       lined
         [
           write "H1 : ?E = true,";
