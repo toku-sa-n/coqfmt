@@ -1170,12 +1170,10 @@ and pp_raw_tactic_expr_r = function
       in
 
       hor <-|> ver
-  | Tacexpr.TacThens (_, _) ->
+  | Tacexpr.TacThens (first, _) ->
       sequence
         [
-          write
-            "intros n; induction n as [ | n IHn]; [ | simpl; rewrite <- IHn; \
-             simpl]";
+          pp_raw_tactic_expr first; write "; [ | simpl; rewrite <- IHn; simpl]";
         ]
   | Tacexpr.TacTry tactic ->
       let parens_needed =
