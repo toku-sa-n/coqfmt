@@ -876,6 +876,15 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_match_pattern = function
+  | Tacexpr.Term expr -> pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_match_context_hyps = function
+  | Tacexpr.Hyp (name, pattern) ->
+      spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
       let pp_in_clause =
@@ -1107,6 +1116,8 @@ and pp_raw_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
+  | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
+      lined [ write "match goal with"; pp_match_rule rule; write "end" ]
   | Tacexpr.TacRepeat tactic ->
       let parens_needed =
         match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
@@ -1167,20 +1178,46 @@ and pp_raw_tactic_expr_r = function
       sequence [ write "try "; pp_tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition (name, CAst.{ v = TacFun (params, body); loc = _ })
-    ->
-      spaced
-        [
-          write "Ltac";
-          pp_lident name;
-          map_spaced pp_name params;
-          write ":=";
-          pp_raw_tactic_expr body;
-        ]
-  | Tacexpr.TacticDefinition (name, body) ->
+and pp_match_rule = function
+  | Tacexpr.Pat (contexts, pattern, expr) ->
+      let pp_contexts =
+        map_with_seps
+          ~sep:(sequence [ comma; newline ])
+          pp_match_context_hyps contexts
+      in
+
       sequence
-        [ write "Ltac "; pp_lident name; write " := "; pp_raw_tactic_expr body ]
+        [
+          pp_contexts;
+          newline;
+          write "|- ";
+          pp_match_pattern pattern;
+          write " => ";
+          pp_raw_tactic_expr expr;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_tacdef_body = function
+  | Tacexpr.TacticDefinition (name, v) ->
+      let pp_params =
+        match v with
+        | CAst.{ v = TacFun (params, _); loc = _ } ->
+            map_sequence (fun x -> sequence [ space; pp_name x ]) params
+        | _ -> nop
+      in
+
+      let pp_body =
+        let body =
+          match v with CAst.{ v = TacFun (_, body); loc = _ } -> body | _ -> v
+        in
+
+        let hor = sequence [ space; pp_raw_tactic_expr body ] in
+        let ver = sequence [ newline; indented (pp_raw_tactic_expr body) ] in
+        hor <-|> ver
+      in
+
+      sequence
+        [ write "Ltac "; pp_lident name; pp_params; write " :="; pp_body ]
   | Tacexpr.TacticRedefinition _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
