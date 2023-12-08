@@ -876,13 +876,15 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_match_rule _ =
-  lined
-    [
-      write "H1 : ?E = true,";
-      write "H2 : ?E = false";
-      write "|- _ => rewrite -> H1 in H2; discriminate";
-    ]
+let pp_match_rule = function
+  | Tacexpr.Pat _ ->
+      lined
+        [
+          write "H1 : ?E = true,";
+          write "H2 : ?E = false";
+          write "|- _ => rewrite -> H1 in H2; discriminate";
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
