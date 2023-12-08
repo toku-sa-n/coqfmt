@@ -876,6 +876,14 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_match_rule _ =
+  lined
+    [
+      write "H1 : ?E = true,";
+      write "H2 : ?E = false";
+      write "|- _ => rewrite -> H1 in H2; discriminate";
+    ]
+
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
       let pp_in_clause =
@@ -1107,15 +1115,8 @@ and pp_raw_tactic_expr_r = function
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
-  | Tacexpr.TacMatchGoal (Once, false, [ _ ]) ->
-      lined
-        [
-          write "match goal with";
-          write "H1 : ?E = true,";
-          write "H2 : ?E = false";
-          write "|- _ => rewrite -> H1 in H2; discriminate";
-          write "end";
-        ]
+  | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
+      lined [ write "match goal with"; pp_match_rule rule; write "end" ]
   | Tacexpr.TacRepeat tactic ->
       let parens_needed =
         match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
