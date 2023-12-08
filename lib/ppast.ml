@@ -886,7 +886,10 @@ let pp_match_context_hyps = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
+  | Tacexpr.TacApply (true, is_eapply, [ (None, (expr, bindings)) ], in_clause)
+    ->
+      let pp_tactic = if is_eapply then write "eapply" else write "apply" in
+
       let pp_in_clause =
         match in_clause with
         | [] -> nop
@@ -896,7 +899,8 @@ let rec pp_raw_atomic_tactic_expr = function
 
       sequence
         [
-          write "apply ";
+          pp_tactic;
+          space;
           pp_constr_expr_with_parens expr;
           pp_bindings bindings;
           pp_in_clause;
