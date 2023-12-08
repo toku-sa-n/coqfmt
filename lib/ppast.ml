@@ -1170,7 +1170,7 @@ and pp_raw_tactic_expr_r = function
       in
 
       hor <-|> ver
-  | Tacexpr.TacThens _ ->
+  | Tacexpr.TacThens (_, _) ->
       sequence
         [
           write
