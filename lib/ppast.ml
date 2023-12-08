@@ -876,14 +876,24 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_match_pattern = function
+  | Tacexpr.Term expr -> pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_match_context_hyps = function
+  | Tacexpr.Hyp (name, pattern) ->
+      spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_match_rule = function
-  | Tacexpr.Pat ([ _; _ ], _, _) ->
-      lined
-        [
-          write "H1 : ?E = true,";
-          write "H2 : ?E = false";
-          write "|- _ => rewrite -> H1 in H2; discriminate";
-        ]
+  | Tacexpr.Pat (contexts, _, _) ->
+      let pp_contexts =
+        map_with_seps
+          ~sep:(sequence [ comma; newline ])
+          pp_match_context_hyps contexts
+      in
+
+      lined [ pp_contexts; write "|- _ => rewrite -> H1 in H2; discriminate" ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
