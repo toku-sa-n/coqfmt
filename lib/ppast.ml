@@ -1114,6 +1114,9 @@ and pp_raw_tactic_expr_r = function
             in
 
             try_pp printers
+        | h_id :: t_ids, Tacexpr.Tacexp tactic :: t_reps
+          when starts_with_paren h_id ->
+            pp_raw_tactic_expr tactic :: loop t_ids t_reps
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
 
