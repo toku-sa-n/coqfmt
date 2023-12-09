@@ -946,7 +946,7 @@ let rec pp_raw_atomic_tactic_expr = function
         | Some _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
-      sequence [ pp_raw_red_expr expr; pp_in]
+      sequence [ pp_raw_red_expr expr; pp_in ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
