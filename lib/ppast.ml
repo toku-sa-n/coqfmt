@@ -937,12 +937,16 @@ let rec pp_raw_atomic_tactic_expr = function
           write "intros ";
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
         ]
-  | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
-    ->
-      pp_raw_red_expr expr
-  | Tacexpr.TacReduce
-      (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
-      sequence [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name ]
+  | Tacexpr.TacReduce (expr, { onhyps; concl_occs = _ }) ->
+      let pp_in =
+        match onhyps with
+        | Some [] -> nop
+        | Some [ name ] -> sequence [ write " in "; pp_hyp_location_expr name ]
+        | None -> write " in *"
+        | Some _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence [ pp_raw_red_expr expr; pp_in ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
