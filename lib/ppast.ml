@@ -892,7 +892,7 @@ let pp_match_context_hyps = function
 let pp_message_token = function
   | Tacexpr.MsgString s -> doublequoted (write s)
   | Tacexpr.MsgInt i -> pp_int i
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Tacexpr.MsgIdent id -> pp_lident id
 
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, is_eapply, [ (None, (expr, bindings)) ], in_clause)
