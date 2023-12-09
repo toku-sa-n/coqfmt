@@ -1232,7 +1232,7 @@ and pp_match_rule = function
               map_with_seps
                 ~sep:(sequence [ comma; newline ])
                 pp_match_context_hyps contexts;
-              newline;
+              space;
             ]
       in
 
