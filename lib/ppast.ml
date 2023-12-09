@@ -1093,6 +1093,18 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.auto_using_of_raw_generic_argument pp
             in
 
+            let try_pp_hintbases =
+              let pp = function
+                | [] -> None
+                | [ x ] -> Some (spaced [ write "with"; write x ])
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.hintbases_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1104,6 +1116,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_hyp;
                 try_pp_nat_or_var;
                 try_pp_auto_using;
+                try_pp_hintbases;
               ]
             in
 
