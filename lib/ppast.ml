@@ -889,6 +889,11 @@ let pp_match_context_hyps = function
       spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_message_token = function
+  | Tacexpr.MsgString s -> doublequoted (write s)
+  | Tacexpr.MsgInt i -> pp_int i
+  | Tacexpr.MsgIdent id -> pp_lident id
+
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, is_eapply, [ (None, (expr, bindings)) ], in_clause)
     ->
@@ -1151,6 +1156,8 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacId [] -> nop
+  | Tacexpr.TacId names ->
+      spaced [ write "idtac"; map_spaced pp_message_token names ]
   | Tacexpr.TacMatchGoal (Once, false, rules) ->
       lined
         [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
