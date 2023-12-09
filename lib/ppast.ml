@@ -12,7 +12,7 @@ exception NotImplemented of string
     In some cases (e.g., printing a notation), printing parentheses may be
     needed even if this function returns a `false`, but do not modify this
     function to return a `true` in such cases. *)
-let generally_parens_needed = function
+let exprs_generally_parens_needed = function
   | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
   | Constrexpr.CProdN _ ->
       true
@@ -30,6 +30,10 @@ let generally_parens_needed = function
       List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
       Libnames.string_of_qualid name <> ".."
+  | _ -> false
+
+let tactics_generally_parens_needed = function
+  | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
   | _ -> false
 
 let nop _ = ()
@@ -452,7 +456,7 @@ and pp_constr_expr_with_parens_conditionally cond expr =
 
 and pp_constr_expr_with_parens expr =
   pp_constr_expr_with_parens_conditionally
-    (generally_parens_needed expr.CAst.v)
+    (exprs_generally_parens_needed expr.CAst.v)
     expr
 
 and pp_case_expr = function
@@ -907,9 +911,15 @@ let rec pp_raw_atomic_tactic_expr = function
         ]
   | Tacexpr.TacAssert (false, true, Some by, Some name, expr) ->
       let pp_by =
+        let conditional_parens tactic =
+          if tactics_generally_parens_needed tactic.CAst.v then
+            parens (pp_raw_tactic_expr tactic)
+          else pp_raw_tactic_expr tactic
+        in
+
         match by with
         | None -> nop
-        | Some by -> sequence [ write " by "; pp_raw_tactic_expr by ]
+        | Some by -> sequence [ write " by "; conditional_parens by ]
       in
 
       sequence
@@ -1144,11 +1154,9 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
       lined [ write "match goal with"; pp_match_rule rule; write "end" ]
   | Tacexpr.TacRepeat tactic ->
-      let parens_needed =
-        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
-      in
       let pp_tactic =
-        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        if tactics_generally_parens_needed tactic.CAst.v then
+          parens (pp_raw_tactic_expr tactic)
         else pp_raw_tactic_expr tactic
       in
 
@@ -1204,13 +1212,9 @@ and pp_raw_tactic_expr_r = function
 
       sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
   | Tacexpr.TacTry tactic ->
-      let parens_needed =
-        match tactic.v with
-        | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
-        | _ -> false
-      in
       let pp_tactic =
-        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        if tactics_generally_parens_needed tactic.CAst.v then
+          parens (pp_raw_tactic_expr tactic)
         else pp_raw_tactic_expr tactic
       in
 
@@ -1508,7 +1512,7 @@ let pp_synterp_vernac_expr = function
       let parens_needed expr =
         match expr.CAst.v with
         | Constrexpr.CLetIn _ -> true
-        | _ -> generally_parens_needed expr.CAst.v
+        | _ -> exprs_generally_parens_needed expr.CAst.v
       in
 
       let conditional_parens expr =
@@ -1651,7 +1655,8 @@ let pp_synpure_vernac_expr = function
       in
 
       let pp_expr =
-        if generally_parens_needed expr.v then parens (pp_constr_expr expr)
+        if exprs_generally_parens_needed expr.v then
+          parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
