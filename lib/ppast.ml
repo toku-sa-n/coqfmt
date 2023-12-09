@@ -890,7 +890,7 @@ let pp_match_context_hyps = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_message_token = function
-  | Tacexpr.MsgString _ -> write "\"foo\""
+  | Tacexpr.MsgString s -> doublequoted (write s)
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
