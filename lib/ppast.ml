@@ -1646,7 +1646,7 @@ let pp_synpure_vernac_expr = function
       hor <-|> ver
   | Vernacexpr.VernacComments xs ->
       sequence [ write "Comments "; map_spaced pp_comment xs; dot ]
-  | Vernacexpr.VernacCreateHintDb _ -> write "Create HintDb my_db."
+  | Vernacexpr.VernacCreateHintDb (_, _) -> write "Create HintDb my_db."
   | Vernacexpr.VernacDeclareScope name ->
       sequence [ write "Declare Scope "; write name; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
