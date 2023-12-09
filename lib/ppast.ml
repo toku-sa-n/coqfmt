@@ -889,7 +889,9 @@ let pp_match_context_hyps = function
       spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_message_token _ = write "\"foo\""
+let pp_message_token = function
+  | Tacexpr.MsgString _ -> write "\"foo\""
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacApply (true, is_eapply, [ (None, (expr, bindings)) ], in_clause)
