@@ -1158,8 +1158,9 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> nop
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
-      lined [ write "match goal with"; pp_match_rule rule; write "end" ]
+  | Tacexpr.TacMatchGoal (Once, false, rules) ->
+      lined
+        [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
   | Tacexpr.TacRepeat tactic ->
       let pp_tactic =
         if tactics_generally_parens_needed tactic.CAst.v then
@@ -1231,20 +1232,26 @@ and pp_raw_tactic_expr_r = function
 and pp_match_rule = function
   | Tacexpr.Pat (contexts, pattern, expr) ->
       let pp_contexts =
-        map_with_seps
-          ~sep:(sequence [ comma; newline ])
-          pp_match_context_hyps contexts
+        if contexts = [] then nop
+        else
+          sequence
+            [
+              map_with_seps
+                ~sep:(sequence [ comma; newline ])
+                pp_match_context_hyps contexts;
+              space;
+            ]
       in
 
-      sequence
-        [
-          pp_contexts;
-          newline;
-          write "|- ";
-          pp_match_pattern pattern;
-          write " => ";
-          pp_raw_tactic_expr expr;
-        ]
+      write "| "
+      |=> sequence
+            [
+              pp_contexts;
+              write "|- ";
+              pp_match_pattern pattern;
+              write " => ";
+              pp_raw_tactic_expr expr;
+            ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
