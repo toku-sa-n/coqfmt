@@ -943,6 +943,7 @@ let rec pp_raw_atomic_tactic_expr = function
   | Tacexpr.TacReduce
       (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
       sequence [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name ]
+  | Tacexpr.TacReduce _ -> write "simpl in *"
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
