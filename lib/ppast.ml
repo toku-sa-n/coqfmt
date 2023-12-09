@@ -1156,7 +1156,8 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacId [] -> nop
-  | Tacexpr.TacId [ name ] -> sequence [ write "idtac "; pp_message_token name ]
+  | Tacexpr.TacId names ->
+      spaced [ write "idtac"; map_spaced pp_message_token names ]
   | Tacexpr.TacMatchGoal (Once, false, [ rule ]) ->
       lined [ write "match goal with"; pp_match_rule rule; write "end" ]
   | Tacexpr.TacRepeat tactic ->
