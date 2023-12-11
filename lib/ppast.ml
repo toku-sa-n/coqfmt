@@ -1836,6 +1836,7 @@ let separator current next =
   | VernacSynPure (VernacDefinition _), VernacSynPure VernacAbort
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacFixpoint _), VernacSynPure VernacAbort
   | VernacSynPure (VernacFixpoint _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
   | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
