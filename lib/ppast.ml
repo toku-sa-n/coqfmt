@@ -599,7 +599,7 @@ let pp_fixpoint_expr = function
         rec_order;
         binders;
         rtype;
-        body_def = Some body_def;
+        body_def;
         notations = [];
       } ->
       let pp_binders =
@@ -628,16 +628,14 @@ let pp_fixpoint_expr = function
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
 
-      sequence
-        [
-          pp_lident fname;
-          pp_binders;
-          pp_rec;
-          pp_return_type;
-          write " :=";
-          newline;
-          indented (pp_constr_expr body_def);
-        ]
+      let pp_body =
+        match body_def with
+        | Some body ->
+            sequence [ write " :="; newline; indented (pp_constr_expr body) ]
+        | None -> nop
+      in
+
+      sequence [ pp_lident fname; pp_binders; pp_rec; pp_return_type; pp_body ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_constructor_expr = function
@@ -1838,6 +1836,8 @@ let separator current next =
   | VernacSynPure (VernacDefinition _), VernacSynPure VernacAbort
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacFixpoint _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacFixpoint _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
   | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
   | _, VernacSynPure (VernacProof _)
