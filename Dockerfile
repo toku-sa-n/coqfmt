@@ -1,4 +1,4 @@
-FROM ocaml/opam:ubuntu-23.04-ocaml-4.14
+FROM ocaml/opam:ubuntu-23.04-ocaml-5.2
 
 # Without `libgmp-dev`, Coq cannot be installed.
 RUN sudo apt update
