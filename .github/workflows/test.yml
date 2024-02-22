@@ -139,3 +139,13 @@ jobs:
 
       - name: List all non-empty files tracked by git that do not end with a newline
         run: git ls-files | xargs -I {} sh -c '[ -s "{}" ] && echo "{}"' | xargs -I {} sh -c 'tail -c 1 {} | read -r _ || (echo "{}"; false)'
+
+  hadolint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          files: Dockerfile
