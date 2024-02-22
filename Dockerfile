@@ -12,6 +12,7 @@ USER opam
 
 COPY . $HOME
 
-RUN opam install --yes .
+# https://discuss.ocaml.org/t/which-ocaml-opam-docker-containers-to-use/8269/4
+RUN opam repository set-url default "https://opam.ocaml.org" && opam install --yes .
 
 ENTRYPOINT ["sh", "-c", "eval $(opam env) && opam exec -- coqfmt \"$@\"", "--"]
