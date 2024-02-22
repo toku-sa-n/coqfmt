@@ -10,7 +10,7 @@ RUN apt-get update \
 
 USER opam
 
-COPY . .
+COPY . $HOME
 
 RUN opam install --yes .
 
