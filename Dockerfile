@@ -1,7 +1,11 @@
 FROM ocaml/opam:ubuntu-23.04-ocaml-4.14
 
+USER root
+
 # Without `libgmp-dev`, Coq cannot be installed.
-RUN sudo apt update && sudo apt install -y libgmp-dev
+RUN apt update && apt install -y libgmp-dev
+
+USER opam
 
 COPY . .
 
