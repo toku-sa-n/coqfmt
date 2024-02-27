@@ -80,7 +80,7 @@ and pp_cases_pattern_expr_r = function
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
-  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2), []) ->
+  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2, _), []) ->
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
 
       let rec pp unparsings exprs =
@@ -92,7 +92,7 @@ and pp_cases_pattern_expr_r = function
         | Ppextend.UnpBinderMetaVar _ :: _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems ->
+        | Ppextend.UnpListMetaVar (_, seps) :: t, elems ->
             let get_sep = function
               | Ppextend.UnpTerminal s -> s
               | _ -> failwith "TODO"
@@ -138,8 +138,8 @@ let pp_sort_name_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr = function
-  | Glob_term.UAnonymous { rigid = true } -> write "Type"
-  | Glob_term.UAnonymous { rigid = false } ->
+  | Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
+  | Glob_term.UAnonymous { rigid = _ } ->
       fun printer -> raise (NotImplemented (contents printer))
   | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
@@ -196,8 +196,8 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
       sequence [ pp_constr_expr_with_parens v; write " : "; pp_constr_expr t ]
-  | Constrexpr.CDelimiters (scope, expr) ->
-      sequence [ pp_constr_expr_with_parens expr; write "%"; write scope ]
+  | Constrexpr.CDelimiters (DelimOnlyTmpScope, expr, _) ->
+      sequence [ write expr; write "%" ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
@@ -308,8 +308,11 @@ and pp_constr_expr_r = function
         | [], _, _ :: _, _, _ -> failwith "Too many local assumptions."
         | [], _, _, _ :: _, _ -> failwith "Too many entry keys."
         | [], _, _, _, _ :: _ -> failwith "Too many patterns."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys, _
-          ->
+        | ( Ppextend.UnpMetaVar { notation_position; _ } :: t_u,
+            h :: t_r,
+            _,
+            h_keys :: t_keys,
+            _ ) ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -321,7 +324,7 @@ and pp_constr_expr_r = function
                is invalid. Certainly, these two have different meanings, and
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
-              match (h.v, assoc, side, h_keys) with
+              match (h.v, assoc, notation_position, h_keys) with
               | Constrexpr.CLambdaN _, _, _, _ -> true
               | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "( _ )" ->
                   false
@@ -360,7 +363,7 @@ and pp_constr_expr_r = function
               ]
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few entry keys."
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs, _ ->
+        | Ppextend.UnpListMetaVar (_, seps) :: t, elems, _, _ :: zs, _ ->
             let get_sep = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut (PpBrk _) -> ";"
@@ -387,7 +390,7 @@ and pp_constr_expr_r = function
                     ]
             in
             loop elems seps
-        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
+        | Ppextend.UnpListMetaVar (_, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
             raise (NotImplemented "Too few entry keys.")
@@ -447,7 +450,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ write "forall"; pp_parameters; write ","; pp_body ]
-  | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
+  | Constrexpr.CHole None -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -467,7 +470,7 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous); loc = _ } ) ->
+        CAst.{ v = Constrexpr.CHole None; loc = _ } ) ->
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
       let wrapper =
@@ -504,7 +507,7 @@ and pp_fix_expr = function
       let open CAst in
       let pp_return_type =
         match return_type.v with
-        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | Constrexpr.CHole None -> nop
         | _ -> sequence [ write " : "; pp_constr_expr return_type ]
       in
 
@@ -624,7 +627,7 @@ let pp_fixpoint_expr = function
 
       let pp_return_type =
         match rtype.v with
-        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | Constrexpr.CHole None -> nop
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
 
@@ -725,6 +728,7 @@ let pp_raw_red_expr = function
           rZeta = true;
           rDelta = true;
           rConst = [];
+          _;
         } ->
       write "cbv"
   | Genredexpr.Simpl
@@ -737,6 +741,7 @@ let pp_raw_red_expr = function
             rZeta = true;
             rDelta = true;
             rConst = [];
+            _;
           },
         None ) ->
       write "simpl"
@@ -1659,6 +1664,7 @@ let pp_synpure_vernac_expr = function
                 rZeta = true;
                 rDelta = true;
                 rConst = [];
+                _;
               }) ->
             write "Eval compute in"
         | Some (CbvVm None) -> write "Compute"
@@ -1854,6 +1860,7 @@ let separator current next =
                   rZeta = true;
                   rDelta = true;
                   rConst = [];
+                  _;
                 }),
             _,
             _ )),
@@ -1869,6 +1876,7 @@ let separator current next =
                   rZeta = true;
                   rDelta = true;
                   rConst = [];
+                  _;
                 }),
             _,
             _ )) )
