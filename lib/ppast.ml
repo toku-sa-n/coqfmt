@@ -196,8 +196,8 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
       sequence [ pp_constr_expr_with_parens v; write " : "; pp_constr_expr t ]
-  | Constrexpr.CDelimiters (DelimOnlyTmpScope, expr, _) ->
-      sequence [ write expr; write "%" ]
+  | Constrexpr.CDelimiters (_, scope, expr) ->
+      sequence [ pp_constr_expr_with_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
@@ -470,7 +470,7 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.{ v = Constrexpr.CHole None; loc = _ } ) ->
+        CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
       let wrapper =
@@ -507,7 +507,7 @@ and pp_fix_expr = function
       let open CAst in
       let pp_return_type =
         match return_type.v with
-        | Constrexpr.CHole None -> nop
+        | Constrexpr.CHole _ -> nop
         | _ -> sequence [ write " : "; pp_constr_expr return_type ]
       in
 
