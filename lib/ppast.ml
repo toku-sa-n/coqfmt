@@ -12,7 +12,7 @@ exception NotImplemented of string
     In some cases (e.g., printing a notation), printing parentheses may be
     needed even if this function returns a `false`, but do not modify this
     function to return a `true` in such cases. *)
-let generally_parens_needed = function
+let exprs_generally_parens_needed = function
   | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
   | Constrexpr.CProdN _ ->
       true
@@ -30,6 +30,10 @@ let generally_parens_needed = function
       List.length parts > 0 && not enclosed
   | Constrexpr.CAppExpl ((name, None), [ _ ]) ->
       Libnames.string_of_qualid name <> ".."
+  | _ -> false
+
+let tactics_generally_parens_needed = function
+  | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
   | _ -> false
 
 let nop _ = ()
@@ -76,7 +80,7 @@ and pp_cases_pattern_expr_r = function
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
-  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2), []) ->
+  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2, []), []) ->
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
 
       let rec pp unparsings exprs =
@@ -88,7 +92,7 @@ and pp_cases_pattern_expr_r = function
         | Ppextend.UnpBinderMetaVar _ :: _, _ ->
             fun printer -> raise (NotImplemented (contents printer))
         | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems ->
+        | Ppextend.UnpListMetaVar (_, seps) :: t, elems ->
             let get_sep = function
               | Ppextend.UnpTerminal s -> s
               | _ -> failwith "TODO"
@@ -134,8 +138,8 @@ let pp_sort_name_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_sort_expr = function
-  | Glob_term.UAnonymous { rigid = true } -> write "Type"
-  | Glob_term.UAnonymous { rigid = false } ->
+  | Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
+  | Glob_term.UAnonymous { rigid = _ } ->
       fun printer -> raise (NotImplemented (contents printer))
   | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
@@ -192,7 +196,7 @@ and pp_constr_expr_r = function
         ]
   | Constrexpr.CCast (v, Some DEFAULTcast, t) ->
       sequence [ pp_constr_expr_with_parens v; write " : "; pp_constr_expr t ]
-  | Constrexpr.CDelimiters (scope, expr) ->
+  | Constrexpr.CDelimiters (DelimUnboundedScope, scope, expr) ->
       sequence [ pp_constr_expr_with_parens expr; write "%"; write scope ]
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
@@ -304,8 +308,11 @@ and pp_constr_expr_r = function
         | [], _, _ :: _, _, _ -> failwith "Too many local assumptions."
         | [], _, _, _ :: _, _ -> failwith "Too many entry keys."
         | [], _, _, _, _ :: _ -> failwith "Too many patterns."
-        | Ppextend.UnpMetaVar (_, side) :: t_u, h :: t_r, _, h_keys :: t_keys, _
-          ->
+        | ( Ppextend.UnpMetaVar { notation_position; _ } :: t_u,
+            h :: t_r,
+            _,
+            h_keys :: t_keys,
+            _ ) ->
             (* CProdN denotes a `forall foo, ... ` value. This value needs to be
                enclosed by parentheses if it is not on the rightmost position,
                otherwise all expressions will be in the scope of the `forall
@@ -317,10 +324,16 @@ and pp_constr_expr_r = function
                is invalid. Certainly, these two have different meanings, and
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
-              match (h.v, assoc, side, h_keys) with
+              match (h.v, assoc, notation_position, h_keys) with
               | Constrexpr.CLambdaN _, _, _, _ -> true
-              | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "( _ )" ->
-                  false
+              | Constrexpr.CNotation (_, (_, "( _ )"), _), _, _, _ -> false
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Left, _
+                when snd notation = "_ -> _" ->
+                  op_level h.v >= op_level op
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Right, _
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, None, _
+                when snd notation = "_ -> _" ->
+                  op_level h.v > op_level op
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
@@ -356,7 +369,7 @@ and pp_constr_expr_r = function
               ]
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few entry keys."
-        | Ppextend.UnpListMetaVar (_, seps, _) :: t, elems, _, _ :: zs, _ ->
+        | Ppextend.UnpListMetaVar (_, seps) :: t, elems, _, _ :: zs, _ ->
             let get_sep = function
               | Ppextend.UnpTerminal s -> s
               | Ppextend.UnpCut (PpBrk _) -> ";"
@@ -383,7 +396,7 @@ and pp_constr_expr_r = function
                     ]
             in
             loop elems seps
-        | Ppextend.UnpListMetaVar (_, _, _) :: _, _, _, [], _ ->
+        | Ppextend.UnpListMetaVar (_, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
             raise (NotImplemented "Too few entry keys.")
@@ -443,7 +456,7 @@ and pp_constr_expr_r = function
       in
 
       sequence [ write "forall"; pp_parameters; write ","; pp_body ]
-  | Constrexpr.CHole (None, IntroAnonymous) -> write "_"
+  | Constrexpr.CHole None -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -452,7 +465,7 @@ and pp_constr_expr_with_parens_conditionally cond expr =
 
 and pp_constr_expr_with_parens expr =
   pp_constr_expr_with_parens_conditionally
-    (generally_parens_needed expr.CAst.v)
+    (exprs_generally_parens_needed expr.CAst.v)
     expr
 
 and pp_case_expr = function
@@ -463,7 +476,7 @@ and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
         Constrexpr.Default Explicit,
-        CAst.{ v = Constrexpr.CHole (_, IntroAnonymous); loc = _ } ) ->
+        CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
       pp_lname name
   | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
       let wrapper =
@@ -500,7 +513,7 @@ and pp_fix_expr = function
       let open CAst in
       let pp_return_type =
         match return_type.v with
-        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | Constrexpr.CHole None -> nop
         | _ -> sequence [ write " : "; pp_constr_expr return_type ]
       in
 
@@ -595,7 +608,7 @@ let pp_fixpoint_expr = function
         rec_order;
         binders;
         rtype;
-        body_def = Some body_def;
+        body_def;
         notations = [];
       } ->
       let pp_binders =
@@ -620,20 +633,18 @@ let pp_fixpoint_expr = function
 
       let pp_return_type =
         match rtype.v with
-        | Constrexpr.CHole (None, IntroAnonymous) -> nop
+        | Constrexpr.CHole None -> nop
         | _ -> sequence [ write " : "; pp_constr_expr rtype ]
       in
 
-      sequence
-        [
-          pp_lident fname;
-          pp_binders;
-          pp_rec;
-          pp_return_type;
-          write " :=";
-          newline;
-          indented (pp_constr_expr body_def);
-        ]
+      let pp_body =
+        match body_def with
+        | Some body ->
+            sequence [ write " :="; newline; indented (pp_constr_expr body) ]
+        | None -> nop
+      in
+
+      sequence [ pp_lident fname; pp_binders; pp_rec; pp_return_type; pp_body ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_constructor_expr = function
@@ -704,15 +715,19 @@ let pp_syntax_modifier = function
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
   | Tacexpr.Reference name -> pp_qualid name
-  | Tacexpr.TacCall CAst.{ v = v, []; loc = _ } -> pp_qualid v
-  | Tacexpr.TacCall CAst.{ v = name, [ arg ]; loc = _ } ->
-      sequence [ pp_qualid name; space; pp_gen_tactic_arg arg ]
+  | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
+      let pp_args =
+        map_sequence (fun x -> sequence [ space; pp_gen_tactic_arg x ]) args
+      in
+
+      sequence [ pp_qualid name; pp_args ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
   | Genredexpr.Cbv
       Genredexpr.
         {
+          rStrength = Norm;
           rBeta = true;
           rMatch = true;
           rFix = true;
@@ -725,6 +740,7 @@ let pp_raw_red_expr = function
   | Genredexpr.Simpl
       ( Genredexpr.
           {
+            rStrength = Norm;
             rBeta = true;
             rMatch = true;
             rFix = true;
@@ -803,7 +819,7 @@ let pp_or_var = function
           [ write " as"; newline; indented (pp_or_and_intro_pattern_expr v) ]
       in
       hor <-|> ver
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Locus.ArgVar ident -> pp_lident ident
 
 let pp_induction_clause = function
   | arg, (eqn, as_list), None ->
@@ -873,8 +889,25 @@ let pp_bindings = function
   | Tactypes.NoBindings -> nop
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_match_pattern = function
+  | Tacexpr.Term expr -> pp_constr_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_match_context_hyps = function
+  | Tacexpr.Hyp (name, pattern) ->
+      spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_message_token = function
+  | Tacexpr.MsgString s -> doublequoted (write s)
+  | Tacexpr.MsgInt i -> pp_int i
+  | Tacexpr.MsgIdent id -> pp_lident id
+
 let rec pp_raw_atomic_tactic_expr = function
-  | Tacexpr.TacApply (true, false, [ (None, (expr, bindings)) ], in_clause) ->
+  | Tacexpr.TacApply (true, is_eapply, [ (None, (expr, bindings)) ], in_clause)
+    ->
+      let pp_tactic = if is_eapply then write "eapply" else write "apply" in
+
       let pp_in_clause =
         match in_clause with
         | [] -> nop
@@ -884,16 +917,23 @@ let rec pp_raw_atomic_tactic_expr = function
 
       sequence
         [
-          write "apply ";
+          pp_tactic;
+          space;
           pp_constr_expr_with_parens expr;
           pp_bindings bindings;
           pp_in_clause;
         ]
   | Tacexpr.TacAssert (false, true, Some by, Some name, expr) ->
       let pp_by =
+        let conditional_parens tactic =
+          if tactics_generally_parens_needed tactic.CAst.v then
+            parens (pp_raw_tactic_expr tactic)
+          else pp_raw_tactic_expr tactic
+        in
+
         match by with
         | None -> nop
-        | Some by -> sequence [ write " by "; pp_raw_tactic_expr by ]
+        | Some by -> sequence [ write " by "; conditional_parens by ]
       in
 
       sequence
@@ -921,12 +961,16 @@ let rec pp_raw_atomic_tactic_expr = function
           write "intros ";
           map_spaced (fun expr -> pp_intro_pattern_expr expr.v) exprs;
         ]
-  | Tacexpr.TacReduce (expr, { onhyps = Some []; concl_occs = AllOccurrences })
-    ->
-      pp_raw_red_expr expr
-  | Tacexpr.TacReduce
-      (expr, { onhyps = Some [ name ]; concl_occs = NoOccurrences }) ->
-      sequence [ pp_raw_red_expr expr; write " in "; pp_hyp_location_expr name ]
+  | Tacexpr.TacReduce (expr, { onhyps; concl_occs = _ }) ->
+      let pp_in =
+        match onhyps with
+        | Some [] -> nop
+        | Some [ name ] -> sequence [ write " in "; pp_hyp_location_expr name ]
+        | None -> write " in *"
+        | Some _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence [ pp_raw_red_expr expr; pp_in ]
   | Tacexpr.TacRewrite
       ( false,
         [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
@@ -981,69 +1025,155 @@ let rec pp_raw_atomic_tactic_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_gen_tactic_expr_r v
+  pp_raw_tactic_expr_r v
 
-and pp_gen_tactic_expr_r = function
+and pp_raw_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
       (* FIXME: Needs refactoring. *)
-      let id = Names.KerName.label alias |> Names.Label.to_string in
-      let init xs = List.rev xs |> List.tl |> List.rev in
+      let id = Pptactic.pr_alias_key alias |> Pp.string_of_ppcmds in
 
-      (* The last element is Coq's internal ID and we don't need it. *)
-      let init_idents = String.split_on_char '_' id |> init in
+      let init_idents = String.split_on_char ' ' id in
+      let starts_with_paren s = String.starts_with ~prefix:"(" s in
       let rec loop idents replacers =
         match (idents, replacers) with
-        | "#" :: _, [] -> failwith "Too few replacers."
-        | "#" :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps -> (
-            match
-              ( Conversion.constr_expr_of_raw_generic_argument args,
-                Conversion.destruction_arg_of_raw_generic_argument args,
-                Conversion.intro_pattern_list_of_raw_generic_argument args,
-                Conversion.clause_expr_of_raw_generic_argument args,
-                Conversion.bindings_list_of_raw_generic_argument args,
-                Conversion.id_of_raw_generic_argument args,
-                Conversion.hyp_of_raw_generic_argument args )
-            with
-            | None, None, None, None, None, None, None -> loop t_ids t_reps
-            | Some h_reps, _, _, _, _, _, _ ->
-                pp_constr_expr_with_parens h_reps :: loop t_ids t_reps
-            | _, Some h_reps, _, _, _, _, _ ->
-                pp_destruction_arg h_reps :: loop t_ids t_reps
-            | _, _, Some h_reps, _, _, _, _ ->
-                let open CAst in
-                map_spaced (fun x -> pp_intro_pattern_expr x.v) h_reps
-                :: loop t_ids t_reps
-            | _, _, _, Some { onhyps = Some [ name ]; concl_occs = _ }, _, _, _
-              ->
-                pp_hyp_location_expr name :: loop t_ids t_reps
-            | _, _, _, _, Some bindings, _, _ ->
-                let pp_binding = function
+        | [], [] -> []
+        | [], _ -> failwith "Too many replacers."
+        | s :: _, [] when starts_with_paren s -> failwith "Too few replacers."
+        | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
+          when starts_with_paren s ->
+            let try_pp converter pp =
+              match converter args with Some x -> Some (pp x) | None -> None
+            in
+
+            let try_pp_always converter pp =
+              try_pp converter (fun x -> Some (pp x))
+            in
+
+            let try_pp_constr_expr =
+              try_pp_always Conversion.constr_expr_of_raw_generic_argument
+                pp_constr_expr_with_parens
+            in
+
+            let try_pp_destruction_arg =
+              try_pp_always Conversion.destruction_arg_of_raw_generic_argument
+                pp_destruction_arg
+            in
+
+            let try_pp_intro_pattern_expr =
+              try_pp_always
+                Conversion.intro_pattern_list_of_raw_generic_argument
+                (map_spaced (fun expr -> pp_intro_pattern_expr expr.CAst.v))
+            in
+
+            let try_pp_clause_expr =
+              let pp = function
+                | { Locus.onhyps = Some [ name ]; concl_occs = _ } ->
+                    pp_hyp_location_expr name
+                | _ -> fun printer -> raise (NotImplemented (contents printer))
+              in
+
+              try_pp_always Conversion.clause_expr_of_raw_generic_argument pp
+            in
+
+            let try_pp_bindings =
+              try_pp_always Conversion.bindings_list_of_raw_generic_argument
+                (map_commad (function
                   | Tactypes.ImplicitBindings [ x ] ->
                       pp_constr_expr_with_parens x
                   | _ ->
-                      fun printer -> raise (NotImplemented (contents printer))
-                in
+                      fun printer -> raise (NotImplemented (contents printer))))
+            in
 
-                map_commad pp_binding bindings :: loop t_ids t_reps
-            | _, _, _, _, _, Some id, _ -> pp_id id :: loop t_ids t_reps
-            | _, _, _, _, _, _, Some [ name ] ->
-                pp_lident name :: loop t_ids t_reps
-            | _ ->
-                [ (fun printer -> raise (NotImplemented (contents printer))) ])
-        | "#" :: t_ids, _ :: t_reps -> loop t_ids t_reps
-        | [], [] -> []
-        | [], _ -> failwith "Too many replacers."
+            let try_pp_id =
+              try_pp_always Conversion.id_of_raw_generic_argument pp_id
+            in
+
+            let try_pp_hyp =
+              let pp = function
+                | [ name ] -> pp_lident name
+                | _ -> fun printer -> raise (NotImplemented (contents printer))
+              in
+
+              try_pp_always Conversion.hyp_of_raw_generic_argument pp
+            in
+
+            let try_pp_nat_or_var =
+              let pp = function
+                | [] -> None
+                | [ Locus.ArgArg name ] -> Some (pp_int name)
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.nat_or_var_of_raw_generic_argument pp
+            in
+
+            let try_pp_auto_using =
+              let pp = function
+                | [] -> None
+                | [ x ] -> Some (sequence [ write "using "; pp_constr_expr x ])
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.auto_using_of_raw_generic_argument pp
+            in
+
+            let try_pp_hintbases =
+              let pp = function
+                | [] -> None
+                | [ x ] -> Some (spaced [ write "with"; write x ])
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.hintbases_of_raw_generic_argument pp
+            in
+
+            let printers =
+              [
+                try_pp_constr_expr;
+                try_pp_destruction_arg;
+                try_pp_intro_pattern_expr;
+                try_pp_clause_expr;
+                try_pp_bindings;
+                try_pp_id;
+                try_pp_hyp;
+                try_pp_nat_or_var;
+                try_pp_auto_using;
+                try_pp_hintbases;
+              ]
+            in
+
+            let rec try_pp = function
+              | [] | Some None :: _ -> loop t_ids t_reps
+              | None :: t -> try_pp t
+              | Some (Some x) :: _ -> x :: loop t_ids t_reps
+            in
+
+            try_pp printers
+        | h_id :: t_ids, Tacexpr.Tacexp tactic :: t_reps
+          when starts_with_paren h_id ->
+            pp_raw_tactic_expr tactic :: loop t_ids t_reps
         | h_id :: t_id, _ -> write h_id :: loop t_id replacers
       in
+
       sequence [ loop init_idents init_replacers |> spaced ]
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
+  | Tacexpr.TacId [] -> nop
+  | Tacexpr.TacId names ->
+      spaced [ write "idtac"; map_spaced pp_message_token names ]
+  | Tacexpr.TacMatchGoal (Once, false, rules) ->
+      lined
+        [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
   | Tacexpr.TacRepeat tactic ->
-      let parens_needed =
-        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
-      in
       let pp_tactic =
-        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        if tactics_generally_parens_needed tactic.CAst.v then
+          parens (pp_raw_tactic_expr tactic)
         else pp_raw_tactic_expr tactic
       in
 
@@ -1086,51 +1216,106 @@ and pp_gen_tactic_expr_r = function
       in
 
       hor <-|> ver
-  | Tacexpr.TacTry tactic ->
-      let parens_needed =
-        match tactic.v with Tacexpr.TacThen _ -> true | _ -> false
+  | Tacexpr.TacThens (first, second) ->
+      let pp_bracket_clause =
+        let prefix = function 0 -> nop | _ -> write " | " in
+
+        let pp_patterns i pattern =
+          sequence [ prefix i; pp_raw_tactic_expr pattern ]
+        in
+
+        brackets (sequence (List.mapi pp_patterns second))
       in
+
+      sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
+  | Tacexpr.TacTry tactic ->
       let pp_tactic =
-        if parens_needed then parens (pp_raw_tactic_expr tactic)
+        if tactics_generally_parens_needed tactic.CAst.v then
+          parens (pp_raw_tactic_expr tactic)
         else pp_raw_tactic_expr tactic
       in
 
       sequence [ write "try "; pp_tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+and pp_match_rule = function
+  | Tacexpr.Pat (contexts, pattern, expr) ->
+      let pp_contexts =
+        if contexts = [] then nop
+        else
+          sequence
+            [
+              map_with_seps
+                ~sep:(sequence [ comma; newline ])
+                pp_match_context_hyps contexts;
+              space;
+            ]
+      in
+
+      write "| "
+      |=> sequence
+            [
+              pp_contexts;
+              write "|- ";
+              pp_match_pattern pattern;
+              write " => ";
+              pp_raw_tactic_expr expr;
+            ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_tacdef_body = function
-  | Tacexpr.TacticDefinition
-      (name, CAst.{ v = TacFun ([ param ], body); loc = _ }) ->
+  | Tacexpr.TacticDefinition (name, v) ->
+      let pp_params =
+        match v with
+        | CAst.{ v = TacFun (params, _); loc = _ } ->
+            map_sequence (fun x -> sequence [ space; pp_name x ]) params
+        | _ -> nop
+      in
+
+      let pp_body =
+        let body =
+          match v with CAst.{ v = TacFun (_, body); loc = _ } -> body | _ -> v
+        in
+
+        let hor = sequence [ space; pp_raw_tactic_expr body ] in
+        let ver = sequence [ newline; indented (pp_raw_tactic_expr body) ] in
+        hor <-|> ver
+      in
+
       sequence
-        [
-          write "Ltac ";
-          pp_lident name;
-          space;
-          pp_name param;
-          write " := ";
-          pp_raw_tactic_expr body;
-        ]
-  | Tacexpr.TacticDefinition (name, body) ->
-      sequence
-        [ write "Ltac "; pp_lident name; write " := "; pp_raw_tactic_expr body ]
+        [ write "Ltac "; pp_lident name; pp_params; write " :="; pp_body ]
   | Tacexpr.TacticRedefinition _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
 let pp_ltac =
-  let try_pp_raw_tactic_expr expr =
-    match Conversion.raw_tactic_expr_of_raw_generic_argument expr with
-    | None -> None
-    | Some t -> Some (sequence [ pp_raw_tactic_expr t; dot ])
+  let try_pp conversion pp expr =
+    match conversion expr with Some x -> Some (pp x) | None -> None
   in
 
-  let try_pp_tacdef_body expr =
-    match Conversion.tacdef_body_of_raw_generic_argument expr with
-    | None -> None
-    | Some [ t ] -> Some (sequence [ pp_tacdef_body t; dot ])
-    | Some _ -> Some (fun printer -> raise (NotImplemented (contents printer)))
+  let try_pp_raw_tactic_expr =
+    let pp expr = sequence [ pp_raw_tactic_expr expr; dot ] in
+
+    try_pp Conversion.raw_tactic_expr_of_raw_generic_argument pp
   in
 
-  let pp_funcs = [ try_pp_raw_tactic_expr; try_pp_tacdef_body ] in
+  let try_pp_tacdef_body =
+    let pp = function
+      | [ t ] -> sequence [ pp_tacdef_body t; dot ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer))
+    in
+
+    try_pp Conversion.tacdef_body_of_raw_generic_argument pp
+  in
+
+  let try_pp_ltac_use_default =
+    let pp = function true -> write ".." | false -> nop in
+
+    try_pp Conversion.ltac_use_default_of_raw_generic_argument pp
+  in
+
+  let pp_funcs =
+    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
+  in
 
   let rec pp fs expr =
     match fs with
@@ -1280,6 +1465,23 @@ let pp_showable = function
   | Vernacexpr.ShowProof -> write "Proof"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_reference_or_constr = function
+  | Vernacexpr.HintsReference name -> pp_qualid name
+  | Vernacexpr.HintsConstr _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+
+let pp_hints_expr = function
+  | Vernacexpr.HintsConstructors [ name ] ->
+      sequence [ write "Hint Constructors "; pp_qualid name ]
+  | Vernacexpr.HintsResolve
+      [ ({ hint_priority = None; hint_pattern = None }, true, expr) ] ->
+      sequence [ write "Hint Resolve "; pp_reference_or_constr expr ]
+  | Vernacexpr.HintsTransparency (HintsReferences names, true) ->
+      sequence [ write "Hint Transparent "; map_spaced pp_qualid names ]
+  | Vernacexpr.HintsUnfold [ name ] ->
+      sequence [ write "Hint Unfold "; pp_qualid name ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1333,7 +1535,7 @@ let pp_synterp_vernac_expr = function
       let parens_needed expr =
         match expr.CAst.v with
         | Constrexpr.CLetIn _ -> true
-        | _ -> generally_parens_needed expr.CAst.v
+        | _ -> exprs_generally_parens_needed expr.CAst.v
       in
 
       let conditional_parens expr =
@@ -1461,6 +1663,7 @@ let pp_synpure_vernac_expr = function
         | Some
             (Cbv
               {
+                rStrength = Norm;
                 rBeta = true;
                 rMatch = true;
                 rFix = true;
@@ -1476,7 +1679,8 @@ let pp_synpure_vernac_expr = function
       in
 
       let pp_expr =
-        if generally_parens_needed expr.v then parens (pp_constr_expr expr)
+        if exprs_generally_parens_needed expr.v then
+          parens (pp_constr_expr expr)
         else pp_constr_expr expr
       in
 
@@ -1488,6 +1692,8 @@ let pp_synpure_vernac_expr = function
       hor <-|> ver
   | Vernacexpr.VernacComments xs ->
       sequence [ write "Comments "; map_spaced pp_comment xs; dot ]
+  | Vernacexpr.VernacCreateHintDb (name, false) ->
+      sequence [ write "Create HintDb "; write name; dot ]
   | Vernacexpr.VernacDeclareScope name ->
       sequence [ write "Declare Scope "; write name; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
@@ -1558,6 +1764,10 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
+  | Vernacexpr.VernacProof (Some expr, None) -> (
+      match Conversion.ltac_of_raw_generic_argument expr with
+      | Some x -> sequence [ write "Proof with "; pp_raw_tactic_expr x; dot ]
+      | None -> fun printer -> raise (NotImplemented (contents printer)))
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
@@ -1609,6 +1819,8 @@ let pp_synpure_vernac_expr = function
       sequence [ bullet_appears bullet; pp_proof_bullet bullet ]
   | Vernacexpr.VernacSubproof None -> sequence [ write "{"; start_subproof ]
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
+  | Vernacexpr.VernacHints ([ database ], expr) ->
+      sequence [ pp_hints_expr expr; write " : "; write database; dot ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function
@@ -1636,6 +1848,8 @@ let separator current next =
   | VernacSynPure (VernacDefinition _), VernacSynPure VernacAbort
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+  | VernacSynPure (VernacFixpoint _), VernacSynPure VernacAbort
+  | VernacSynPure (VernacFixpoint _), VernacSynPure (VernacEndProof _)
   | VernacSynPure (VernacProof _), VernacSynPure VernacAbort
   | VernacSynPure (VernacProof _), VernacSynPure (VernacEndProof _)
   | _, VernacSynPure (VernacProof _)
@@ -1645,6 +1859,7 @@ let separator current next =
           ( Some
               (Cbv
                 {
+                  rStrength = Norm;
                   rBeta = true;
                   rMatch = true;
                   rFix = true;
@@ -1660,6 +1875,7 @@ let separator current next =
           ( Some
               (Cbv
                 {
+                  rStrength = Norm;
                   rBeta = true;
                   rMatch = true;
                   rFix = true;

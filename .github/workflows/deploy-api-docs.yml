@@ -6,18 +6,40 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
+  pages: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - uses: actions/checkout@v4.1.1
 
-      - uses: ocaml/setup-ocaml@v2.1.2
+      - uses: ocaml/setup-ocaml@v2.2.5
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/deploy-doc@v2.1.2
+      - name: Install dependencies
+        run: opam install . --deps-only --with-doc
+
+      - name: Build documentation
+        run: opam exec -- dune build @doc
+
+      - name: Set-up Pages
+        uses: actions/configure-pages@v4.0.0
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3.0.1
+        with:
+          path: _build/default/_doc/_html
+
+      - name: Deploy odoc to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4.0.4
