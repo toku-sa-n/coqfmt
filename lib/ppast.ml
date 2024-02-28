@@ -1860,6 +1860,7 @@ let separator current next =
           ( Some
               (Cbv
                 {
+                  rStrength = Norm;
                   rBeta = true;
                   rMatch = true;
                   rFix = true;
@@ -1867,7 +1868,6 @@ let separator current next =
                   rZeta = true;
                   rDelta = true;
                   rConst = [];
-                  _;
                 }),
             _,
             _ )),
