@@ -1290,6 +1290,7 @@ let pp_tacdef_body = function
 let pp_lang = function
   | Extraction_plugin.Table.Haskell -> write "Haskell"
   | Extraction_plugin.Table.Ocaml -> write "OCaml"
+  | Extraction_plugin.Table.Scheme -> write "Scheme"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_plugin =
