@@ -728,6 +728,7 @@ let pp_raw_red_expr = function
   | Genredexpr.Cbv
       Genredexpr.
         {
+          rStrength = Norm;
           rBeta = true;
           rMatch = true;
           rFix = true;
@@ -735,7 +736,6 @@ let pp_raw_red_expr = function
           rZeta = true;
           rDelta = true;
           rConst = [];
-          _;
         } ->
       write "cbv"
   | Genredexpr.Simpl
