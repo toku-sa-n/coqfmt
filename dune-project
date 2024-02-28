@@ -25,7 +25,7 @@
   ; users may have already installed it. However, removing it and installing Coq
   ; via opam causes a build error on CI.
   (coq
-   (= 8.18.0))
+   (= 8.19.0))
   coq-core
   coq-serapi
   dune
