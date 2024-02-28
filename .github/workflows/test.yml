@@ -149,3 +149,11 @@ jobs:
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           files: Dockerfile
+
+  markdown-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - uses: DavidAnson/markdownlint-cli2-action@v1.0.0
