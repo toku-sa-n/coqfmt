@@ -1287,7 +1287,11 @@ let pp_tacdef_body = function
   | Tacexpr.TacticRedefinition _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
-let pp_ltac =
+let pp_lang = function
+  | Extraction_plugin.Table.Haskell -> write "Haskell"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_plugin =
   let try_pp conversion pp expr =
     match conversion expr with Some x -> Some (pp x) | None -> None
   in
@@ -1313,8 +1317,21 @@ let pp_ltac =
     try_pp Conversion.ltac_use_default_of_raw_generic_argument pp
   in
 
+  let try_pp_lang =
+    let pp lang =
+      sequence [ write "Extraction Language "; pp_lang lang; dot ]
+    in
+
+    try_pp Conversion.lang_of_raw_generic_argument pp
+  in
+
   let pp_funcs =
-    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
+    [
+      try_pp_raw_tactic_expr;
+      try_pp_tacdef_body;
+      try_pp_ltac_use_default;
+      try_pp_lang;
+    ]
   in
 
   let rec pp fs expr =
@@ -1492,7 +1509,7 @@ let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacImport ((flag, None), [ (name, ImportAll) ]) ->
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
       (* FIXME: Support other plugins, like ltac2. *)
-  | Vernacexpr.VernacExtend (_, args) -> pp_ltac args
+  | Vernacexpr.VernacExtend (_, args) -> pp_plugin args
   | Vernacexpr.VernacNotation
       ( false,
         {

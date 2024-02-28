@@ -1,5 +1,8 @@
 (library
  (name coqfmt)
  (public_name coqfmt)
- (libraries coq-core.plugins.ltac coq-serapi.serlib.ltac)
+ (libraries
+  coq-core.plugins.ltac
+  coq-serapi.serlib.ltac
+  coq-serapi.serlib.extraction)
  (private_modules astparser conversion ppast printer))
