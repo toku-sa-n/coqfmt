@@ -1291,7 +1291,7 @@ let pp_lang = function
   | Extraction_plugin.Table.Haskell -> write "Haskell"
   | Extraction_plugin.Table.Ocaml -> write "OCaml"
   | Extraction_plugin.Table.Scheme -> write "Scheme"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Extraction_plugin.Table.JSON -> write "JSON"
 
 let pp_plugin =
   let try_pp conversion pp expr =
