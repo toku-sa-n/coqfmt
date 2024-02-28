@@ -1664,6 +1664,7 @@ let pp_synpure_vernac_expr = function
         | Some
             (Cbv
               {
+                rStrength = Norm;
                 rBeta = true;
                 rMatch = true;
                 rFix = true;
@@ -1671,7 +1672,6 @@ let pp_synpure_vernac_expr = function
                 rZeta = true;
                 rDelta = true;
                 rConst = [];
-                _;
               }) ->
             write "Eval compute in"
         | Some (CbvVm None) -> write "Compute"
