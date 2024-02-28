@@ -328,6 +328,13 @@ and pp_constr_expr_r = function
               | Constrexpr.CLambdaN _, _, _, _ -> true
               | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "( _ )" ->
                   false
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Left, _
+                when snd notation = "_ -> _" ->
+                  op_level h.v >= op_level op
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Right, _
+              | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, None, _
+                when snd notation = "_ -> _" ->
+                  op_level h.v > op_level op
               | Constrexpr.CProdN _, _, _, _ -> t_u <> []
               | _, Some LeftA, Some Right, _ | _, Some RightA, Some Left, _ ->
                   op_level h.v >= op_level op
