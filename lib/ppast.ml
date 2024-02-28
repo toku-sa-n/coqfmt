@@ -741,6 +741,7 @@ let pp_raw_red_expr = function
   | Genredexpr.Simpl
       ( Genredexpr.
           {
+            rStrength = Norm;
             rBeta = true;
             rMatch = true;
             rFix = true;
@@ -748,7 +749,6 @@ let pp_raw_red_expr = function
             rZeta = true;
             rDelta = true;
             rConst = [];
-            _;
           },
         None ) ->
       write "simpl"
