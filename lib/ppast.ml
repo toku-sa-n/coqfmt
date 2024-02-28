@@ -326,8 +326,7 @@ and pp_constr_expr_r = function
             let parens_needed =
               match (h.v, assoc, notation_position, h_keys) with
               | Constrexpr.CLambdaN _, _, _, _ -> true
-              | Constrexpr.CNotation (_, (_, n), _), _, _, _ when n = "( _ )" ->
-                  false
+              | Constrexpr.CNotation (_, (_, "( _ )"), _), _, _, _ -> false
               | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Left, _
                 when snd notation = "_ -> _" ->
                   op_level h.v >= op_level op
