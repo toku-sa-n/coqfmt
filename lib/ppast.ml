@@ -80,7 +80,7 @@ and pp_cases_pattern_expr_r = function
         | _ -> parens (pp_cases_pattern_expr expr)
       in
       spaced (pp_qualid outer :: List.map conditional_parens values)
-  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2, _), []) ->
+  | Constrexpr.CPatNotation (scope, notation, (exprs_1, exprs_2, []), []) ->
       let printing_rule = Ppextend.find_notation_printing_rule scope notation in
 
       let rec pp unparsings exprs =
