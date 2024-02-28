@@ -514,7 +514,7 @@ and pp_fix_expr = function
       let open CAst in
       let pp_return_type =
         match return_type.v with
-        | Constrexpr.CHole _ -> nop
+        | Constrexpr.CHole None -> nop
         | _ -> sequence [ write " : "; pp_constr_expr return_type ]
       in
 
