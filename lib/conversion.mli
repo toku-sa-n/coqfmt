@@ -93,7 +93,7 @@ val ref_list_of_raw_generic_argument :
 val mlname_of_raw_generic_argument :
   Genarg.raw_generic_argument -> string option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
-  [string *)
+  [string] *)
 
 val mlname_list_of_raw_generic_argument :
   Genarg.raw_generic_argument -> string list option
