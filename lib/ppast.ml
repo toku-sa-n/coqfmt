@@ -1510,7 +1510,6 @@ let pp_synterp_vernac_expr = function
       sequence [ decrease_indent; write "End "; pp_lident name; dot ]
   | Vernacexpr.VernacImport ((flag, None), [ (name, ImportAll) ]) ->
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
-      (* FIXME: Support other plugins, like ltac2. *)
   | Vernacexpr.VernacExtend (_, args) -> pp_plugin args
   | Vernacexpr.VernacNotation
       ( false,
