@@ -2042,7 +2042,55 @@ let separator current next =
   | VernacSynterp (VernacSetOption _), VernacSynterp (VernacSetOption _)
   | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _)
   | VernacSynPure (VernacPrint _), VernacSynPure (VernacPrint _)
-  | VernacSynPure (VernacCoercion _), VernacSynPure (VernacCoercion _) ->
+  | VernacSynPure (VernacCoercion _), VernacSynPure (VernacCoercion _)
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "Extraction";
+              ext_index = 2;
+            },
+            _ )),
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "Extraction";
+              ext_index = 2;
+            },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionConstant";
+              ext_index = 0;
+            },
+            _ )),
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionConstant";
+              ext_index = 0;
+            },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionLanguage";
+              ext_index = 0;
+            },
+            _ )),
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionLanguage";
+              ext_index = 0;
+            },
+            _ )) ) ->
       newline
   | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
   | VernacSynPure (VernacProof _), _
@@ -2090,6 +2138,24 @@ let separator current next =
               ext_plugin = "coq-core.plugins.extraction";
               ext_entry = "Extraction";
               ext_index = 2;
+            },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionConstant";
+              ext_index = 0;
+            },
+            _ )),
+      _ )
+  | ( _,
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionConstant";
+              ext_index = 0;
             },
             _ )) )
   | ( VernacSynterp
