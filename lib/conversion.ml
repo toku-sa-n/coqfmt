@@ -222,3 +222,29 @@ let lang_of_raw_generic_argument arg =
       ] ->
       Some (Serlib_extraction.Ser_g_extraction.WitL.raw_of_sexp rems)
   | _ -> None
+
+let string_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "string" ] ];
+        rems;
+      ] ->
+      Some (Sexplib.Std.string_of_sexp rems)
+  | _ -> None
+
+let ref_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "ref" ] ];
+          ];
+        List rems;
+      ] ->
+      Some (List.map Serlib.Ser_libnames.qualid_of_sexp rems)
+  | _ -> None

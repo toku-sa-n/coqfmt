@@ -1293,7 +1293,7 @@ let pp_lang = function
   | Extraction_plugin.Table.Scheme -> write "Scheme"
   | Extraction_plugin.Table.JSON -> write "JSON"
 
-let pp_plugin =
+let pp_vernac_solve =
   let try_pp conversion pp expr =
     match conversion expr with Some x -> Some (pp x) | None -> None
   in
@@ -1501,6 +1501,24 @@ let pp_hints_expr = function
       sequence [ write "Hint Unfold "; pp_qualid name ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_extraction = function
+  | [ filename; identifiens ] -> (
+      match
+        ( Conversion.string_of_raw_generic_argument filename,
+          Conversion.ref_of_raw_generic_argument identifiens )
+      with
+      | Some filename, Some [ identifiens ] ->
+          sequence
+            [
+              write "Extraction ";
+              doublequoted (write filename);
+              space;
+              pp_qualid identifiens;
+              dot;
+            ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1510,7 +1528,22 @@ let pp_synterp_vernac_expr = function
       sequence [ decrease_indent; write "End "; pp_lident name; dot ]
   | Vernacexpr.VernacImport ((flag, None), [ (name, ImportAll) ]) ->
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
-  | Vernacexpr.VernacExtend (_, args) -> pp_plugin args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.ltac";
+          ext_entry = "VernacSolve";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_vernac_solve args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "Extraction";
+          ext_index = 2;
+        },
+        args ) ->
+      pp_extraction args
   | Vernacexpr.VernacNotation
       ( false,
         {

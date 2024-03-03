@@ -74,3 +74,13 @@ val lang_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Extraction_plugin.Table.lang option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Extraction_plugin.Table.lang]. *)
+
+val string_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> string option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [string]. *)
+
+val ref_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Libnames.qualid list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Libnames.qualid list]. *)
