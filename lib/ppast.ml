@@ -2090,6 +2090,22 @@ let separator current next =
               ext_entry = "ExtractionLanguage";
               ext_index = 0;
             },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionInductive";
+              ext_index = 0;
+            },
+            _ )),
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionInductive";
+              ext_index = 0;
+            },
             _ )) ) ->
       newline
   | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
@@ -2173,6 +2189,24 @@ let separator current next =
           ( {
               ext_plugin = "coq-core.plugins.extraction";
               ext_entry = "ExtractionLanguage";
+              ext_index = 0;
+            },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionInductive";
+              ext_index = 0;
+            },
+            _ )),
+      _ )
+  | ( _,
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionInductive";
               ext_index = 0;
             },
             _ )) )
