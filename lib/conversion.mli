@@ -81,6 +81,26 @@ val string_of_raw_generic_argument :
   [string]. *)
 
 val ref_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Libnames.qualid option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Libnames.qualid]. *)
+
+val ref_list_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Libnames.qualid list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Libnames.qualid list]. *)
+
+val mlname_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> string option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [string] *)
+
+val mlname_list_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> string list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [string list]. *)
+
+val opt_string_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> string option option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [string option]. *)

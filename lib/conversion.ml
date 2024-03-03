@@ -239,6 +239,17 @@ let ref_of_raw_generic_argument arg =
   | List
       [
         Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ref" ] ];
+        rems;
+      ] ->
+      Some (Serlib.Ser_libnames.qualid_of_sexp rems)
+  | _ -> None
+
+let ref_list_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
         List
           [
             Atom "Rawwit";
@@ -247,4 +258,45 @@ let ref_of_raw_generic_argument arg =
         List rems;
       ] ->
       Some (List.map Serlib.Ser_libnames.qualid_of_sexp rems)
+  | _ -> None
+
+let mlname_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "mlname" ] ];
+        rems;
+      ] ->
+      Some (Serlib_extraction.Ser_g_extraction.WitMN.t_of_sexp rems)
+  | _ -> None
+
+let mlname_list_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "mlname" ] ];
+          ];
+        List rems;
+      ] ->
+      Some (List.map Serlib_extraction.Ser_g_extraction.WitMN.t_of_sexp rems)
+  | _ -> None
+
+let opt_string_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List [ Atom "OptArg"; List [ Atom "ExtraArg"; Atom "string" ] ];
+          ];
+        rems;
+      ] ->
+      Some (Sexplib.Std.option_of_sexp Sexplib.Std.string_of_sexp rems)
   | _ -> None

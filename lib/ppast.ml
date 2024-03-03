@@ -1492,7 +1492,7 @@ let pp_extraction = function
   | [ filename; identifiens ] -> (
       match
         ( Conversion.string_of_raw_generic_argument filename,
-          Conversion.ref_of_raw_generic_argument identifiens )
+          Conversion.ref_list_of_raw_generic_argument identifiens )
       with
       | Some filename, Some [ identifiens ] ->
           sequence
@@ -1521,6 +1521,38 @@ let pp_extraction_language = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_extraction_inductive = function
+  | [ identifier; name; branches; matcher ] -> (
+      match
+        ( Conversion.ref_of_raw_generic_argument identifier,
+          Conversion.mlname_of_raw_generic_argument name,
+          Conversion.mlname_list_of_raw_generic_argument branches,
+          Conversion.opt_string_of_raw_generic_argument matcher )
+      with
+      | Some identifier, Some name, Some branches, Some matcher ->
+          let pp_matcher =
+            match matcher with
+            | Some matcher -> sequence [ space; doublequoted (write matcher) ]
+            | None -> nop
+          in
+
+          sequence
+            [
+              write "Extract Inductive ";
+              pp_qualid identifier;
+              write " => ";
+              doublequoted (write name);
+              space;
+              brackets
+                (map_spaced
+                   (fun branch -> doublequoted (write branch))
+                   branches);
+              pp_matcher;
+              dot;
+            ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1546,6 +1578,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_extraction_language args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "ExtractionInductive";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_extraction_inductive args
   | Vernacexpr.VernacExtend
       ( {
           ext_plugin = "coq-core.plugins.ltac";
