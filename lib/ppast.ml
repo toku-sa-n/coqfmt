@@ -1522,13 +1522,20 @@ let pp_extraction_language = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_extraction_inductive = function
-  | [ identifier; name; branches; _ ] -> (
+  | [ identifier; name; branches; matcher ] -> (
       match
         ( Conversion.ref_of_raw_generic_argument identifier,
           Conversion.mlname_of_raw_generic_argument name,
-          Conversion.mlname_list_of_raw_generic_argument branches )
+          Conversion.mlname_list_of_raw_generic_argument branches,
+          Conversion.opt_string_of_raw_generic_argument matcher )
       with
-      | Some identifier, Some name, Some branches ->
+      | Some identifier, Some name, Some branches, Some matcher ->
+          let pp_matcher =
+            match matcher with
+            | Some matcher -> sequence [ space; doublequoted (write matcher) ]
+            | None -> nop
+          in
+
           sequence
             [
               write "Extract Inductive ";
@@ -1540,6 +1547,7 @@ let pp_extraction_inductive = function
                 (map_spaced
                    (fun branch -> doublequoted (write branch))
                    branches);
+              pp_matcher;
               dot;
             ]
       | _ -> fun printer -> raise (NotImplemented (contents printer)))

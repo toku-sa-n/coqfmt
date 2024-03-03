@@ -99,3 +99,8 @@ val mlname_list_of_raw_generic_argument :
   Genarg.raw_generic_argument -> string list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [string list]. *)
+
+val opt_string_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> string option option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [string option]. *)
