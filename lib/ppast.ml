@@ -1519,6 +1519,13 @@ let pp_extraction = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_vernac_declare_tactic_definition = function
+  | [ args ] -> (
+      match Conversion.tacdef_body_of_raw_generic_argument args with
+      | Some [ t ] -> sequence [ pp_tacdef_body t; dot ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1544,6 +1551,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_extraction args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.ltac";
+          ext_entry = "VernacDeclareTacticDefinition";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_vernac_declare_tactic_definition args
   | Vernacexpr.VernacNotation
       ( false,
         {
