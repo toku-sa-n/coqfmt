@@ -1319,21 +1319,8 @@ let pp_vernac_solve =
     try_pp Conversion.ltac_use_default_of_raw_generic_argument pp
   in
 
-  let try_pp_lang =
-    let pp lang =
-      sequence [ write "Extraction Language "; pp_lang lang; dot ]
-    in
-
-    try_pp Conversion.lang_of_raw_generic_argument pp
-  in
-
   let pp_funcs =
-    [
-      try_pp_raw_tactic_expr;
-      try_pp_tacdef_body;
-      try_pp_ltac_use_default;
-      try_pp_lang;
-    ]
+    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
   in
 
   let rec pp fs expr =
@@ -1526,6 +1513,14 @@ let pp_vernac_declare_tactic_definition = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_extraction_language = function
+  | [ lang ] -> (
+      match Conversion.lang_of_raw_generic_argument lang with
+      | Some lang ->
+          sequence [ write "Extraction Language "; pp_lang lang; dot ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1537,20 +1532,28 @@ let pp_synterp_vernac_expr = function
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
-          ext_entry = "VernacSolve";
-          ext_index = 0;
-        },
-        args ) ->
-      pp_vernac_solve args
-  | Vernacexpr.VernacExtend
-      ( {
           ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 2;
         },
         args ) ->
       pp_extraction args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "ExtractionLanguage";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_extraction_language args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.ltac";
+          ext_entry = "VernacSolve";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_vernac_solve args
   | Vernacexpr.VernacExtend
       ( {
           ext_plugin = "coq-core.plugins.ltac";
