@@ -1494,13 +1494,13 @@ let pp_extraction = function
         ( Conversion.string_of_raw_generic_argument filename,
           Conversion.ref_list_of_raw_generic_argument identifiens )
       with
-      | Some filename, Some [ identifiens ] ->
+      | Some filename, Some identifiers ->
           sequence
             [
               write "Extraction ";
               doublequoted (write filename);
               space;
-              pp_qualid identifiens;
+              map_spaced pp_qualid identifiers;
               dot;
             ]
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
