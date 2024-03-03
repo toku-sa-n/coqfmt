@@ -2048,6 +2048,42 @@ let separator current next =
   | _, VernacSynPure (VernacCoercion _)
   | VernacSynterp (VernacImport _), _
   | _, VernacSynterp (VernacImport _)
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "Extraction";
+              ext_index = 2;
+            },
+            _ )),
+      _ )
+  | ( _,
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "Extraction";
+              ext_index = 2;
+            },
+            _ )) )
+  | ( VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionLanguage";
+              ext_index = 0;
+            },
+            _ )),
+      _ )
+  | ( _,
+      VernacSynterp
+        (VernacExtend
+          ( {
+              ext_plugin = "coq-core.plugins.extraction";
+              ext_entry = "ExtractionLanguage";
+              ext_index = 0;
+            },
+            _ )) )
   | _, VernacSynterp (VernacDefineModule _)
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
