@@ -928,7 +928,13 @@ let rec pp_raw_atomic_tactic_expr = function
           pp_bindings bindings;
           pp_in_clause;
         ]
-  | Tacexpr.TacAssert (false, true, Some by, Some name, expr) ->
+  | Tacexpr.TacAssert (false, true, Some by, name, expr) ->
+      let pp_name =
+        match name with
+        | None -> nop
+        | Some name -> sequence [ pp_intro_pattern_expr name.v; write " : " ]
+      in
+
       let pp_by =
         match by with
         | None -> nop
@@ -937,14 +943,7 @@ let rec pp_raw_atomic_tactic_expr = function
       in
 
       sequence
-        [
-          write "assert (";
-          pp_intro_pattern_expr name.v;
-          write " : ";
-          pp_constr_expr expr;
-          write ")";
-          pp_by;
-        ]
+        [ write "assert ("; pp_name; pp_constr_expr expr; write ")"; pp_by ]
   | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
         [
