@@ -1550,7 +1550,13 @@ let pp_extraction_inductive = function
       | Some identifier, Some name, Some branches, Some matcher ->
           let pp_matcher =
             match matcher with
-            | Some matcher -> sequence [ space; doublequoted (write matcher) ]
+            | Some matcher ->
+                let hor = sequence [ space; doublequoted (write matcher) ] in
+                let ver =
+                  sequence [ newline; indented (doublequoted (write matcher)) ]
+                in
+
+                hor <-|> ver
             | None -> nop
           in
 
