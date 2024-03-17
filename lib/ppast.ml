@@ -936,15 +936,10 @@ let rec pp_raw_atomic_tactic_expr = function
       in
 
       let pp_by =
-        let conditional_parens tactic =
-          if tactics_generally_parens_needed tactic.CAst.v then
-            parens (pp_raw_tactic_expr tactic)
-          else pp_raw_tactic_expr tactic
-        in
-
         match by with
         | None -> nop
-        | Some by -> sequence [ write " by "; conditional_parens by ]
+        | Some by ->
+            sequence [ write " by "; pp_raw_tactic_expr_with_parens by ]
       in
 
       sequence
@@ -1030,6 +1025,14 @@ let rec pp_raw_atomic_tactic_expr = function
 
 and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
   pp_raw_tactic_expr_r v
+
+and pp_raw_tactic_expr_with_parens_conditionally cond expr =
+  if cond then parens (pp_raw_tactic_expr expr) else pp_raw_tactic_expr expr
+
+and pp_raw_tactic_expr_with_parens expr =
+  pp_raw_tactic_expr_with_parens_conditionally
+    (tactics_generally_parens_needed expr.CAst.v)
+    expr
 
 and pp_raw_tactic_expr_r = function
   | Tacexpr.TacAlias (alias, init_replacers) ->
@@ -1137,6 +1140,20 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.hintbases_of_raw_generic_argument pp
             in
 
+            let try_pp_by_arg_tactic =
+              let pp = function
+                | [] -> None
+                | [ x ] ->
+                    Some
+                      (spaced [ write "by"; pp_raw_tactic_expr_with_parens x ])
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.by_arg_tac_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1149,6 +1166,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_nat_or_var;
                 try_pp_auto_using;
                 try_pp_hintbases;
+                try_pp_by_arg_tactic;
               ]
             in
 
@@ -1175,13 +1193,7 @@ and pp_raw_tactic_expr_r = function
       lined
         [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
   | Tacexpr.TacRepeat tactic ->
-      let pp_tactic =
-        if tactics_generally_parens_needed tactic.CAst.v then
-          parens (pp_raw_tactic_expr tactic)
-        else pp_raw_tactic_expr tactic
-      in
-
-      sequence [ write "repeat "; pp_tactic ]
+      sequence [ write "repeat "; pp_raw_tactic_expr_with_parens tactic ]
   | Tacexpr.TacThen (first, second) ->
       let hor =
         sequence
@@ -1233,13 +1245,7 @@ and pp_raw_tactic_expr_r = function
 
       sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
   | Tacexpr.TacTry tactic ->
-      let pp_tactic =
-        if tactics_generally_parens_needed tactic.CAst.v then
-          parens (pp_raw_tactic_expr tactic)
-        else pp_raw_tactic_expr tactic
-      in
-
-      sequence [ write "try "; pp_tactic ]
+      sequence [ write "try "; pp_raw_tactic_expr_with_parens tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 and pp_match_rule = function
