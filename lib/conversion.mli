@@ -104,3 +104,8 @@ val opt_string_of_raw_generic_argument :
   Genarg.raw_generic_argument -> string option option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [string option]. *)
+
+val by_arg_tac_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Ltac_plugin.Tacexpr.raw_tactic_expr list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Ltac_plugin.Tacexpr.raw_tactic_expr list]. *)
