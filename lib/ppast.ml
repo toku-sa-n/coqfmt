@@ -751,9 +751,14 @@ let pp_raw_red_expr = function
           },
         None ) ->
       write "simpl"
-  | Genredexpr.Unfold
-      [ (AllOccurrences, CAst.{ v = Constrexpr.AN name; loc = _ }) ] ->
-      sequence [ write "unfold "; pp_qualid name ]
+  | Genredexpr.Unfold xs ->
+      let pp_single = function
+        | Locus.AllOccurrences, CAst.{ v = Constrexpr.AN name; loc = _ } ->
+            pp_qualid name
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence [ write "unfold "; map_commad pp_single xs ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
