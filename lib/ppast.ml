@@ -1141,7 +1141,11 @@ and pp_raw_tactic_expr_r = function
             let try_pp_by_arg_tactic =
               let pp = function
                 | [] -> None
-                | [ x ] -> Some (spaced [ write "by"; pp_raw_tactic_expr x ])
+                | [ x ] ->
+                    if tactics_generally_parens_needed x.CAst.v then
+                      Some
+                        (spaced [ write "by"; parens (pp_raw_tactic_expr x) ])
+                    else Some (spaced [ write "by"; pp_raw_tactic_expr x ])
                 | _ ->
                     Some
                       (fun printer -> raise (NotImplemented (contents printer)))
