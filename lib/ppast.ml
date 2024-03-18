@@ -1095,12 +1095,8 @@ and pp_raw_tactic_expr_r = function
             in
 
             let try_pp_hyp =
-              let pp = function
-                | [ name ] -> pp_lident name
-                | _ -> fun printer -> raise (NotImplemented (contents printer))
-              in
-
-              try_pp_always Conversion.hyp_of_raw_generic_argument pp
+              try_pp_always Conversion.hyp_of_raw_generic_argument
+                (map_spaced pp_lident)
             in
 
             let try_pp_nat_or_var =
