@@ -370,32 +370,31 @@ and pp_constr_expr_r = function
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few entry keys."
         | Ppextend.UnpListMetaVar (_, seps) :: t, elems, _, _ :: zs, _ ->
-            let get_sep = function
-              | Ppextend.UnpTerminal s -> s
-              | Ppextend.UnpCut (PpBrk _) -> ";"
-              | _ -> failwith "TODO"
+            let sep, _ =
+              let rec f = function
+                | [] -> (None, [])
+                | Ppextend.UnpTerminal s :: xs -> (Some s, xs)
+                | _ :: xs -> f xs
+              in
+              match f seps with Some s, xs -> (s, xs) | None, xs -> ("", xs)
             in
-            let rec loop elems seps =
-              match (elems, seps) with
-              | [ x ], _ ->
+
+            let loop elems =
+              match elems with
+              | [ x ] ->
                   sequence
                     [
                       pp_constr_expr x; pp_generic t [] local_assums zs patterns;
                     ]
-              | [], _ -> pp_generic t [] local_assums zs patterns
-              | xs, [] ->
+              | [] -> pp_generic t [] local_assums zs patterns
+              | xs ->
                   sequence
                     [
-                      map_with_seps ~sep:(write "; ") pp_constr_expr xs;
+                      map_with_seps ~sep:(write (sep ^ " ")) pp_constr_expr xs;
                       pp_generic t [] local_assums zs patterns;
                     ]
-              | x :: xs, sep :: seps ->
-                  sequence
-                    [
-                      pp_constr_expr x; write (get_sep sep); space; loop xs seps;
-                    ]
             in
-            loop elems seps
+            loop elems
         | Ppextend.UnpListMetaVar (_, _) :: _, _, _, [], _ ->
             raise (NotImplemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
