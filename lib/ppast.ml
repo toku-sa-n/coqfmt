@@ -370,13 +370,13 @@ and pp_constr_expr_r = function
         | Ppextend.UnpBinderMetaVar _ :: _, _, _, _, _ ->
             failwith "Too few entry keys."
         | Ppextend.UnpListMetaVar (_, seps) :: t, elems, _, _ :: zs, _ ->
-            let sep, _ =
-              let rec f = function
-                | [] -> (None, [])
-                | Ppextend.UnpTerminal s :: xs -> (Some s, xs)
-                | _ :: xs -> f xs
+            let sep =
+              let cond = function
+                | Ppextend.UnpTerminal s -> Some s
+                | _ -> None
               in
-              match f seps with Some s, xs -> (s, xs) | None, xs -> ("", xs)
+
+              match List.find_map cond seps with Some s -> s | None -> ""
             in
 
             let loop elems =
