@@ -311,3 +311,18 @@ let by_arg_tac_of_raw_generic_argument arg =
       ] ->
       Some (List.map Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
   | _ -> None
+
+let clause_dft_concl_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "clause_dft_concl" ] ];
+        rems;
+      ] ->
+      Some
+        (Serlib.Ser_locus.clause_expr_of_sexp
+           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
+           rems)
+  | _ -> None
