@@ -109,3 +109,8 @@ val by_arg_tac_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Ltac_plugin.Tacexpr.raw_tactic_expr list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Ltac_plugin.Tacexpr.raw_tactic_expr list]. *)
+
+val clause_dft_concl_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Names.variable CAst.t Locus.clause_expr option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Names.variable CAst.t Locus.clause_expr]. *)

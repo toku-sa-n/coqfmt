@@ -1149,6 +1149,24 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.by_arg_tac_of_raw_generic_argument pp
             in
 
+            let try_pp_clause_dft_concl =
+              let pp = function
+                | Locus.
+                    {
+                      onhyps = Some [ ((AllOccurrences, name), _) ];
+                      concl_occs = NoOccurrences;
+                    } ->
+                    Some (spaced [ write "in"; pp_id name.CAst.v ])
+                | Locus.{ onhyps = Some []; concl_occs = AllOccurrences } ->
+                    None
+                | _ ->
+                    Some
+                      (fun printer -> raise (NotImplemented (contents printer)))
+              in
+
+              try_pp Conversion.clause_dft_concl_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1162,6 +1180,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_auto_using;
                 try_pp_hintbases;
                 try_pp_by_arg_tactic;
+                try_pp_clause_dft_concl;
               ]
             in
 
