@@ -864,8 +864,8 @@ let pp_inversion_strength = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_bindings = function
-  | Tactypes.ImplicitBindings [ expr ] ->
-      sequence [ write " with "; pp_constr_expr_with_parens expr ]
+  | Tactypes.ImplicitBindings exprs ->
+      sequence [ write " with "; map_spaced pp_constr_expr_with_parens exprs ]
   | Tactypes.ExplicitBindings bindings ->
       let pp_one_binding CAst.{ v = replacee, replacer; loc = _ } =
         parens
@@ -891,7 +891,6 @@ let pp_bindings = function
 
       hor <-|> ver
   | Tactypes.NoBindings -> nop
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_match_pattern = function
   | Tacexpr.Term expr -> pp_constr_expr expr
