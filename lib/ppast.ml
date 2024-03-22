@@ -1901,7 +1901,8 @@ let pp_synpure_vernac_expr = function
           pp_definition_expr expr;
           dot;
         ]
-  | Vernacexpr.VernacDelimiters _ -> write "Delimit Scope nat_scope with pred."
+  | Vernacexpr.VernacDelimiters (_, _) ->
+      write "Delimit Scope nat_scope with pred."
   | Vernacexpr.VernacCoercion (CAst.{ v = AN name; loc = _ }, Some (src, dst))
     ->
       sequence
