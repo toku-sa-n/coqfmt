@@ -1605,6 +1605,14 @@ let pp_table_value = function
       fun printer -> raise (NotImplemented (contents printer))
   | Goptions.QualidRefValue name -> pp_qualid name
 
+let pp_coercion_class = function
+  | Vernacexpr.FunClass ->
+      fun printer -> raise (NotImplemented (contents printer))
+  | Vernacexpr.SortClass -> write "Sortclass"
+  | Vernacexpr.RefClass { v = AN src; loc = _ } -> pp_qualid src
+  | Vernacexpr.RefClass { v = ByNotation _; loc = _ } ->
+      fun printer -> raise (NotImplemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1883,30 +1891,16 @@ let pp_synpure_vernac_expr = function
           pp_definition_expr expr;
           dot;
         ]
-  | Vernacexpr.VernacCoercion
-      ( CAst.{ v = AN name; loc = _ },
-        Some (RefClass { v = AN src; loc = _ }, RefClass { v = AN dst; loc = _ })
-      ) ->
+  | Vernacexpr.VernacCoercion (CAst.{ v = AN name; loc = _ }, Some (src, dst))
+    ->
       sequence
         [
           write "Coercion ";
           pp_qualid name;
           write " : ";
-          pp_qualid src;
+          pp_coercion_class src;
           write " >-> ";
-          pp_qualid dst;
-          dot;
-        ]
-  | Vernacexpr.VernacCoercion
-      (CAst.{ v = AN name; loc = _ }, Some (SortClass, SortClass)) ->
-      sequence
-        [
-          write "Coercion ";
-          pp_qualid name;
-          write " : ";
-          write "Sortclass";
-          write " >-> ";
-          write "Sortclass";
+          pp_coercion_class dst;
           dot;
         ]
   | Vernacexpr.VernacFixpoint (NoDischarge, exprs) ->
