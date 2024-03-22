@@ -1844,8 +1844,15 @@ let pp_synpure_vernac_expr = function
           pp_constr_expr expr;
           dot;
         ]
-  | Vernacexpr.VernacBindScope (scope, _) ->
-      sequence [ write "Bind Scope "; write scope; write " with foo." ]
+  | Vernacexpr.VernacBindScope (scope, [ dst ]) ->
+      sequence
+        [
+          write "Bind Scope ";
+          write scope;
+          write " with ";
+          pp_coercion_class dst;
+          dot;
+        ]
   | Vernacexpr.VernacCheckMayEval (check_or_compute, None, expr) ->
       let pp_name =
         match check_or_compute with
