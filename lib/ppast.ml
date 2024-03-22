@@ -1600,7 +1600,10 @@ let pp_extraction_inductive = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_option_ref_value _ = write "foo"
+let pp_option_ref_value = function
+  | Goptions.StringRefValue _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+  | Goptions.QualidRefValue name -> pp_qualid name
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
