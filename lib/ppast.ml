@@ -1897,6 +1897,18 @@ let pp_synpure_vernac_expr = function
           pp_qualid dst;
           dot;
         ]
+  | Vernacexpr.VernacCoercion
+      (CAst.{ v = AN name; loc = _ }, Some (SortClass, SortClass)) ->
+      sequence
+        [
+          write "Coercion ";
+          pp_qualid name;
+          write " : ";
+          write "Sortclass";
+          write " >-> ";
+          write "Sortclass";
+          dot;
+        ]
   | Vernacexpr.VernacFixpoint (NoDischarge, exprs) ->
       sequence
         [
