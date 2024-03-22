@@ -1600,6 +1600,11 @@ let pp_extraction_inductive = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_table_value = function
+  | Goptions.StringRefValue _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+  | Goptions.QualidRefValue name -> pp_qualid name
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1801,6 +1806,15 @@ let pp_synterp_vernac_expr = function
 
 let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacAbort -> sequence [ clear_bullets; write "Abort." ]
+  | Vernacexpr.VernacAddOption (options, names) ->
+      sequence
+        [
+          write "Add ";
+          map_spaced write options;
+          space;
+          map_spaced pp_table_value names;
+          dot;
+        ]
   | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
       sequence
         [
