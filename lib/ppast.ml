@@ -1801,7 +1801,7 @@ let pp_synterp_vernac_expr = function
 
 let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | Vernacexpr.VernacAddOption (_, _) -> write "Add Printing Coercion foo."
+  | Vernacexpr.VernacAddOption (_, [ _ ]) -> write "Add Printing Coercion foo."
   | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
       sequence
         [
