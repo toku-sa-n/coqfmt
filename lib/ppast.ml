@@ -1600,6 +1600,8 @@ let pp_extraction_inductive = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_option_ref_value _ = write "foo"
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -1801,8 +1803,15 @@ let pp_synterp_vernac_expr = function
 
 let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacAbort -> sequence [ clear_bullets; write "Abort." ]
-  | Vernacexpr.VernacAddOption (options, [ _ ]) ->
-      sequence [ write "Add "; map_spaced write options; write " foo." ]
+  | Vernacexpr.VernacAddOption (options, [ name ]) ->
+      sequence
+        [
+          write "Add ";
+          map_spaced write options;
+          space;
+          pp_option_ref_value name;
+          dot;
+        ]
   | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
       sequence
         [
