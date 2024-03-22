@@ -1415,6 +1415,7 @@ let pp_search_restriction = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_argument_status = function
+  | Vernacexpr.VolatileArg -> write "/"
   | Vernacexpr.RealArg
       { name = ty; recarg_like = false; notation_scope = []; implicit_status }
     ->
