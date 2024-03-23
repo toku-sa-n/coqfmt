@@ -2018,6 +2018,17 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
   | Vernacexpr.VernacHints ([ database ], expr) ->
       sequence [ pp_hints_expr expr; write " : "; write database; dot ]
+  | Vernacexpr.VernacSyntacticDefinition (name, ([ lhs ], expr), []) ->
+      sequence
+        [
+          write "Notation ";
+          pp_lident name;
+          space;
+          pp_id lhs;
+          write " := ";
+          parens (pp_constr_expr expr);
+          dot;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function
