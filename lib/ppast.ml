@@ -1169,6 +1169,16 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.clause_dft_concl_of_raw_generic_argument pp
             in
 
+            let try_pp_constr_with_bindings =
+              let pp (expr, bindings) =
+                Some
+                  (sequence
+                     [ pp_constr_expr_with_parens expr; pp_bindings bindings ])
+              in
+
+              try_pp Conversion.constr_with_bindings_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1183,6 +1193,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_hintbases;
                 try_pp_by_arg_tactic;
                 try_pp_clause_dft_concl;
+                try_pp_constr_with_bindings;
               ]
             in
 
