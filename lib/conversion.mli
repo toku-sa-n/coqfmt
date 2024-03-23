@@ -114,3 +114,9 @@ val clause_dft_concl_of_raw_generic_argument :
   Genarg.raw_generic_argument -> Names.variable CAst.t Locus.clause_expr option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [Names.variable CAst.t Locus.clause_expr]. *)
+
+val constr_with_bindings_of_raw_generic_argument :
+  Genarg.raw_generic_argument ->
+  Constrexpr.constr_expr Tactypes.with_bindings option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Constrexpr.constr_expr Tactypes.with_bindings]. *)
