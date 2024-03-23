@@ -2018,12 +2018,14 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
   | Vernacexpr.VernacHints ([ database ], expr) ->
       sequence [ pp_hints_expr expr; write " : "; write database; dot ]
-  | Vernacexpr.VernacSyntacticDefinition (name, ([ _ ], expr), _) ->
+  | Vernacexpr.VernacSyntacticDefinition (name, ([ lhs ], expr), _) ->
       sequence
         [
           write "Notation ";
           pp_lident name;
-          write " x := ";
+          space;
+          pp_id lhs;
+          write " := ";
           parens (pp_constr_expr expr);
           dot;
         ]
