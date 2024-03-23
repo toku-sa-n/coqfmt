@@ -754,6 +754,9 @@ let pp_raw_red_expr = function
       let pp_single = function
         | Locus.AllOccurrences, CAst.{ v = Constrexpr.AN name; loc = _ } ->
             pp_qualid name
+        | ( Locus.AllOccurrences,
+            CAst.{ v = Constrexpr.ByNotation (notation, None); loc = _ } ) ->
+            doublequoted (write notation)
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
 
