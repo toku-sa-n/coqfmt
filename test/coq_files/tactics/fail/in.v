@@ -1,0 +1,1 @@
+Ltac foo:=fail.
