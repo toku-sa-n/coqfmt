@@ -1893,6 +1893,20 @@ let pp_synpure_vernac_expr = function
               }) ->
             write "Eval compute in"
         | Some (CbvVm None) -> write "Compute"
+        | Some
+            (Simpl
+              ( {
+                  rStrength = Norm;
+                  rBeta = true;
+                  rMatch = true;
+                  rFix = true;
+                  rCofix = true;
+                  rZeta = true;
+                  rDelta = true;
+                  rConst = [];
+                },
+                None )) ->
+            write "Eval simpl in"
         | None -> write "Check"
         | _ -> fun printer -> raise (NotImplemented (contents printer))
       in
