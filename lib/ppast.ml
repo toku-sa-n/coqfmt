@@ -594,6 +594,7 @@ let pp_proof_end = function
   | Vernacexpr.Admitted -> sequence [ clear_bullets; write "Admitted." ]
 
 let pp_theorem_kind = function
+  | Decls.Corollary -> write "Corollary"
   | Decls.Fact -> write "Fact"
   | Decls.Lemma -> write "Lemma"
   | Decls.Theorem -> write "Theorem"
