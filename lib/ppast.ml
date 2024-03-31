@@ -1222,12 +1222,25 @@ and pp_raw_tactic_expr_r = function
       lined
         [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
   | Tacexpr.TacOrelse (first, second) ->
-      spaced
-        [
-          pp_raw_tactic_expr_with_parens first;
-          write "||";
-          pp_raw_tactic_expr_with_parens second;
-        ]
+      let hor =
+        spaced
+          [
+            pp_raw_tactic_expr_with_parens first;
+            write "||";
+            pp_raw_tactic_expr_with_parens second;
+          ]
+      in
+      let ver =
+        sequence
+          [
+            pp_raw_tactic_expr_with_parens first;
+            newline;
+            indented
+              (sequence [ write "|| "; pp_raw_tactic_expr_with_parens second ]);
+          ]
+      in
+
+      hor <-|> ver
   | Tacexpr.TacRepeat tactic ->
       sequence [ write "repeat "; pp_raw_tactic_expr_with_parens tactic ]
   | Tacexpr.TacThen (first, second) ->
