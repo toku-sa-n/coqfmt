@@ -1215,7 +1215,7 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacFail (TacLocal, ArgArg 0, []) -> write "fail"
-  | Tacexpr.TacId [] -> nop
+  | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
   | Tacexpr.TacMatchGoal (Once, false, rules) ->
@@ -1320,7 +1320,7 @@ and pp_match_rule = function
               write " => ";
               pp_raw_tactic_expr expr;
             ]
-  | Tacexpr.All _ -> write "| _ => idtac"
+  | Tacexpr.All expr -> sequence [ write "| _ => "; pp_raw_tactic_expr expr ]
 
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition (name, v) ->
