@@ -1311,14 +1311,17 @@ and pp_match_rule = function
             ]
       in
 
+      let hor = sequence [ space; pp_raw_tactic_expr expr ] in
+      let ver = sequence [ newline; pp_raw_tactic_expr expr ] in
+
       write "| "
       |=> sequence
             [
               pp_contexts;
               write "|- ";
               pp_match_pattern pattern;
-              write " => ";
-              pp_raw_tactic_expr expr;
+              write " =>";
+              hor <-|> ver;
             ]
   | Tacexpr.All expr ->
       let hor = sequence [ space; pp_raw_tactic_expr expr ] in
