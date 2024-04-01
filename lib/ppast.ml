@@ -1320,7 +1320,7 @@ and pp_match_rule = function
               write " => ";
               pp_raw_tactic_expr expr;
             ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | Tacexpr.All _ -> write "| _ => idtac"
 
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition (name, v) ->
