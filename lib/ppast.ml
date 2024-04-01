@@ -1320,7 +1320,11 @@ and pp_match_rule = function
               write " => ";
               pp_raw_tactic_expr expr;
             ]
-  | Tacexpr.All expr -> sequence [ write "| _ => "; pp_raw_tactic_expr expr ]
+  | Tacexpr.All expr ->
+      let hor = sequence [ space; pp_raw_tactic_expr expr ] in
+      let ver = sequence [ newline; indented (pp_raw_tactic_expr expr) ] in
+
+      sequence [ write "| _ =>"; hor <-|> ver ]
 
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition (name, v) ->
