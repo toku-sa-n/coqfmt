@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.2
 
-      - uses: ocaml/setup-ocaml@v2.2.6
+      - uses: ocaml/setup-ocaml@v2.2.7
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
