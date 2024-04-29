@@ -1256,8 +1256,8 @@ and pp_raw_tactic_expr_r = function
       hor <-|> ver
   | Tacexpr.TacRepeat tactic ->
       write "repeat " |=> pp_raw_tactic_expr_with_parens tactic
-  | Tacexpr.TacSolve [ expr ] ->
-      sequence [ write "solve "; brackets (pp_raw_tactic_expr expr) ]
+  | Tacexpr.TacSolve exprs ->
+      sequence [ write "solve "; brackets (map_bard pp_raw_tactic_expr exprs) ]
   | Tacexpr.TacThen (first, second) ->
       let hor =
         sequence
