@@ -714,6 +714,7 @@ let pp_syntax_modifier = function
 
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.ConstrMayEval _ -> write "type of T"
   | Tacexpr.Reference name -> pp_qualid name
   | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
       let pp_args =
@@ -1218,10 +1219,12 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacMatch (Once, _, _) ->
+  | Tacexpr.TacMatch (Once, matchee, _) ->
       sequence
         [
-          write "match type of T with";
+          write "match ";
+          pp_raw_tactic_expr matchee;
+          write " with";
           newline;
           write "| _ => idtac";
           newline;
