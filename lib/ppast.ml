@@ -714,7 +714,7 @@ let pp_syntax_modifier = function
 
 let rec pp_gen_tactic_arg = function
   | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
-  | Tacexpr.ConstrMayEval _ -> write "type of T"
+  | Tacexpr.ConstrMayEval (ConstrTypeOf _) -> write "type of T"
   | Tacexpr.Reference name -> pp_qualid name
   | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
       let pp_args =
