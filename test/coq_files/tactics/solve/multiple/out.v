@@ -1,4 +1,4 @@
 Theorem foo : 1 = 1.
 Proof.
-  solve [simpl; reflexivity].
+  solve [simpl | reflexivity].
 Qed.

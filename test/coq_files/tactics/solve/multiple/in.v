@@ -1,1 +1,1 @@
-Theorem foo:1=1. Proof. solve[simpl;reflexivity]. Qed.
+Theorem foo:1=1. Proof. solve[simpl|reflexivity]. Qed.
