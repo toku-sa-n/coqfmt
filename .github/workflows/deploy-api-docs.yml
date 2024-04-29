@@ -19,9 +19,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
-      - uses: ocaml/setup-ocaml@v2.2.8
+      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
@@ -33,13 +33,13 @@ jobs:
         run: opam exec -- dune build @doc
 
       - name: Set-up Pages
-        uses: actions/configure-pages@v5.0.0
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3.0.1
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: _build/default/_doc/_html
 
       - name: Deploy odoc to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4.0.5
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
