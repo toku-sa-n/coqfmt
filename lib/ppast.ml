@@ -1218,7 +1218,7 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacMatch _ ->
+  | Tacexpr.TacMatch (_, _, _) ->
       sequence
         [
           write "match type of T with";
