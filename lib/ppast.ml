@@ -1233,7 +1233,9 @@ and pp_raw_tactic_expr_r = function
         ]
   | Tacexpr.TacMatchGoal (Once, false, rules) ->
       lined
-        [ write "match goal with"; map_lined pp_match_rule rules; write "end" ]
+        [
+          write "match goal with"; map_lined pp_goal_pattern rules; write "end";
+        ]
   | Tacexpr.TacOrelse (first, second) ->
       let hor =
         spaced
@@ -1312,7 +1314,7 @@ and pp_raw_tactic_expr_r = function
       sequence [ write "try "; pp_raw_tactic_expr_with_parens tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_match_rule = function
+and pp_goal_pattern = function
   | Tacexpr.Pat (contexts, pattern, expr) ->
       let pp_contexts =
         if contexts = [] then nop
@@ -1338,6 +1340,21 @@ and pp_match_rule = function
               write " =>";
               hor <-|> ver;
             ]
+  | Tacexpr.All expr ->
+      let hor = sequence [ space; pp_raw_tactic_expr expr ] in
+      let ver = sequence [ newline; indented (pp_raw_tactic_expr expr) ] in
+
+      sequence [ write "| _ =>"; hor <-|> ver ]
+
+and pp_match_rule = function
+  | Tacexpr.Pat ([], pattern, expr) ->
+      let hor = sequence [ space; pp_raw_tactic_expr expr ] in
+      let ver = sequence [ newline; pp_raw_tactic_expr expr ] in
+
+      write "| "
+      |=> sequence [ pp_match_pattern pattern; write " =>"; hor <-|> ver ]
+  | Tacexpr.Pat (_ :: _, _, _) ->
+      failwith "`match_pattern` should have no contexts."
   | Tacexpr.All expr ->
       let hor = sequence [ space; pp_raw_tactic_expr expr ] in
       let ver = sequence [ newline; indented (pp_raw_tactic_expr expr) ] in
