@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
-      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
         with:
           ocaml-compiler: "4.14.1"
           opam-repositories: |
@@ -67,12 +67,12 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
-      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-fmt@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml/lint-fmt@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
 
   lint_docs:
     runs-on: ubuntu-latest
@@ -80,12 +80,12 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
-      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-doc@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml/lint-doc@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
 
   test_coq_files:
     runs-on: ubuntu-latest
@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
-      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
@@ -112,12 +112,12 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
-      - uses: ocaml/setup-ocaml@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-opam@42bf33a4dd3ba5d75a4c9ea6b27d960c9eb4a018 # v2.2.8
+      - uses: ocaml/setup-ocaml/lint-opam@8ea37830f3b2c9f54178d255808ae377b5758062 # v2.2.9
 
   docker:
     runs-on: ubuntu-latest
