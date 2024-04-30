@@ -1314,6 +1314,8 @@ and pp_raw_tactic_expr_r = function
       sequence [ write "try "; pp_raw_tactic_expr_with_parens tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+(* This function is defined separately from `pp_match_rule` due to their
+   different contexts, even though they're nearly identical. *)
 and pp_goal_pattern = function
   | Tacexpr.Pat (contexts, pattern, expr) ->
       let pp_contexts =
