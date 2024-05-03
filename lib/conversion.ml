@@ -342,3 +342,22 @@ let constr_with_bindings_of_raw_generic_argument arg =
         (Serlib.Ser_tactypes.with_bindings_of_sexp
            Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
   | _ -> None
+
+let rename_idents_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "rename" ] ];
+          ];
+        List rems;
+      ] ->
+      Some
+        (List.map
+           (Sexplib.Conv.pair_of_sexp Serlib.Ser_names.Id.t_of_sexp
+              Serlib.Ser_names.Id.t_of_sexp)
+           rems)
+  | _ -> None

@@ -1182,6 +1182,18 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.constr_with_bindings_of_raw_generic_argument pp
             in
 
+            let try_pp_rename =
+              let pp pairs =
+                Some
+                  (map_commad
+                     (fun (src, dst) ->
+                       sequence [ pp_id src; write " into "; pp_id dst ])
+                     pairs)
+              in
+
+              try_pp Conversion.rename_idents_of_raw_generic_argument pp
+            in
+
             let printers =
               [
                 try_pp_constr_expr;
@@ -1197,6 +1209,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_by_arg_tactic;
                 try_pp_clause_dft_concl;
                 try_pp_constr_with_bindings;
+                try_pp_rename;
               ]
             in
 
