@@ -1591,8 +1591,8 @@ let pp_reference_or_constr = function
       fun printer -> raise (NotImplemented (contents printer))
 
 let pp_hints_expr = function
-  | Vernacexpr.HintsConstructors [ name ] ->
-      sequence [ write "Hint Constructors "; pp_qualid name ]
+  | Vernacexpr.HintsConstructors names ->
+      sequence [ write "Hint Constructors "; map_spaced pp_qualid names ]
   | Vernacexpr.HintsResolve
       [ ({ hint_priority = None; hint_pattern = None }, true, expr) ] ->
       sequence [ write "Hint Resolve "; pp_reference_or_constr expr ]
