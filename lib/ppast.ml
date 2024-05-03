@@ -1183,10 +1183,12 @@ and pp_raw_tactic_expr_r = function
             in
 
             let try_pp_rename =
-              let pp = function
-                | [ (src, dst) ] ->
-                    Some (sequence [ pp_id src; write " into "; pp_id dst ])
-                | _ -> None
+              let pp pairs =
+                Some
+                  (map_commad
+                     (fun (src, dst) ->
+                       sequence [ pp_id src; write " into "; pp_id dst ])
+                     pairs)
               in
 
               try_pp Conversion.rename_idents_of_raw_generic_argument pp
