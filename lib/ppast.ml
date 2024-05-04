@@ -2215,12 +2215,16 @@ let pp_control_flag = function
   | Vernacexpr.ControlFail -> write "Fail"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_subast CAst.{ v = Vernacexpr.{ control; attrs = _; expr }; loc = _ } =
+let pp_vernac_flag _ = write "Local "
+let pp_vernac_flags = map_sequence pp_vernac_flag
+
+let pp_subast CAst.{ v = Vernacexpr.{ control; attrs; expr }; loc = _ } =
   let pp_controls = function
     | [] -> nop
     | _ -> sequence [ map_spaced pp_control_flag control; space ]
   in
-  sequence [ pp_controls control; pp_vernac_expr expr ]
+
+  sequence [ pp_controls control; pp_vernac_flags attrs; pp_vernac_expr expr ]
 
 let separator current next =
   let open Vernacexpr in
