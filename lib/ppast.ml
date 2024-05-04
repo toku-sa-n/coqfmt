@@ -1602,7 +1602,10 @@ let pp_hints_expr = function
       sequence [ write "Hint Unfold "; map_spaced pp_qualid names ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_grammar_tactic_prod_item_expr _ = doublequoted (write "foo")
+let pp_grammar_tactic_prod_item_expr = function
+  | Tacentries.TacTerm name -> doublequoted (write name)
+  | Tacentries.TacNonTerm _ ->
+      fun printer -> raise (NotImplemented (contents printer))
 
 let pp_extraction = function
   | [ filename; identifiens ] -> (
