@@ -1702,11 +1702,11 @@ let pp_vernac_tactic_notation = function
         ( Conversion.ltac_production_item_of_raw_generic_argument name,
           Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
       with
-      | Some [ name ], Some tactic ->
+      | Some names, Some tactic ->
           sequence
             [
               write "Tactic Notation ";
-              pp_grammar_tactic_prod_item_expr name;
+              map_spaced pp_grammar_tactic_prod_item_expr names;
               write " := ";
               pp_raw_tactic_expr tactic;
               dot;
