@@ -1602,6 +1602,8 @@ let pp_hints_expr = function
       sequence [ write "Hint Unfold "; map_spaced pp_qualid names ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_grammar_tactic_prod_item_expr _ = doublequoted (write "foo")
+
 let pp_extraction = function
   | [ filename; identifiens ] -> (
       match
@@ -1691,6 +1693,24 @@ let pp_extraction_inductive = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_vernac_tactic_notation = function
+  | [ _; name; tactic ] -> (
+      match
+        ( Conversion.ltac_production_item_of_raw_generic_argument name,
+          Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
+      with
+      | Some [ name ], Some tactic ->
+          sequence
+            [
+              write "Tactic Notation ";
+              pp_grammar_tactic_prod_item_expr name;
+              write " := ";
+              pp_raw_tactic_expr tactic;
+              dot;
+            ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_table_value = function
   | Goptions.StringRefValue _ ->
       fun printer -> raise (NotImplemented (contents printer))
@@ -1761,6 +1781,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_vernac_declare_tactic_definition args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.ltac";
+          ext_entry = "VernacTacticNotation";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_vernac_tactic_notation args
   | Vernacexpr.VernacNotation
       ( false,
         {
