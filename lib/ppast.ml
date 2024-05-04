@@ -2217,8 +2217,10 @@ let pp_control_flag = function
 
 let pp_vernac_flag = function
   | CAst.{ v = _, Attributes.VernacFlagEmpty; loc = _ } -> write "Local "
-  | CAst.{ v = _, Attributes.VernacFlagLeaf _; loc = _ } -> write "Local "
-  | CAst.{ v = _, Attributes.VernacFlagList _; loc = _ } -> write "Local "
+  | CAst.{ v = _, Attributes.VernacFlagLeaf _; loc = _ } ->
+      fun printer -> raise (NotImplemented (contents printer))
+  | CAst.{ v = _, Attributes.VernacFlagList _; loc = _ } ->
+      fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_flags = map_sequence pp_vernac_flag
 
