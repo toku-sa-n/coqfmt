@@ -384,3 +384,14 @@ let ltac_production_item_of_raw_generic_argument arg =
               Serlib.Ser_names.Id.t_of_sexp)
            rems)
   | _ -> None
+
+let ltac_tactic_level_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "OptArg"; Atom "ltac_tactic_level" ] ];
+        rems;
+      ] ->
+      Some (Sexplib.Std.option_of_sexp Sexplib.Std.int_of_sexp rems)
+  | _ -> None

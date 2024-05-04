@@ -1697,12 +1697,13 @@ let pp_extraction_inductive = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_tactic_notation = function
-  | [ _; name; tactic ] -> (
+  | [ level; name; tactic ] -> (
       match
-        ( Conversion.ltac_production_item_of_raw_generic_argument name,
+        ( Conversion.ltac_tactic_level_of_raw_generic_argument level,
+          Conversion.ltac_production_item_of_raw_generic_argument name,
           Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
       with
-      | Some names, Some tactic ->
+      | None, Some names, Some tactic ->
           sequence
             [
               write "Tactic Notation ";
