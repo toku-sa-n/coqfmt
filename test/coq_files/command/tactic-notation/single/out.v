@@ -1,0 +1,1 @@
+Tactic Notation "foo" := idtac.

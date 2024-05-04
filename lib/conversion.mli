@@ -125,3 +125,14 @@ val rename_idents_of_raw_generic_argument :
   Genarg.raw_generic_argument -> (Names.Id.t * Names.Id.t) list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [(Names.Id.t * Names.Id.t) list]. *)
+
+val ltac_production_item_of_raw_generic_argument :
+  Genarg.raw_generic_argument ->
+  Names.Id.t Ltac_plugin.Tacentries.grammar_tactic_prod_item_expr list option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Ltac_plugin.Tacexpr.production_item]. *)
+
+val ltac_tactic_level_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> int option option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [int option]. *)

@@ -1602,6 +1602,11 @@ let pp_hints_expr = function
       sequence [ write "Hint Unfold "; map_spaced pp_qualid names ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_grammar_tactic_prod_item_expr = function
+  | Tacentries.TacTerm name -> doublequoted (write name)
+  | Tacentries.TacNonTerm _ ->
+      fun printer -> raise (NotImplemented (contents printer))
+
 let pp_extraction = function
   | [ filename; identifiens ] -> (
       match
@@ -1691,6 +1696,32 @@ let pp_extraction_inductive = function
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_vernac_tactic_notation = function
+  | [ level; name; tactic ] -> (
+      match
+        ( Conversion.ltac_tactic_level_of_raw_generic_argument level,
+          Conversion.ltac_production_item_of_raw_generic_argument name,
+          Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
+      with
+      | None, Some names, Some tactic ->
+          let header =
+            sequence
+              [
+                write "Tactic Notation ";
+                map_spaced pp_grammar_tactic_prod_item_expr names;
+                write " :=";
+              ]
+          in
+
+          let hor = sequence [ space; pp_raw_tactic_expr tactic; dot ] in
+          let ver =
+            sequence [ newline; indented (pp_raw_tactic_expr tactic); dot ]
+          in
+
+          sequence [ header; hor <-|> ver ]
+      | _ -> fun printer -> raise (NotImplemented (contents printer)))
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_table_value = function
   | Goptions.StringRefValue _ ->
       fun printer -> raise (NotImplemented (contents printer))
@@ -1761,6 +1792,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_vernac_declare_tactic_definition args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.ltac";
+          ext_entry = "VernacTacticNotation";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_vernac_tactic_notation args
   | Vernacexpr.VernacNotation
       ( false,
         {
