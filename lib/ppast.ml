@@ -1051,7 +1051,7 @@ and pp_raw_tactic_expr_r = function
         | [], _ -> failwith "Too many replacers."
         | s :: _, [] when starts_with_paren s -> failwith "Too few replacers."
         | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
-          when starts_with_paren s ->
+          when starts_with_paren s -> (
             let try_pp converter pp =
               match converter args with Some x -> Some (pp x) | None -> None
             in
@@ -1194,7 +1194,16 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.rename_idents_of_raw_generic_argument pp
             in
 
-            let printers =
+            let breakable_printers =
+              [
+                try_pp_auto_using;
+                try_pp_hintbases;
+                try_pp_by_arg_tactic;
+                try_pp_clause_dft_concl;
+              ]
+            in
+
+            let nonbreakable_printers =
               [
                 try_pp_constr_expr;
                 try_pp_destruction_arg;
@@ -1204,29 +1213,44 @@ and pp_raw_tactic_expr_r = function
                 try_pp_id;
                 try_pp_hyp;
                 try_pp_nat_or_var;
-                try_pp_auto_using;
-                try_pp_hintbases;
-                try_pp_by_arg_tactic;
-                try_pp_clause_dft_concl;
                 try_pp_constr_with_bindings;
                 try_pp_rename;
               ]
             in
 
-            let rec try_pp = function
-              | [] | Some None :: _ -> loop t_ids t_reps
-              | None :: t -> try_pp t
-              | Some (Some x) :: _ -> x :: loop t_ids t_reps
+            let rec find_pp = function
+              | [] | Some None :: _ -> None
+              | None :: t -> find_pp t
+              | Some (Some x) :: _ -> Some x
             in
 
-            try_pp printers
+            match
+              (find_pp nonbreakable_printers, find_pp breakable_printers)
+            with
+            | Some x, _ -> (x, false) :: loop t_ids t_reps
+            | None, Some x -> (x, true) :: loop t_ids t_reps
+            | None, None -> loop t_ids t_reps)
         | h_id :: t_ids, Tacexpr.Tacexp tactic :: t_reps
           when starts_with_paren h_id ->
-            pp_raw_tactic_expr tactic :: loop t_ids t_reps
-        | h_id :: t_id, _ -> write h_id :: loop t_id replacers
+            (pp_raw_tactic_expr tactic, false) :: loop t_ids t_reps
+        | h_id :: t_id, _ -> (write h_id, false) :: loop t_id replacers
       in
 
-      sequence [ loop init_idents init_replacers |> spaced ]
+      let hor = spaced (List.map fst (loop init_idents init_replacers)) in
+      let ver =
+        match loop init_idents init_replacers with
+        | [] -> nop
+        | [ (pp, _) ] -> pp
+        | (h, _) :: t ->
+            let prepend_newline_or_space = function
+              | pp, true -> sequence [ newline; indented pp ]
+              | pp, false -> sequence [ space; pp ]
+            in
+
+            sequence (h :: List.map prepend_newline_or_space t)
+      in
+
+      hor <-|> ver
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacFail (TacLocal, ArgArg 0, []) -> write "fail"
