@@ -434,7 +434,10 @@ and pp_constr_expr_r = function
           entry_keys init_patterns
   | Constrexpr.CPrim prim -> pp_prim_token prim
   | Constrexpr.CProdN (xs, CAst.{ v = Constrexpr.CHole _; loc = _ }) ->
-      map_spaced pp_local_binder_expr xs
+      let hor = map_spaced pp_local_binder_expr xs in
+      let ver = map_lined pp_local_binder_expr xs in
+
+      hor <-|> ver
   | Constrexpr.CProdN (xs, ty) ->
       let pp_parameters =
         let hor =
@@ -673,8 +676,14 @@ let pp_constructor_expr = function
           sequence [ newline; write "| " ]
           |=> sequence [ pp_lident name; write " :"; pp_type ]
       | _ ->
-          sequence
-            [ newline; write "| "; pp_lident name; space; pp_constr_expr expr ])
+          let header = sequence [ newline; write "| " ] in
+
+          let hor = spaced [ pp_lident name; pp_constr_expr expr ] in
+          let ver =
+            sequence [ pp_lident name; newline; indented (pp_constr_expr expr) ]
+          in
+
+          header |=> (hor <-|> ver))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_production_level = function
