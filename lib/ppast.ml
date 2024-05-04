@@ -1704,14 +1704,21 @@ let pp_vernac_tactic_notation = function
           Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
       with
       | None, Some names, Some tactic ->
-          sequence
-            [
-              write "Tactic Notation ";
-              map_spaced pp_grammar_tactic_prod_item_expr names;
-              write " := ";
-              pp_raw_tactic_expr tactic;
-              dot;
-            ]
+          let header =
+            sequence
+              [
+                write "Tactic Notation ";
+                map_spaced pp_grammar_tactic_prod_item_expr names;
+                write " :=";
+              ]
+          in
+
+          let hor = sequence [ space; pp_raw_tactic_expr tactic; dot ] in
+          let ver =
+            sequence [ newline; indented (pp_raw_tactic_expr tactic); dot ]
+          in
+
+          sequence [ header; hor <-|> ver ]
       | _ -> fun printer -> raise (NotImplemented (contents printer)))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
