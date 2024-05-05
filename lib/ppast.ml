@@ -2193,13 +2193,12 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
   | Vernacexpr.VernacHints ([ database ], expr) ->
       sequence [ pp_hints_expr expr; write " : "; write database; dot ]
-  | Vernacexpr.VernacSyntacticDefinition (name, ([ lhs ], expr), []) ->
+  | Vernacexpr.VernacSyntacticDefinition (name, (params, expr), []) ->
       sequence
         [
           write "Notation ";
           pp_lident name;
-          space;
-          pp_id lhs;
+          map_sequence (fun x -> sequence [ space; pp_id x ]) params;
           write " := ";
           parens (pp_constr_expr expr);
           dot;
