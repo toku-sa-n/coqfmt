@@ -2204,8 +2204,15 @@ let pp_synpure_vernac_expr = function
           parens (pp_constr_expr expr);
           dot;
         ]
-  | Vernacexpr.VernacSyntacticDefinition (name, ([], _), _) ->
-      sequence [ write "Notation "; pp_lident name; write " := (pred 0)." ]
+  | Vernacexpr.VernacSyntacticDefinition (name, ([], expr), _) ->
+      sequence
+        [
+          write "Notation ";
+          pp_lident name;
+          write " := ";
+          parens (pp_constr_expr expr);
+          dot;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_vernac_expr = function
