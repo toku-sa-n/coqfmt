@@ -659,8 +659,7 @@ let pp_constructor_expr = function
         | Constrexpr.CApp _ -> true
         | Constrexpr.CRef _ -> true
         | Constrexpr.CProdN (_, x) -> is_inductive_prop x.v
-        | Constrexpr.CNotation (None, _, (xs, [], [], [])) ->
-            List.exists (fun x -> is_inductive_prop x.v) xs
+        | Constrexpr.CNotation (None, _, (_, [], [], [])) -> true
         | _ -> false
       in
 
