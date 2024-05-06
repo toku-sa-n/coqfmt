@@ -278,27 +278,26 @@ and pp_constr_expr_r = function
          and the rest. This complicates pretty-printing using [pp_generic],
          necessitating a specialized function for lists.*)
       let pp_list elems =
-        let rec loop tactics is_first printer =
+        let rec loop tactics is_first =
           match (tactics, is_first) with
-          | [], _ -> nop printer
-          | [ h ], true -> pp_constr_expr h printer
+          | [], _ -> nop
+          | [ h ], true -> pp_constr_expr h
           | [ h ], false ->
-              (let pp = pp_constr_expr h in
+              let pp = pp_constr_expr h in
 
-               let hor = sequence [ space; pp ] in
-               let ver = sequence [ newline; pp ] in
+              let hor = sequence [ space; pp ] in
+              let ver = sequence [ newline; pp ] in
 
-               hor <-|> ver)
-                printer
+              hor <-|> ver
           | h :: t, true ->
-              sequence [ pp_constr_expr h; write ";"; loop t false ] printer
+              sequence [ pp_constr_expr h; write ";"; loop t false ]
           | h :: t, false ->
               let pp = sequence [ pp_constr_expr h; write ";" ] in
 
               let hor = sequence [ space; pp ] in
               let ver = sequence [ newline; pp ] in
 
-              sequence [ hor <-|> ver; loop t false ] printer
+              sequence [ hor <-|> ver; loop t false ]
         in
 
         brackets (loop elems true)
