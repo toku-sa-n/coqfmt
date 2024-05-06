@@ -149,23 +149,24 @@ let copy_printer_by_value t =
     bullets = t.bullets;
   }
 
-let can_pp_oneline f printer =
-  let printer_backup =
+let overwrite_printer src dst =
+  Buffer.clear dst.buffer;
+  Buffer.add_string dst.buffer (Buffer.contents src.buffer);
+  dst.indent_spaces <- src.indent_spaces;
+  dst.columns <- src.columns;
+  dst.printed_newline <- src.printed_newline;
+  dst.bullets <- src.bullets
+
+let ( <-|> ) horizontal vertical printer =
+  let hor_printer =
     { (copy_printer_by_value printer) with fail_on_overflow = true }
   in
 
   try
-    f printer_backup;
-    true
-  with Exceeded_column_limit -> false
-
-let try_pp_oneline f printer =
-  if can_pp_oneline f printer then
-    let () = f printer in
-    true
-  else false
-
-let ( <-|> ) horizontal vertical printer =
-  if try_pp_oneline horizontal printer then () else vertical printer
+    horizontal hor_printer;
+    overwrite_printer hor_printer printer
+  with Exceeded_column_limit ->
+    if printer.fail_on_overflow then raise Exceeded_column_limit
+    else vertical printer
 
 let contents t = Buffer.contents t.buffer
