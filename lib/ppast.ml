@@ -1320,23 +1320,22 @@ and pp_raw_tactic_expr_r = function
           second :: loop first |> List.rev
         in
 
-        let rec loop tactics is_first printer =
+        let rec loop tactics is_first =
           match (tactics, is_first) with
-          | [], _ -> nop printer
+          | [], _ -> nop
           | [ h ], _ ->
-              (let pp = pp_raw_tactic_expr h in
+              let pp = pp_raw_tactic_expr h in
 
-               sequence [ space; pp ] <-|> sequence [ newline; pp ])
-                printer
+              sequence [ space; pp ] <-|> sequence [ newline; pp ]
           | h :: t, true ->
-              sequence [ pp_raw_tactic_expr h; write ";"; loop t false ] printer
+              sequence [ pp_raw_tactic_expr h; write ";"; loop t false ]
           | h :: t, false ->
               let pp = sequence [ pp_raw_tactic_expr h; write ";" ] in
 
               let hor = sequence [ space; pp ] in
               let ver = sequence [ newline; pp ] in
 
-              sequence [ hor <-|> ver; loop t false ] printer
+              sequence [ hor <-|> ver; loop t false ]
         in
 
         loop tactics true
