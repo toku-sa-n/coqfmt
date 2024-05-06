@@ -1323,20 +1323,20 @@ and pp_raw_tactic_expr_r = function
         let rec loop tactics is_first printer =
           match (tactics, is_first) with
           | [], _ -> nop printer
-          | [ h ], _ -> (
-              let pp = pp_raw_tactic_expr h in
+          | [ h ], _ ->
+              (let pp = pp_raw_tactic_expr h in
 
-              match can_pp_oneline (sequence [ space; pp ]) printer with
-              | true -> sequence [ space; pp ] printer
-              | false -> sequence [ newline; pp ] printer)
+               sequence [ space; pp ] <-|> sequence [ newline; pp ])
+                printer
           | h :: t, true ->
               sequence [ pp_raw_tactic_expr h; write ";"; loop t false ] printer
-          | h :: t, false -> (
+          | h :: t, false ->
               let pp = sequence [ pp_raw_tactic_expr h; write ";" ] in
 
-              match can_pp_oneline (sequence [ space; pp ]) printer with
-              | true -> sequence [ space; pp; loop t false ] printer
-              | false -> sequence [ newline; pp; loop t false ] printer)
+              let hor = sequence [ space; pp ] in
+              let ver = sequence [ newline; pp ] in
+
+              sequence [ hor <-|> ver; loop t false ] printer
         in
 
         loop tactics true
