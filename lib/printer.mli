@@ -48,9 +48,6 @@ val ( <-|> ) : (t -> unit) -> (t -> unit) -> t -> unit
 (** Try running the first printer. If the result fits in the columns limit, use
   the result, and if not, runs the second printer. *)
 
-val can_pp_oneline : (t -> unit) -> t -> bool
-(** Returns whether running the given printer fits in a line. *)
-
 val contents : t -> string
 (** Get the contents of the printer. *)
 
