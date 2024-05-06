@@ -282,20 +282,23 @@ and pp_constr_expr_r = function
           match (tactics, is_first) with
           | [], _ -> nop printer
           | [ h ], true -> pp_constr_expr h printer
-          | [ h ], false -> (
-              let pp = pp_constr_expr h in
+          | [ h ], false ->
+              (let pp = pp_constr_expr h in
 
-              match can_pp_oneline (sequence [ space; pp ]) printer with
-              | true -> sequence [ space; pp ] printer
-              | false -> sequence [ newline; pp ] printer)
+               let hor = sequence [ space; pp ] in
+               let ver = sequence [ newline; pp ] in
+
+               hor <-|> ver)
+                printer
           | h :: t, true ->
               sequence [ pp_constr_expr h; write ";"; loop t false ] printer
-          | h :: t, false -> (
+          | h :: t, false ->
               let pp = sequence [ pp_constr_expr h; write ";" ] in
 
-              match can_pp_oneline (sequence [ space; pp ]) printer with
-              | true -> sequence [ space; pp; loop t false ] printer
-              | false -> sequence [ newline; pp; loop t false ] printer)
+              let hor = sequence [ space; pp ] in
+              let ver = sequence [ newline; pp ] in
+
+              sequence [ hor <-|> ver; loop t false ] printer
         in
 
         brackets (loop elems true)
