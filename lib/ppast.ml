@@ -1355,8 +1355,13 @@ and pp_raw_tactic_expr_r = function
         brackets (sequence (List.mapi pp_patterns second))
       in
 
-      let hor= sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ] in
-      let ver=sequence [pp_raw_tactic_expr first;write ";";newline;pp_bracket_clause] in
+      let hor =
+        sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
+      in
+      let ver =
+        sequence
+          [ pp_raw_tactic_expr first; write ";"; newline; pp_bracket_clause ]
+      in
 
       hor <-|> ver
   | Tacexpr.TacTry tactic ->
