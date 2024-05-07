@@ -605,17 +605,32 @@ let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_fixpoint_expr = function
+let pp_notation_declaration = function
   | Vernacexpr.
       {
-        fname;
-        univs = None;
-        rec_order;
-        binders;
-        rtype;
-        body_def;
-        notations = [];
+        ntn_decl_string;
+        ntn_decl_interp;
+        ntn_decl_scope;
+        ntn_decl_modifiers = [];
       } ->
+      let pp_scope =
+        match ntn_decl_scope with
+        | None -> nop
+        | Some scope -> sequence [ write " : "; write scope ]
+      in
+
+      sequence
+        [
+          doublequoted (pp_lstring ntn_decl_string);
+          write " := ";
+          parens (pp_constr_expr ntn_decl_interp);
+          pp_scope;
+        ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_fixpoint_expr = function
+  | Vernacexpr.
+      { fname; univs = None; rec_order; binders; rtype; body_def; notations } ->
       let pp_binders =
         let hor =
           map_sequence
@@ -649,7 +664,24 @@ let pp_fixpoint_expr = function
         | None -> nop
       in
 
-      sequence [ pp_lident fname; pp_binders; pp_rec; pp_return_type; pp_body ]
+      let pp_where =
+        match notations with
+        | [] -> nop
+        | xs ->
+            sequence
+              [
+                newline;
+                write "where ";
+                map_with_seps
+                  ~sep:(sequence [ newline; write "  and " ])
+                  pp_notation_declaration xs;
+              ]
+      in
+
+      sequence
+        [
+          pp_lident fname; pp_binders; pp_rec; pp_return_type; pp_body; pp_where;
+        ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_constructor_expr = function
@@ -1580,40 +1612,6 @@ let pp_assumption_object_kind = function
   | Decls.Conjectural -> write "Conjecture"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let pp_notation_declaration = function
-  | Vernacexpr.
-      {
-        ntn_decl_string;
-        ntn_decl_interp;
-        ntn_decl_scope;
-        ntn_decl_modifiers = [];
-      } ->
-      let pp_scope =
-        match ntn_decl_scope with
-        | None -> nop
-        | Some scope -> sequence [ write " : "; write scope ]
-      in
-
-      sequence
-        [
-          newline;
-          indented
-            (sequence
-               [
-                 write "where";
-                 newline;
-                 indented
-                   (sequence
-                      [
-                        doublequoted (pp_lstring ntn_decl_string);
-                        write " := ";
-                        parens (pp_constr_expr ntn_decl_interp);
-                        pp_scope;
-                      ]);
-               ]);
-        ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
-
 let pp_comment = function
   | Vernacexpr.CommentConstr expr -> pp_constr_expr expr
   | Vernacexpr.CommentString s -> doublequoted (write s)
@@ -2169,8 +2167,15 @@ let pp_synpure_vernac_expr = function
             let pp_where_clause =
               match where_clause with
               | [] -> nop
-              | [ notation ] -> pp_notation_declaration notation
-              | _ -> fun printer -> raise (NotImplemented (contents printer))
+              | xs ->
+                  sequence
+                    [
+                      newline;
+                      write "where ";
+                      map_with_seps
+                        ~sep:(sequence [ newline; write "  and " ])
+                        pp_notation_declaration xs;
+                    ]
             in
 
             sequence
