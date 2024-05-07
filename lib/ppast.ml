@@ -621,21 +621,10 @@ let pp_notation_declaration = function
 
       sequence
         [
-          newline;
-          indented
-            (sequence
-               [
-                 write "where";
-                 newline;
-                 indented
-                   (sequence
-                      [
-                        doublequoted (pp_lstring ntn_decl_string);
-                        write " := ";
-                        parens (pp_constr_expr ntn_decl_interp);
-                        pp_scope;
-                      ]);
-               ]);
+          doublequoted (pp_lstring ntn_decl_string);
+          write " := ";
+          parens (pp_constr_expr ntn_decl_interp);
+          pp_scope;
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
@@ -678,8 +667,15 @@ let pp_fixpoint_expr = function
       let pp_where =
         match notations with
         | [] -> nop
-        | [ x ] -> pp_notation_declaration x
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | xs ->
+            sequence
+              [
+                newline;
+                write "where ";
+                map_with_seps
+                  ~sep:(sequence [ newline; write "  and " ])
+                  pp_notation_declaration xs;
+              ]
       in
 
       sequence
@@ -2166,7 +2162,11 @@ let pp_synpure_vernac_expr = function
             let pp_where_clause =
               match where_clause with
               | [] -> nop
-              | [ notation ] -> pp_notation_declaration notation
+              | [ notation ] ->
+                  sequence
+                    [
+                      newline; write "where "; pp_notation_declaration notation;
+                    ]
               | _ -> fun printer -> raise (NotImplemented (contents printer))
             in
 
