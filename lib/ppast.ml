@@ -655,10 +655,7 @@ let pp_notation_declaration = function
         | [] -> nop
         | xs ->
             sequence
-              [
-                space;
-                parens (map_commad (fun x -> pp_syntax_modifier x.CAst.v) xs);
-              ]
+              [ space; map_tupled (fun x -> pp_syntax_modifier x.CAst.v) xs ]
       in
 
       sequence
@@ -1532,7 +1529,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
     [
       space;
       (if negative then write "-" else nop);
-      parens (map_commad (fun import_cat -> write import_cat.v) import_cats);
+      map_tupled (fun import_cat -> write import_cat.v) import_cats;
     ]
 
 let pp_export_flag = function

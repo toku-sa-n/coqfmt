@@ -135,6 +135,7 @@ module Lineup = struct
   let map_spaced f = map_with_seps ~sep:Str.space f
   let map_lined f = map_with_seps ~sep:newline f
   let map_bard f = map_with_seps ~sep:(write " | ") f
+  let map_tupled f xs = Wrap.parens (map_commad f xs)
 end
 
 let copy_printer_by_value t =
