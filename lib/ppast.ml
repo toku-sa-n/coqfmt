@@ -1387,7 +1387,12 @@ and pp_raw_tactic_expr_r = function
         brackets (sequence (List.mapi pp_patterns second))
       in
 
-      sequence [ pp_raw_tactic_expr first; write "; "; pp_bracket_clause ]
+      let pp = sequence [ pp_raw_tactic_expr first; write ";" ] in
+
+      let hor = sequence [ pp; space; pp_bracket_clause ] in
+      let ver = sequence [ pp; newline; pp_bracket_clause ] in
+
+      hor <-|> ver
   | Tacexpr.TacTry tactic ->
       sequence [ write "try "; pp_raw_tactic_expr_with_parens tactic ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
