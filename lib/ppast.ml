@@ -2162,12 +2162,15 @@ let pp_synpure_vernac_expr = function
             let pp_where_clause =
               match where_clause with
               | [] -> nop
-              | [ notation ] ->
+              | xs ->
                   sequence
                     [
-                      newline; write "where "; pp_notation_declaration notation;
+                      newline;
+                      write "where ";
+                      map_with_seps
+                        ~sep:(sequence [ newline; write "  and " ])
+                        pp_notation_declaration xs;
                     ]
-              | _ -> fun printer -> raise (NotImplemented (contents printer))
             in
 
             sequence
