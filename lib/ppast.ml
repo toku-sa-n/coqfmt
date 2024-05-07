@@ -605,18 +605,57 @@ let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
+let pp_notation_entry = function
+  | Constrexpr.InConstrEntry -> write "constr"
+  | Constrexpr.InCustomEntry scope ->
+      sequence [ write "custom"; space; write scope ]
+
+let pp_production_level = function
+  | Extend.NextLevel -> write "at next level"
+  | Extend.NumLevel n -> sequence [ write "at level "; pp_int n ]
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
+let pp_syntax_modifier = function
+  | Vernacexpr.SetAssoc LeftA -> write "left associativity"
+  | Vernacexpr.SetAssoc RightA -> write "right associativity"
+  | Vernacexpr.SetAssoc NonA -> write "no associativity"
+  | Vernacexpr.SetCustomEntry (name, level) ->
+      let pp_level =
+        match level with
+        | None -> nop
+        | Some level -> sequence [ write " at level "; pp_int level ]
+      in
+
+      sequence [ write "in custom "; write name; pp_level ]
+  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, DefaultLevel)) ->
+      spaced [ write name; pp_notation_entry entry ]
+  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
+      spaced [ write name; pp_notation_entry entry; pp_production_level level ]
+  | Vernacexpr.SetEntryType (name, ETPattern (false, None)) ->
+      sequence [ write name; write " pattern" ]
+  | Vernacexpr.SetItemLevel ([ name ], None, level) ->
+      sequence [ write name; space; pp_production_level level ]
+  | Vernacexpr.SetLevel level ->
+      sequence [ write "at level "; write (string_of_int level) ]
+  | Vernacexpr.SetOnlyParsing -> write "only parsing"
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
+
 let pp_notation_declaration = function
   | Vernacexpr.
-      {
-        ntn_decl_string;
-        ntn_decl_interp;
-        ntn_decl_scope;
-        ntn_decl_modifiers = [];
-      } ->
+      { ntn_decl_string; ntn_decl_interp; ntn_decl_scope; ntn_decl_modifiers }
+    ->
       let pp_scope =
         match ntn_decl_scope with
         | None -> nop
         | Some scope -> sequence [ write " : "; write scope ]
+      in
+
+      let pp_modifiers =
+        match ntn_decl_modifiers with
+        | [] -> nop
+        | xs ->
+            sequence
+              [ space; map_tupled (fun x -> pp_syntax_modifier x.CAst.v) xs ]
       in
 
       sequence
@@ -625,8 +664,8 @@ let pp_notation_declaration = function
           write " := ";
           parens (pp_constr_expr ntn_decl_interp);
           pp_scope;
+          pp_modifiers;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_fixpoint_expr = function
   | Vernacexpr.
@@ -717,41 +756,6 @@ let pp_constructor_expr = function
           in
 
           header |=> (hor <-|> ver))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
-
-let pp_production_level = function
-  | Extend.NextLevel -> write "at next level"
-  | Extend.NumLevel n -> sequence [ write "at level "; pp_int n ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
-
-let pp_notation_entry = function
-  | Constrexpr.InConstrEntry -> write "constr"
-  | Constrexpr.InCustomEntry scope ->
-      sequence [ write "custom"; space; write scope ]
-
-let pp_syntax_modifier = function
-  | Vernacexpr.SetAssoc LeftA -> write "left associativity"
-  | Vernacexpr.SetAssoc RightA -> write "right associativity"
-  | Vernacexpr.SetAssoc NonA -> write "no associativity"
-  | Vernacexpr.SetCustomEntry (name, level) ->
-      let pp_level =
-        match level with
-        | None -> nop
-        | Some level -> sequence [ write " at level "; pp_int level ]
-      in
-
-      sequence [ write "in custom "; write name; pp_level ]
-  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, DefaultLevel)) ->
-      spaced [ write name; pp_notation_entry entry ]
-  | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
-      spaced [ write name; pp_notation_entry entry; pp_production_level level ]
-  | Vernacexpr.SetEntryType (name, ETPattern (false, None)) ->
-      sequence [ write name; write " pattern" ]
-  | Vernacexpr.SetItemLevel ([ name ], None, level) ->
-      sequence [ write name; space; pp_production_level level ]
-  | Vernacexpr.SetLevel level ->
-      sequence [ write "at level "; write (string_of_int level) ]
-  | Vernacexpr.SetOnlyParsing -> write "only parsing"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let rec pp_gen_tactic_arg = function
@@ -1525,7 +1529,7 @@ let pp_import_categories { Vernacexpr.negative; import_cats } =
     [
       space;
       (if negative then write "-" else nop);
-      parens (map_commad (fun import_cat -> write import_cat.v) import_cats);
+      map_tupled (fun import_cat -> write import_cat.v) import_cats;
     ]
 
 let pp_export_flag = function

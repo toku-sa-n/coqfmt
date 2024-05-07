@@ -111,4 +111,8 @@ module Lineup : sig
   val map_bard : ('a -> t -> unit) -> 'a list -> t -> unit
   (** Map the elements of the given list to printers and run them
   bar-separatedly. *)
+
+  val map_tupled : ('a -> t -> unit) -> 'a list -> t -> unit
+  (** Map the elements of the given list to printers and run them
+  as a tuple. *)
 end
