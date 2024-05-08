@@ -813,6 +813,7 @@ let pp_raw_red_expr = function
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
+  | Namegen.IntroAnonymous -> write "?"
   | Namegen.IntroIdentifier name -> pp_id name
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
