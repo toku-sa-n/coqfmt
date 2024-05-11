@@ -1292,7 +1292,7 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacLetIn (false, [ (name, arg) ], _) ->
+  | Tacexpr.TacLetIn (false, [ (name, arg) ], expr) ->
       sequence
         [
           write "let ";
@@ -1300,7 +1300,8 @@ and pp_raw_tactic_expr_r = function
           write " := ";
           pp_gen_tactic_arg arg;
           newline;
-          write " in idtac";
+          write " in ";
+          pp_raw_tactic_expr expr;
         ]
   | Tacexpr.TacMatch (Once, matchee, branches) ->
       sequence
