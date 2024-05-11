@@ -983,7 +983,8 @@ let rec pp_raw_atomic_tactic_expr = function
 
       sequence
         [ write "assert ("; pp_name; pp_constr_expr expr; write ")"; pp_by ]
-  | Tacexpr.TacChange (true, Some _, _, _) -> write "change 1 with 1"
+  | Tacexpr.TacChange (true, Some src, _, _) ->
+      sequence [ write "change "; pp_constr_expr src; write " with 1" ]
   | Tacexpr.TacInductionDestruct (is_induction, false, clause_list) ->
       sequence
         [
