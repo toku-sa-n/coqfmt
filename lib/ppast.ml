@@ -363,7 +363,7 @@ and pp_constr_expr_r = function
                 pp_generic t_u t_r local_assums t_keys patterns;
               ]
         | Ppextend.UnpMetaVar _ :: _, _, _, _, _ ->
-            failwith "Too few replacers."
+            failwith "pp_constr_expr_r: Too few replacers."
         | Ppextend.UnpBinderMetaVar _ :: t, _, _, _ :: keys, (h_p, _) :: t_p ->
             sequence
               [
@@ -1084,7 +1084,8 @@ and pp_raw_tactic_expr_r = function
         match (idents, replacers) with
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
-        | s :: _, [] when starts_with_paren s -> failwith "Too few replacers."
+        | s :: _, [] when starts_with_paren s ->
+            failwith ("pp_raw_tactic_expr_r: Too few replacers: " ^ id)
         | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
           when starts_with_paren s -> (
             let try_pp converter pp =
