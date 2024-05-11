@@ -136,3 +136,13 @@ val ltac_tactic_level_of_raw_generic_argument :
   Genarg.raw_generic_argument -> int option option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
   [int option]. *)
+
+val test_lpar_id_colon_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> unit option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [unit]. *)
+
+val lconstr_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Constrexpr.constr_expr option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+  [Constrexpr.constr_expr]. *)
