@@ -1306,6 +1306,8 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacArg arg -> pp_gen_tactic_arg arg
   | Tacexpr.TacAtom atom -> sequence [ pp_raw_atomic_tactic_expr atom ]
   | Tacexpr.TacFail (TacLocal, ArgArg 0, []) -> write "fail"
+  | Tacexpr.TacFirst exprs ->
+      sequence [ write "first "; brackets (map_bard pp_raw_tactic_expr exprs) ]
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
