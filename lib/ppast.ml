@@ -770,6 +770,7 @@ let rec pp_gen_tactic_arg = function
       in
 
       sequence [ pp_qualid name; pp_args ]
+  | Tacexpr.Tacexp _ -> write "idtac"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_raw_red_expr = function
@@ -1305,8 +1306,16 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacLetIn (false, [ (_, _) ], _) ->
-      sequence [ write "let x := 1"; newline; write " in idtac" ]
+  | Tacexpr.TacLetIn (false, [ (name, arg) ], _) ->
+      sequence
+        [
+          write "let ";
+          pp_lname name;
+          write " := ";
+          pp_gen_tactic_arg arg;
+          newline;
+          write " in idtac";
+        ]
   | Tacexpr.TacMatch (Once, matchee, branches) ->
       sequence
         [
