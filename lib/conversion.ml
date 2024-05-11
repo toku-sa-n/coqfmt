@@ -395,3 +395,26 @@ let ltac_tactic_level_of_raw_generic_argument arg =
       ] ->
       Some (Sexplib.Std.option_of_sexp Sexplib.Std.int_of_sexp rems)
   | _ -> None
+
+let test_lpar_id_colon_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "test_lpar_id_colon" ] ];
+        rems;
+      ] ->
+      Some (Sexplib.Std.unit_of_sexp rems)
+  | _ -> None
+
+let lconstr_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "lconstr" ] ];
+        rems;
+      ] ->
+      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
+  | _ -> None

@@ -1079,15 +1079,19 @@ and pp_raw_tactic_expr_r = function
       let id = Pptactic.pr_alias_key alias |> Pp.string_of_ppcmds in
 
       let init_idents = String.split_on_char ' ' id in
-      let starts_with_paren s = String.starts_with ~prefix:"(" s in
+      let enclosed_by_parens s =
+        String.starts_with ~prefix:"(" s && String.ends_with ~suffix:")" s
+      in
       let rec loop idents replacers =
         match (idents, replacers) with
         | [], [] -> []
         | [], _ -> failwith "Too many replacers."
-        | s :: _, [] when starts_with_paren s ->
-            failwith ("pp_raw_tactic_expr_r: Too few replacers: " ^ id)
+        | s :: _, [] when enclosed_by_parens s ->
+            failwith
+              (Printf.sprintf
+                 "Too few replacers. Current: %s, Printing rule: %s" s id)
         | s :: t_ids, Tacexpr.TacGeneric (None, args) :: t_reps
-          when starts_with_paren s -> (
+          when enclosed_by_parens s -> (
             let try_pp converter pp =
               match converter args with Some x -> Some (pp x) | None -> None
             in
@@ -1230,12 +1234,23 @@ and pp_raw_tactic_expr_r = function
               try_pp Conversion.rename_idents_of_raw_generic_argument pp
             in
 
+            let try_pp_test_lpar_id_colon =
+              try_pp Conversion.test_lpar_id_colon_of_raw_generic_argument
+                (Fun.const None)
+            in
+
+            let try_pp_lconstr =
+              try_pp_always Conversion.lconstr_of_raw_generic_argument
+                pp_constr_expr
+            in
+
             let breakable_printers =
               [
                 try_pp_auto_using;
                 try_pp_hintbases;
                 try_pp_by_arg_tactic;
                 try_pp_clause_dft_concl;
+                try_pp_test_lpar_id_colon;
               ]
             in
 
@@ -1251,6 +1266,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_nat_or_var;
                 try_pp_constr_with_bindings;
                 try_pp_rename;
+                try_pp_lconstr;
               ]
             in
 
@@ -1267,7 +1283,7 @@ and pp_raw_tactic_expr_r = function
             | None, Some x -> (x, true) :: loop t_ids t_reps
             | None, None -> loop t_ids t_reps)
         | h_id :: t_ids, Tacexpr.Tacexp tactic :: t_reps
-          when starts_with_paren h_id ->
+          when enclosed_by_parens h_id ->
             (pp_raw_tactic_expr tactic, false) :: loop t_ids t_reps
         | h_id :: t_id, _ -> (write h_id, false) :: loop t_id replacers
       in
@@ -1467,6 +1483,7 @@ and pp_gen_tactic_arg = function
 
       sequence [ pp_qualid name; pp_args ]
   | Tacexpr.Tacexp expr -> pp_raw_tactic_expr expr
+  | Tacexpr.TacFreshId _ -> write "fresh"
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
@@ -2357,6 +2374,7 @@ let separator current next =
   | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _)
   | VernacSynPure (VernacPrint _), VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), VernacSynPure (VernacCoercion _)
+  | VernacSynPure (VernacComments _), VernacSynPure (VernacComments _)
   | ( VernacSynterp
         (VernacExtend
           ( {
@@ -2450,6 +2468,8 @@ let separator current next =
   | _, VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), _
   | _, VernacSynPure (VernacCoercion _)
+  | VernacSynPure (VernacComments _), _
+  | _, VernacSynPure (VernacComments _)
   | VernacSynterp (VernacImport _), _
   | _, VernacSynterp (VernacImport _)
   | ( VernacSynterp
