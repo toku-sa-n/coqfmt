@@ -1,1 +1,1 @@
-Ltac foo:=let x:=1 in idtac.
+Ltac foo:=let x:=idtac in idtac.

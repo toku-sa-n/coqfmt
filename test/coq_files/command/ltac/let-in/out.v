@@ -1,3 +1,3 @@
 Ltac foo :=
-  let x := 1
+  let x := idtac
    in idtac.
