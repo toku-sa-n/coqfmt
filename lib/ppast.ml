@@ -2372,6 +2372,7 @@ let separator current next =
   | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _)
   | VernacSynPure (VernacPrint _), VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), VernacSynPure (VernacCoercion _)
+  | VernacSynPure (VernacComments _), VernacSynPure (VernacComments _)
   | ( VernacSynterp
         (VernacExtend
           ( {
@@ -2465,6 +2466,8 @@ let separator current next =
   | _, VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), _
   | _, VernacSynPure (VernacCoercion _)
+  | VernacSynPure (VernacComments _), _
+  | _, VernacSynPure (VernacComments _)
   | VernacSynterp (VernacImport _), _
   | _, VernacSynterp (VernacImport _)
   | ( VernacSynterp
