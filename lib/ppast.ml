@@ -1922,9 +1922,9 @@ let pp_synterp_vernac_expr = function
       sequence
         [
           pp_command;
-          write " \"";
-          pp_lstring notation;
-          write "\" :=";
+          space;
+          doublequoted (pp_lstring notation);
+          write " :=";
           hor <-|> ver;
         ]
   | Vernacexpr.VernacRequire (dirpath, export_with_cats, filtered_import) ->
