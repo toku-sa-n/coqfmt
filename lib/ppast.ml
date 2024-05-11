@@ -1292,13 +1292,15 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
-  | Tacexpr.TacLetIn (false, [ (name, arg) ], expr) ->
+  | Tacexpr.TacLetIn (false, bindings, expr) ->
+      let pp_binding (name, arg) =
+        sequence [ pp_lname name; write " := "; pp_gen_tactic_arg arg ]
+      in
+
       sequence
         [
           write "let ";
-          pp_lname name;
-          write " := ";
-          pp_gen_tactic_arg arg;
+          map_with_seps ~sep:(write " with ") pp_binding bindings;
           newline;
           write " in ";
           pp_raw_tactic_expr expr;
