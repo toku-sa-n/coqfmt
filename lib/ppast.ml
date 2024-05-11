@@ -759,19 +759,6 @@ let pp_constructor_expr = function
           header |=> (hor <-|> ver))
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_gen_tactic_arg = function
-  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
-  | Tacexpr.ConstrMayEval (ConstrTypeOf expr) ->
-      sequence [ write "type of "; pp_constr_expr expr ]
-  | Tacexpr.Reference name -> pp_qualid name
-  | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
-      let pp_args =
-        map_sequence (fun x -> sequence [ space; pp_gen_tactic_arg x ]) args
-      in
-
-      sequence [ pp_qualid name; pp_args ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
-
 let pp_raw_red_expr = function
   | Genredexpr.Cbv
       Genredexpr.
@@ -1305,6 +1292,19 @@ and pp_raw_tactic_expr_r = function
   | Tacexpr.TacId [] -> write "idtac"
   | Tacexpr.TacId names ->
       spaced [ write "idtac"; map_spaced pp_message_token names ]
+  | Tacexpr.TacLetIn (false, bindings, expr) ->
+      let pp_binding (name, arg) =
+        sequence [ pp_lname name; write " := "; pp_gen_tactic_arg arg ]
+      in
+
+      sequence
+        [
+          write "let ";
+          map_with_seps ~sep:(write " with ") pp_binding bindings;
+          newline;
+          write " in ";
+          pp_raw_tactic_expr expr;
+        ]
   | Tacexpr.TacMatch (Once, matchee, branches) ->
       sequence
         [
@@ -1451,6 +1451,20 @@ and pp_match_rule = function
       let ver = sequence [ newline; indented (pp_raw_tactic_expr expr) ] in
 
       sequence [ write "| _ =>"; hor <-|> ver ]
+
+and pp_gen_tactic_arg = function
+  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.ConstrMayEval (ConstrTypeOf expr) ->
+      sequence [ write "type of "; pp_constr_expr expr ]
+  | Tacexpr.Reference name -> pp_qualid name
+  | Tacexpr.TacCall CAst.{ v = name, args; loc = _ } ->
+      let pp_args =
+        map_sequence (fun x -> sequence [ space; pp_gen_tactic_arg x ]) args
+      in
+
+      sequence [ pp_qualid name; pp_args ]
+  | Tacexpr.Tacexp expr -> pp_raw_tactic_expr expr
+  | _ -> fun printer -> raise (NotImplemented (contents printer))
 
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition (name, v) ->
