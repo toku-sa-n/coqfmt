@@ -1,4 +1,4 @@
-Theorem foo : 1 = 1.
+Theorem foo : 1 + 0 = 1.
 Proof.
-  change 1 with (0 + 1).
+  change (1 + 0) with (0 + 1).
 Abort.
