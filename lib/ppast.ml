@@ -1593,9 +1593,17 @@ let pp_reference_or_constr = function
 let pp_hints_expr = function
   | Vernacexpr.HintsConstructors names ->
       sequence [ write "Hint Constructors "; map_spaced pp_qualid names ]
-  | Vernacexpr.HintsResolve
-      [ ({ hint_priority = None; hint_pattern = None }, true, expr) ] ->
-      sequence [ write "Hint Resolve "; pp_reference_or_constr expr ]
+  | Vernacexpr.HintsResolve names ->
+      let pp :
+          Vernacexpr.hint_info_expr * bool * Vernacexpr.reference_or_constr ->
+          Printer.t ->
+          unit = function
+        | { hint_priority = None; hint_pattern = None }, true, expr ->
+            pp_reference_or_constr expr
+        | _ -> fun printer -> raise (NotImplemented (contents printer))
+      in
+
+      sequence [ write "Hint Resolve "; map_spaced pp names ]
   | Vernacexpr.HintsTransparency (HintsReferences names, true) ->
       sequence [ write "Hint Transparent "; map_spaced pp_qualid names ]
   | Vernacexpr.HintsUnfold names ->
