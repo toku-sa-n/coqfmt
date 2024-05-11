@@ -1842,13 +1842,15 @@ let pp_synterp_vernac_expr = function
         args ) ->
       pp_vernac_tactic_notation args
   | Vernacexpr.VernacNotation
-      ( false,
+      ( is_infix,
         {
           ntn_decl_string = notation;
           ntn_decl_interp = expr;
           ntn_decl_scope = scope;
           ntn_decl_modifiers = modifiers;
         } ) ->
+      let pp_command = if is_infix then write "Infix" else write "Notation" in
+
       let pp_modifiers =
         let pp sep =
           sequence
@@ -1919,7 +1921,11 @@ let pp_synterp_vernac_expr = function
 
       sequence
         [
-          write "Notation \""; pp_lstring notation; write "\" :="; hor <-|> ver;
+          pp_command;
+          space;
+          doublequoted (pp_lstring notation);
+          write " :=";
+          hor <-|> ver;
         ]
   | Vernacexpr.VernacRequire (dirpath, export_with_cats, filtered_import) ->
       let pp_dirpath printer =
