@@ -1472,7 +1472,7 @@ and pp_match_rule = function
       sequence [ write "| _ =>"; hor <-|> ver ]
 
 and pp_gen_tactic_arg = function
-  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr expr
+  | Tacexpr.ConstrMayEval (ConstrTerm expr) -> pp_constr_expr_with_parens expr
   | Tacexpr.ConstrMayEval (ConstrTypeOf expr) ->
       sequence [ write "type of "; pp_constr_expr expr ]
   | Tacexpr.Reference name -> pp_qualid name
