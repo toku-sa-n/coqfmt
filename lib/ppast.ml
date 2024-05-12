@@ -1066,8 +1066,7 @@ let rec pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_raw_tactic_expr_r v
+and pp_raw_tactic_expr expr = pp_c_ast pp_raw_tactic_expr_r expr
 
 and pp_raw_tactic_expr_with_parens_conditionally cond expr =
   if cond then parens (pp_raw_tactic_expr expr) else pp_raw_tactic_expr expr
@@ -1117,7 +1116,7 @@ and pp_raw_tactic_expr_r = function
             let try_pp_intro_pattern_expr =
               try_pp_always
                 Conversion.intro_pattern_list_of_raw_generic_argument
-                (map_spaced (fun expr -> pp_intro_pattern_expr expr.CAst.v))
+                (map_spaced (pp_c_ast pp_intro_pattern_expr))
             in
 
             let try_pp_clause_expr =
@@ -1898,9 +1897,7 @@ let pp_synterp_vernac_expr = function
             [
               space;
               parens
-                (map_with_seps ~sep
-                   (fun modifier -> pp_syntax_modifier modifier.CAst.v)
-                   modifiers);
+                (map_with_seps ~sep (pp_c_ast pp_syntax_modifier) modifiers);
             ]
         in
         let hor = pp (write ", ") in
@@ -1998,10 +1995,7 @@ let pp_synterp_vernac_expr = function
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
   | Vernacexpr.VernacReservedNotation (false, (notation, modifiers)) ->
       let pp_modifiers =
-        parens
-          (map_commad
-             (fun modifier -> pp_syntax_modifier modifier.CAst.v)
-             modifiers)
+        parens (map_commad (pp_c_ast pp_syntax_modifier) modifiers)
       in
 
       let hor = sequence [ space; pp_modifiers; dot ] in
