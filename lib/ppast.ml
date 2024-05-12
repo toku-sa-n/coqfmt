@@ -4,7 +4,7 @@ open Printer.Lineup
 open Printer.Str
 open Ltac_plugin
 
-exception NotImplemented of string
+exception Not_implemented of string
 
 (** Returns a `true` if printing the given [Constrexpr.constr_expr_r] needs
       parentheses IN ANY TIMES.
@@ -54,7 +54,7 @@ let pp_definition_object_kind = function
   | Decls.Definition -> write "Definition"
   | Decls.Example -> write "Example"
   | Decls.SubClass -> write "SubClass"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_sign = function NumTok.SPlus -> nop | NumTok.SMinus -> write "-"
 let pp_unsigned n = write (NumTok.Unsigned.sprint n)
@@ -91,7 +91,7 @@ and pp_cases_pattern_expr_r = function
         | Ppextend.UnpMetaVar _ :: t, h_exprs :: t_exprs ->
             sequence [ pp_cases_pattern_expr h_exprs; pp t t_exprs ]
         | Ppextend.UnpBinderMetaVar _ :: _, _ ->
-            fun printer -> raise (NotImplemented (contents printer))
+            fun printer -> raise (Not_implemented (contents printer))
         | Ppextend.UnpListMetaVar _ :: _, [] -> failwith "Too few exprs."
         | Ppextend.UnpListMetaVar (_, seps) :: t, elems ->
             let get_sep = function
@@ -121,7 +121,7 @@ and pp_cases_pattern_expr_r = function
 
             loop elems seps
         | Ppextend.UnpBinderListMetaVar _ :: _, _ ->
-            fun printer -> raise (NotImplemented (contents printer))
+            fun printer -> raise (Not_implemented (contents printer))
         | Ppextend.UnpTerminal s :: t, _ -> sequence [ write s; pp t exprs ]
         | Ppextend.UnpCut _ :: t, _ -> sequence [ space; pp t exprs ]
         | Ppextend.UnpBox (_, xs) :: t, _ -> pp (List.map snd xs @ t) exprs
@@ -131,20 +131,20 @@ and pp_cases_pattern_expr_r = function
         (exprs_1 @ List.flatten exprs_2)
   | Constrexpr.CPatPrim token -> pp_prim_token token
   | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_sort_name_expr = function
   | Constrexpr.CProp -> write "Prop"
   | Constrexpr.CSet -> write "Set"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_sort_expr = function
   | Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
   | Glob_term.UAnonymous { rigid = _ } ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
   | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
   | Glob_term.UNamed _ ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
 
@@ -157,7 +157,7 @@ and pp_constr_expr_r = function
               | inner, None ->
                   sequence [ space; pp_constr_expr_with_parens inner ]
               | _, Some _ ->
-                  fun printer -> raise (NotImplemented (contents printer)))
+                  fun printer -> raise (Not_implemented (contents printer)))
             args
         in
         let ver =
@@ -167,7 +167,7 @@ and pp_constr_expr_r = function
                   sequence
                     [ newline; indented (pp_constr_expr_with_parens inner) ]
               | _, Some _ ->
-                  fun printer -> raise (NotImplemented (contents printer)))
+                  fun printer -> raise (Not_implemented (contents printer)))
             args
         in
 
@@ -400,9 +400,9 @@ and pp_constr_expr_r = function
             in
             loop elems
         | Ppextend.UnpListMetaVar (_, _) :: _, _, _, [], _ ->
-            raise (NotImplemented "")
+            raise (Not_implemented "")
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, [], _ ->
-            raise (NotImplemented "Too few entry keys.")
+            raise (Not_implemented "Too few entry keys.")
         | ( Ppextend.UnpBinderListMetaVar (true, true, [ _ ]) :: t,
             xs,
             assums,
@@ -414,7 +414,7 @@ and pp_constr_expr_r = function
                 pp_generic t xs [] keys patterns;
               ]
         | Ppextend.UnpBinderListMetaVar _ :: _, _, _, _, _ ->
-            fun printer -> raise (NotImplemented (contents printer))
+            fun printer -> raise (Not_implemented (contents printer))
         | Ppextend.UnpTerminal s :: t, xs, _, keys, _ ->
             sequence [ write s; pp_generic t xs local_assums keys patterns ]
         | Ppextend.UnpBox (_, xs) :: t, _, _, keys, _ ->
@@ -464,7 +464,7 @@ and pp_constr_expr_r = function
       sequence [ write "forall"; pp_parameters; write ","; pp_body ]
   | Constrexpr.CHole None -> write "_"
   | Constrexpr.CSort expr -> pp_sort_expr expr
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_constr_expr_with_parens_conditionally cond expr =
   if cond then parens (pp_constr_expr expr) else pp_constr_expr expr
@@ -476,7 +476,7 @@ and pp_constr_expr_with_parens expr =
 
 and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
@@ -489,18 +489,18 @@ and pp_local_binder_expr = function
         match kind with
         | Explicit -> parens
         | MaxImplicit -> braces
-        | _ -> fun _ printer -> raise (NotImplemented (contents printer))
+        | _ -> fun _ printer -> raise (Not_implemented (contents printer))
       in
 
       wrapper
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_recursion_order_expr expr = pp_c_ast pp_recursion_order_expr_r expr
 
 and pp_recursion_order_expr_r = function
   | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_branch_expr expr = pp_c_ast pp_branch_expr_r expr
 
@@ -534,7 +534,7 @@ and pp_fix_expr = function
           write " := ";
           pp_constr_expr body;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_definition_expr = function
   | Vernacexpr.ProveBody (args, expr) ->
@@ -588,7 +588,7 @@ let pp_definition_expr = function
       in
 
       sequence [ pp_args; pp_return_ty; write " :="; pp_body ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_proof_end = function
   | Vernacexpr.Proved (Vernacexpr.Opaque, Some ident) ->
@@ -606,7 +606,7 @@ let pp_theorem_kind = function
   | Decls.Fact -> write "Fact"
   | Decls.Lemma -> write "Lemma"
   | Decls.Theorem -> write "Theorem"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_notation_entry = function
   | Constrexpr.InConstrEntry -> write "constr"
@@ -616,7 +616,7 @@ let pp_notation_entry = function
 let pp_production_level = function
   | Extend.NextLevel -> write "at next level"
   | Extend.NumLevel n -> sequence [ write "at level "; pp_int n ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_syntax_modifier = function
   | Vernacexpr.SetAssoc LeftA -> write "left associativity"
@@ -641,7 +641,7 @@ let pp_syntax_modifier = function
   | Vernacexpr.SetLevel level ->
       sequence [ write "at level "; write (string_of_int level) ]
   | Vernacexpr.SetOnlyParsing -> write "only parsing"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_notation_declaration = function
   | Vernacexpr.
@@ -722,7 +722,7 @@ let pp_fixpoint_expr = function
         [
           pp_lident fname; pp_binders; pp_rec; pp_return_type; pp_body; pp_where;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_constructor_expr = function
   | ([], Vernacexpr.NoCoercion, Vernacexpr.NoInstance), (name, expr) -> (
@@ -757,7 +757,7 @@ let pp_constructor_expr = function
           in
 
           header |=> (hor <-|> ver))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_raw_red_expr = function
   | Genredexpr.Cbv
@@ -794,16 +794,16 @@ let pp_raw_red_expr = function
         | ( Locus.AllOccurrences,
             CAst.{ v = Constrexpr.ByNotation (notation, None); loc = _ } ) ->
             doublequoted (write notation)
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence [ write "unfold "; map_commad pp_single xs ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_intro_pattern_naming_expr = function
   | Namegen.IntroAnonymous -> write "?"
   | Namegen.IntroIdentifier name -> pp_id name
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let rec pp_or_and_intro_pattern_expr = function
   | Tactypes.IntroOrPattern patterns ->
@@ -828,27 +828,27 @@ let rec pp_or_and_intro_pattern_expr = function
           [ write "["; sequence (List.mapi pp_patterns patterns); write "]" ]
       in
       hor <-|> ver
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
   | Tactypes.IntroWildcard -> write "_"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_intro_pattern_expr = function
   | Tactypes.IntroAction expr -> pp_intro_pattern_action_expr expr
   | Tactypes.IntroNaming expr -> pp_intro_pattern_naming_expr expr
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_core_destruction_arg = function
   | Tactics.ElimOnConstr (expr, Tactypes.NoBindings) ->
       parens (pp_constr_expr expr)
   | Tactics.ElimOnIdent ident -> pp_lident ident
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_destruction_arg = function
   | None, arg -> pp_core_destruction_arg arg
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_or_var = function
   | Locus.ArgArg CAst.{ v; loc = _ } ->
@@ -870,7 +870,7 @@ let pp_induction_clause = function
             sequence [ write " eqn:"; pp_intro_pattern_naming_expr x.v ]
       in
       sequence [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_induction_clause_list = function
   | [ clause ], using ->
@@ -879,24 +879,24 @@ let pp_induction_clause_list = function
         | None -> nop
         | Some (expr, Tactypes.NoBindings) ->
             sequence [ write " using "; pp_constr_expr expr ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence [ pp_induction_clause clause; pp_using ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_hyp_location_expr = function
   | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_quantified_hypothesis = function
   | Tactypes.NamedHyp name -> pp_lident name
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_inversion_strength = function
   | Tacexpr.NonDepInversion (FullInversion, [], Some args) -> pp_or_var args
   | Tacexpr.NonDepInversion (FullInversion, [], None) -> nop
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_bindings = function
   | Tactypes.ImplicitBindings exprs ->
@@ -929,12 +929,12 @@ let pp_bindings = function
 
 let pp_match_pattern = function
   | Tacexpr.Term expr -> pp_constr_expr expr
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_match_context_hyps = function
   | Tacexpr.Hyp (name, pattern) ->
       spaced [ pp_lname name; write ":"; pp_match_pattern pattern ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_message_token = function
   | Tacexpr.MsgString s -> doublequoted (write s)
@@ -950,7 +950,7 @@ let rec pp_raw_atomic_tactic_expr = function
         match in_clause with
         | [] -> nop
         | [ (name, None) ] -> sequence [ write " in "; pp_id name.CAst.v ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence
@@ -1009,7 +1009,7 @@ let rec pp_raw_atomic_tactic_expr = function
         | Some [] -> nop
         | Some [ name ] -> sequence [ write " in "; pp_hyp_location_expr name ]
         | None -> write " in *"
-        | Some _ -> fun printer -> raise (NotImplemented (contents printer))
+        | Some _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence [ pp_raw_red_expr expr; pp_in ]
@@ -1025,7 +1025,7 @@ let rec pp_raw_atomic_tactic_expr = function
         | { onhyps = None; concl_occs = AllOccurrences } -> write " in *"
         | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
             sequence [ write " in "; pp_hyp_location_expr name ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence
@@ -1064,7 +1064,7 @@ let rec pp_raw_atomic_tactic_expr = function
           pp_name replacer;
           pp_eqn;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_raw_tactic_expr expr = pp_c_ast pp_raw_tactic_expr_r expr
 
@@ -1123,7 +1123,7 @@ and pp_raw_tactic_expr_r = function
               let pp = function
                 | { Locus.onhyps = Some [ name ]; concl_occs = _ } ->
                     pp_hyp_location_expr name
-                | _ -> fun printer -> raise (NotImplemented (contents printer))
+                | _ -> fun printer -> raise (Not_implemented (contents printer))
               in
 
               try_pp_always Conversion.clause_expr_of_raw_generic_argument pp
@@ -1135,7 +1135,7 @@ and pp_raw_tactic_expr_r = function
                   | Tactypes.ImplicitBindings [ x ] ->
                       pp_constr_expr_with_parens x
                   | _ ->
-                      fun printer -> raise (NotImplemented (contents printer))))
+                      fun printer -> raise (Not_implemented (contents printer))))
             in
 
             let try_pp_id =
@@ -1153,7 +1153,8 @@ and pp_raw_tactic_expr_r = function
                 | [ Locus.ArgArg name ] -> Some (pp_int name)
                 | _ ->
                     Some
-                      (fun printer -> raise (NotImplemented (contents printer)))
+                      (fun printer ->
+                        raise (Not_implemented (contents printer)))
               in
 
               try_pp Conversion.nat_or_var_of_raw_generic_argument pp
@@ -1165,7 +1166,8 @@ and pp_raw_tactic_expr_r = function
                 | [ x ] -> Some (sequence [ write "using "; pp_constr_expr x ])
                 | _ ->
                     Some
-                      (fun printer -> raise (NotImplemented (contents printer)))
+                      (fun printer ->
+                        raise (Not_implemented (contents printer)))
               in
 
               try_pp Conversion.auto_using_of_raw_generic_argument pp
@@ -1177,7 +1179,8 @@ and pp_raw_tactic_expr_r = function
                 | [ x ] -> Some (spaced [ write "with"; write x ])
                 | _ ->
                     Some
-                      (fun printer -> raise (NotImplemented (contents printer)))
+                      (fun printer ->
+                        raise (Not_implemented (contents printer)))
               in
 
               try_pp Conversion.hintbases_of_raw_generic_argument pp
@@ -1191,7 +1194,8 @@ and pp_raw_tactic_expr_r = function
                       (spaced [ write "by"; pp_raw_tactic_expr_with_parens x ])
                 | _ ->
                     Some
-                      (fun printer -> raise (NotImplemented (contents printer)))
+                      (fun printer ->
+                        raise (Not_implemented (contents printer)))
               in
 
               try_pp Conversion.by_arg_tac_of_raw_generic_argument pp
@@ -1209,7 +1213,8 @@ and pp_raw_tactic_expr_r = function
                     None
                 | _ ->
                     Some
-                      (fun printer -> raise (NotImplemented (contents printer)))
+                      (fun printer ->
+                        raise (Not_implemented (contents printer)))
               in
 
               try_pp Conversion.clause_dft_concl_of_raw_generic_argument pp
@@ -1417,7 +1422,7 @@ and pp_raw_tactic_expr_r = function
       hor <-|> ver
   | Tacexpr.TacTry tactic ->
       sequence [ write "try "; pp_raw_tactic_expr_with_parens tactic ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 (* This function is defined separately from `pp_match_rule` due to their
    different contexts, even though they're nearly identical. *)
@@ -1481,7 +1486,7 @@ and pp_gen_tactic_arg = function
       sequence [ pp_qualid name; pp_args ]
   | Tacexpr.Tacexp expr -> pp_raw_tactic_expr expr
   | Tacexpr.TacFreshId _ -> write "fresh"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_tacdef_body = function
   | Tacexpr.TacticDefinition (name, v) ->
@@ -1505,7 +1510,7 @@ let pp_tacdef_body = function
       sequence
         [ write "Ltac "; pp_lident name; pp_params; write " :="; pp_body ]
   | Tacexpr.TacticRedefinition _ ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_lang = function
   | Extraction_plugin.Table.Haskell -> write "Haskell"
@@ -1527,7 +1532,7 @@ let pp_vernac_solve =
   let try_pp_tacdef_body =
     let pp = function
       | [ t ] -> sequence [ pp_tacdef_body t; dot ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer))
     in
 
     try_pp Conversion.tacdef_body_of_raw_generic_argument pp
@@ -1594,22 +1599,22 @@ let pp_import_filter_expr import_filter_expr =
 let pp_search_item = function
   | Vernacexpr.SearchSubPattern ((Anywhere, false), expr) ->
       pp_constr_expr_with_parens expr
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_search_request = function
   | Vernacexpr.SearchLiteral search_item -> pp_search_item search_item
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_searchable = function
   | Vernacexpr.Search [ (true, search_request) ] ->
       pp_search_request search_request
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_search_restriction = function
   | Vernacexpr.SearchInside [ range ] ->
       sequence [ write " inside "; pp_qualid range ]
   | Vernacexpr.SearchOutside [] -> nop
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_argument_status = function
   | Vernacexpr.VolatileArg -> write "/"
@@ -1624,15 +1629,15 @@ let pp_vernac_argument_status = function
       in
 
       encloser (pp_name ty)
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_option_string = function
   | Vernacexpr.OptionSetString s -> doublequoted (write s)
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_ident_decl = function
   | name, None -> pp_lident name
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_printable = function
   | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
@@ -1642,26 +1647,26 @@ let pp_printable = function
   | Vernacexpr.PrintName (CAst.{ v = ByNotation (name, None); loc = _ }, None)
     ->
       sequence [ write "Print "; doublequoted (write name); dot ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_assumption_object_kind = function
   | Decls.Logical -> write "Axiom"
   | Decls.Conjectural -> write "Conjecture"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_comment = function
   | Vernacexpr.CommentConstr expr -> pp_constr_expr expr
   | Vernacexpr.CommentString s -> doublequoted (write s)
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_showable = function
   | Vernacexpr.ShowProof -> write "Proof"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_reference_or_constr = function
   | Vernacexpr.HintsReference name -> pp_qualid name
   | Vernacexpr.HintsConstr _ ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_hints_expr = function
   | Vernacexpr.HintsConstructors names ->
@@ -1673,7 +1678,7 @@ let pp_hints_expr = function
           unit = function
         | { hint_priority = None; hint_pattern = None }, true, expr ->
             pp_reference_or_constr expr
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence [ write "Hint Resolve "; map_spaced pp names ]
@@ -1681,12 +1686,12 @@ let pp_hints_expr = function
       sequence [ write "Hint Transparent "; map_spaced pp_qualid names ]
   | Vernacexpr.HintsUnfold names ->
       sequence [ write "Hint Unfold "; map_spaced pp_qualid names ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_grammar_tactic_prod_item_expr = function
   | Tacentries.TacTerm name -> doublequoted (write name)
   | Tacentries.TacNonTerm _ ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_extraction = function
   | [ filename; identifiens ] -> (
@@ -1703,8 +1708,8 @@ let pp_extraction = function
               map_spaced pp_qualid identifiers;
               dot;
             ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_extraction_constant = function
   | [ identifier; _; constant ] -> (
@@ -1721,23 +1726,23 @@ let pp_extraction_constant = function
               doublequoted (write constant);
               dot;
             ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_declare_tactic_definition = function
   | [ args ] -> (
       match Conversion.tacdef_body_of_raw_generic_argument args with
       | Some [ t ] -> sequence [ pp_tacdef_body t; dot ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_extraction_language = function
   | [ lang ] -> (
       match Conversion.lang_of_raw_generic_argument lang with
       | Some lang ->
           sequence [ write "Extraction Language "; pp_lang lang; dot ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_extraction_inductive = function
   | [ identifier; name; branches; matcher ] -> (
@@ -1774,8 +1779,8 @@ let pp_extraction_inductive = function
               pp_matcher;
               dot;
             ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_tactic_notation = function
   | [ level; name; tactic ] -> (
@@ -1800,21 +1805,21 @@ let pp_vernac_tactic_notation = function
           in
 
           sequence [ header; hor <-|> ver ]
-      | _ -> fun printer -> raise (NotImplemented (contents printer)))
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_table_value = function
   | Goptions.StringRefValue _ ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
   | Goptions.QualidRefValue name -> pp_qualid name
 
 let pp_coercion_class = function
   | Vernacexpr.FunClass ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
   | Vernacexpr.SortClass -> write "Sortclass"
   | Vernacexpr.RefClass { v = AN src; loc = _ } -> pp_qualid src
   | Vernacexpr.RefClass { v = ByNotation _; loc = _ } ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
@@ -2022,7 +2027,7 @@ let pp_synterp_vernac_expr = function
           pp_option_string options;
           dot;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacAbort -> sequence [ clear_bullets; write "Abort." ]
@@ -2096,7 +2101,7 @@ let pp_synpure_vernac_expr = function
                 None )) ->
             write "Eval simpl in"
         | None -> write "Check"
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       let pp_expr =
@@ -2189,7 +2194,7 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacProof (Some expr, None) -> (
       match Conversion.ltac_of_raw_generic_argument expr with
       | Some x -> sequence [ write "Proof with "; pp_raw_tactic_expr x; dot ]
-      | None -> fun printer -> raise (NotImplemented (contents printer)))
+      | None -> fun printer -> raise (Not_implemented (contents printer)))
   | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
@@ -2233,7 +2238,7 @@ let pp_synpure_vernac_expr = function
                 indented (map_sequence pp_constructor_expr constructors);
                 pp_where_clause;
               ]
-        | _ -> fun printer -> raise (NotImplemented (contents printer))
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
       sequence
         [
@@ -2260,7 +2265,7 @@ let pp_synpure_vernac_expr = function
           parens (pp_constr_expr expr);
           dot;
         ]
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_expr = function
   | Vernacexpr.VernacSynterp x -> pp_synterp_vernac_expr x
@@ -2268,7 +2273,7 @@ let pp_vernac_expr = function
 
 let pp_control_flag = function
   | Vernacexpr.ControlFail -> write "Fail"
-  | _ -> fun printer -> raise (NotImplemented (contents printer))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_flag = function
   | CAst.{ v = attr, Attributes.VernacFlagEmpty; loc = _ } ->
@@ -2282,9 +2287,9 @@ let pp_vernac_flag = function
 
       sequence [ write (capitalize_first attr); space ]
   | CAst.{ v = _, Attributes.VernacFlagLeaf _; loc = _ } ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
   | CAst.{ v = _, Attributes.VernacFlagList _; loc = _ } ->
-      fun printer -> raise (NotImplemented (contents printer))
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_flags = map_sequence pp_vernac_flag
 
