@@ -1414,15 +1414,7 @@ and pp_raw_tactic_expr_r = function
 
       hor <-|> ver
   | Tacexpr.TacThens (first, second) ->
-      let pp_bracket_clause =
-        let prefix = function 0 -> nop | _ -> write " | " in
-
-        let pp_patterns i pattern =
-          sequence [ prefix i; pp_raw_tactic_expr pattern ]
-        in
-
-        brackets (sequence (List.mapi pp_patterns second))
-      in
+      let pp_bracket_clause = brackets (map_bard pp_raw_tactic_expr second) in
 
       let pp = sequence [ pp_raw_tactic_expr first; write ";" ] in
 
