@@ -36,17 +36,18 @@ let tactics_generally_parens_needed = function
   | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
   | _ -> false
 
+let pp_c_ast f CAst.{ v; loc = _ } = f v
 let nop _ = ()
 let pp_int n = write (string_of_int n)
 let pp_id id = write (Names.Id.to_string id)
-let pp_lident CAst.{ v; loc = _ } = pp_id v
+let pp_lident = pp_c_ast pp_id
 
 let pp_name = function
   | Names.Name name -> pp_id name
   | Names.Anonymous -> write "_"
 
-let pp_lname CAst.{ v; loc = _ } = pp_name v
-let pp_lstring CAst.{ v; loc = _ } = write v
+let pp_lname = pp_c_ast pp_name
+let pp_lstring = pp_c_ast write
 
 let pp_definition_object_kind = function
   | Decls.Coercion -> write "Coercion"
@@ -65,7 +66,7 @@ let pp_prim_token = function
 
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
-let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
+let rec pp_cases_pattern_expr expr = pp_c_ast pp_cases_pattern_expr_r expr
 
 and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid id
