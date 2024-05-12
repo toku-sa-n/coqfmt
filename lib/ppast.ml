@@ -1328,10 +1328,12 @@ and pp_raw_tactic_expr_r = function
 
       sequence
         [
-          write "let ";
-          map_with_seps ~sep:(write " with ") pp_binding bindings;
+          write "let "
+          |=> map_with_seps
+                ~sep:(sequence [ write " with"; newline ])
+                pp_binding bindings;
+          write " in";
           newline;
-          write " in ";
           pp_raw_tactic_expr expr;
         ]
   | Tacexpr.TacMatch (Once, matchee, branches) ->
