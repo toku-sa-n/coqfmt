@@ -146,7 +146,7 @@ let pp_sort_expr = function
   | Glob_term.UNamed _ ->
       fun printer -> raise (NotImplemented (contents printer))
 
-let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
+let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
 
 and pp_constr_expr_r = function
   | Constrexpr.CApp (fn, args) ->
@@ -496,23 +496,24 @@ and pp_local_binder_expr = function
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_recursion_order_expr CAst.{ v; loc = _ } = pp_recursion_order_expr_r v
+and pp_recursion_order_expr expr = pp_c_ast pp_recursion_order_expr_r expr
 
 and pp_recursion_order_expr_r = function
   | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
   | _ -> fun printer -> raise (NotImplemented (contents printer))
 
-and pp_branch_expr = function
-  | CAst.{ v = patterns, expr; loc = _ } ->
-      let hor = sequence [ space; pp_constr_expr expr ] in
-      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
-      sequence
-        [
-          write "| ";
-          map_bard (map_commad pp_cases_pattern_expr) patterns;
-          write " =>";
-          hor <-|> ver;
-        ]
+and pp_branch_expr expr = pp_c_ast pp_branch_expr_r expr
+
+and pp_branch_expr_r (patterns, expr) =
+  let hor = sequence [ space; pp_constr_expr expr ] in
+  let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
+  sequence
+    [
+      write "| ";
+      map_bard (map_commad pp_cases_pattern_expr) patterns;
+      write " =>";
+      hor <-|> ver;
+    ]
 
 and pp_fix_expr = function
   | [ (name, None, bindings, return_type, body) ] ->
@@ -655,9 +656,7 @@ let pp_notation_declaration = function
       let pp_modifiers =
         match ntn_decl_modifiers with
         | [] -> nop
-        | xs ->
-            sequence
-              [ space; map_tupled (fun x -> pp_syntax_modifier x.CAst.v) xs ]
+        | xs -> sequence [ space; map_tupled (pp_c_ast pp_syntax_modifier) xs ]
       in
 
       sequence
