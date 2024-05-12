@@ -37,7 +37,6 @@ let tactics_generally_parens_needed = function
   | _ -> false
 
 let pp_c_ast f CAst.{ v; loc = _ } = f v
-let nop _ = ()
 let pp_int n = write (string_of_int n)
 let pp_id id = write (Names.Id.to_string id)
 let pp_lident = pp_c_ast pp_id
