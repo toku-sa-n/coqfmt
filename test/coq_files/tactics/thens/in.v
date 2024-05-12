@@ -1,1 +1,1 @@
-Theorem foo:1=1. Proof. simpl; [simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl|simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl]; reflexivity. Qed.
+Theorem foo:forall (n:nat),n=n. Proof. destruct n; [simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl|simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl;simpl]; reflexivity. Qed.

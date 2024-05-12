@@ -1,6 +1,6 @@
-Theorem foo : 1 = 1.
+Theorem foo : forall (n : nat), n = n.
 Proof.
-  simpl;
+  destruct n;
   [simpl; simpl; simpl; simpl; simpl; simpl; simpl; simpl; simpl; simpl | simpl;
    simpl; simpl; simpl; simpl; simpl; simpl; simpl; simpl; simpl]; reflexivity.
 Qed.
