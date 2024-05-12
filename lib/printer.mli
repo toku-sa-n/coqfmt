@@ -4,6 +4,9 @@ type t
 val create : unit -> t
 (** Create a new printer. *)
 
+val nop : t -> unit
+(** Do nothing. *)
+
 val sequence : (t -> unit) list -> t -> unit
 (** Sequencially apply printers from the head of the list. *)
 

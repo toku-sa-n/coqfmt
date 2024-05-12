@@ -41,6 +41,7 @@ let indents_for_bullets t =
   + (tab_size * (List.length t.bullets - 1))
 
 let calculate_indent t = t.indent_spaces + indents_for_bullets t
+let nop _ = ()
 
 let write s t =
   let string_to_push =
