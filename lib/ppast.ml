@@ -36,17 +36,18 @@ let tactics_generally_parens_needed = function
   | Tacexpr.TacThen _ | Tacexpr.TacThens _ -> true
   | _ -> false
 
+let pp_c_ast f CAst.{ v; loc = _ } = f v
 let nop _ = ()
 let pp_int n = write (string_of_int n)
 let pp_id id = write (Names.Id.to_string id)
-let pp_lident CAst.{ v; loc = _ } = pp_id v
+let pp_lident = pp_c_ast pp_id
 
 let pp_name = function
   | Names.Name name -> pp_id name
   | Names.Anonymous -> write "_"
 
-let pp_lname CAst.{ v; loc = _ } = pp_name v
-let pp_lstring CAst.{ v; loc = _ } = write v
+let pp_lname = pp_c_ast pp_name
+let pp_lstring = pp_c_ast write
 
 let pp_definition_object_kind = function
   | Decls.Coercion -> write "Coercion"
@@ -65,7 +66,7 @@ let pp_prim_token = function
 
 let pp_qualid id = write (Libnames.string_of_qualid id)
 
-let rec pp_cases_pattern_expr CAst.{ v; loc = _ } = pp_cases_pattern_expr_r v
+let rec pp_cases_pattern_expr expr = pp_c_ast pp_cases_pattern_expr_r expr
 
 and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid id
@@ -145,7 +146,7 @@ let pp_sort_expr = function
   | Glob_term.UNamed _ ->
       fun printer -> raise (Not_implemented (contents printer))
 
-let rec pp_constr_expr CAst.{ v; loc = _ } = pp_constr_expr_r v
+let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
 
 and pp_constr_expr_r = function
   | Constrexpr.CApp (fn, args) ->
@@ -495,23 +496,24 @@ and pp_local_binder_expr = function
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-and pp_recursion_order_expr CAst.{ v; loc = _ } = pp_recursion_order_expr_r v
+and pp_recursion_order_expr expr = pp_c_ast pp_recursion_order_expr_r expr
 
 and pp_recursion_order_expr_r = function
   | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-and pp_branch_expr = function
-  | CAst.{ v = patterns, expr; loc = _ } ->
-      let hor = sequence [ space; pp_constr_expr expr ] in
-      let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
-      sequence
-        [
-          write "| ";
-          map_bard (map_commad pp_cases_pattern_expr) patterns;
-          write " =>";
-          hor <-|> ver;
-        ]
+and pp_branch_expr expr = pp_c_ast pp_branch_expr_r expr
+
+and pp_branch_expr_r (patterns, expr) =
+  let hor = sequence [ space; pp_constr_expr expr ] in
+  let ver = sequence [ newline; indented (pp_constr_expr expr) ] in
+  sequence
+    [
+      write "| ";
+      map_bard (map_commad pp_cases_pattern_expr) patterns;
+      write " =>";
+      hor <-|> ver;
+    ]
 
 and pp_fix_expr = function
   | [ (name, None, bindings, return_type, body) ] ->
@@ -654,9 +656,7 @@ let pp_notation_declaration = function
       let pp_modifiers =
         match ntn_decl_modifiers with
         | [] -> nop
-        | xs ->
-            sequence
-              [ space; map_tupled (fun x -> pp_syntax_modifier x.CAst.v) xs ]
+        | xs -> sequence [ space; map_tupled (pp_c_ast pp_syntax_modifier) xs ]
       in
 
       sequence
@@ -1066,8 +1066,7 @@ let rec pp_raw_atomic_tactic_expr = function
         ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-and pp_raw_tactic_expr (CAst.{ v; loc = _ } : Tacexpr.raw_tactic_expr) =
-  pp_raw_tactic_expr_r v
+and pp_raw_tactic_expr expr = pp_c_ast pp_raw_tactic_expr_r expr
 
 and pp_raw_tactic_expr_with_parens_conditionally cond expr =
   if cond then parens (pp_raw_tactic_expr expr) else pp_raw_tactic_expr expr
@@ -1117,7 +1116,7 @@ and pp_raw_tactic_expr_r = function
             let try_pp_intro_pattern_expr =
               try_pp_always
                 Conversion.intro_pattern_list_of_raw_generic_argument
-                (map_spaced (fun expr -> pp_intro_pattern_expr expr.CAst.v))
+                (map_spaced (pp_c_ast pp_intro_pattern_expr))
             in
 
             let try_pp_clause_expr =
@@ -1903,9 +1902,7 @@ let pp_synterp_vernac_expr = function
             [
               space;
               parens
-                (map_with_seps ~sep
-                   (fun modifier -> pp_syntax_modifier modifier.CAst.v)
-                   modifiers);
+                (map_with_seps ~sep (pp_c_ast pp_syntax_modifier) modifiers);
             ]
         in
         let hor = pp (write ", ") in
@@ -2003,10 +2000,7 @@ let pp_synterp_vernac_expr = function
         [ pp_dirpath; write "Require"; pp_categories; pp_name_and_filter; dot ]
   | Vernacexpr.VernacReservedNotation (false, (notation, modifiers)) ->
       let pp_modifiers =
-        parens
-          (map_commad
-             (fun modifier -> pp_syntax_modifier modifier.CAst.v)
-             modifiers)
+        parens (map_commad (pp_c_ast pp_syntax_modifier) modifiers)
       in
 
       let hor = sequence [ space; pp_modifiers; dot ] in
