@@ -1826,7 +1826,8 @@ let pp_coercion_class = function
       fun printer -> raise (Not_implemented (contents printer))
 
 let pp_local_decl_expr = function
-  | Vernacexpr.AssumExpr (_, _, _) -> write "bar : nat"
+  | Vernacexpr.AssumExpr (name, _, _) ->
+      sequence [ pp_lname name; write " : nat" ]
   | Vernacexpr.DefExpr _ ->
       fun printer -> raise (Not_implemented (contents printer))
 
