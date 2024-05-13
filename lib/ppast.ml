@@ -1840,7 +1840,7 @@ let pp_constructor_list_or_record_decl_expr = function
         [
           ( field,
             {
-              rfu_attrs = _;
+              rfu_attrs = [];
               rfu_coercion = _;
               rfu_instance = _;
               rfu_priority = _;
