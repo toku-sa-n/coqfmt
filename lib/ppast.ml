@@ -1827,11 +1827,13 @@ let pp_coercion_class = function
 
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl (_, _, _) ->
+  | Vernacexpr.RecordDecl (None, _, _) ->
       sequence
         [
           write " {"; newline; indented (write "bar : nat"); newline; write "}";
         ]
+  | Vernacexpr.RecordDecl (Some _, _, _) ->
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
