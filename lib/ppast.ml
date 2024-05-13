@@ -1836,7 +1836,13 @@ let pp_local_decl_expr = function
 
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl (None, fields, None) ->
+  | Vernacexpr.RecordDecl (name, fields, None) ->
+      let pp_constructor_name =
+        match name with
+        | None -> nop
+        | Some name -> sequence [ space; pp_lident name ]
+      in
+
       let pp_field = function
         | ( field,
             Vernacexpr.
@@ -1851,7 +1857,15 @@ let pp_constructor_list_or_record_decl_expr = function
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
-      lined [ write " {"; indented (map_lined pp_field fields); write "}" ]
+      sequence
+        [
+          pp_constructor_name;
+          write " {";
+          newline;
+          indented (map_lined pp_field fields);
+          newline;
+          write "}";
+        ]
   | Vernacexpr.RecordDecl (_, _, _) ->
       fun printer -> raise (Not_implemented (contents printer))
 
