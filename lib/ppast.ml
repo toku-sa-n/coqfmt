@@ -1850,14 +1850,7 @@ let pp_constructor_list_or_record_decl_expr = function
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
-      sequence
-        [
-          write " {";
-          newline;
-          indented (map_lined pp_field fields);
-          newline;
-          write "}";
-        ]
+      lined [ write " {"; indented (map_lined pp_field fields); write "}" ]
   | Vernacexpr.RecordDecl (_, _, _) ->
       fun printer -> raise (Not_implemented (contents printer))
 
