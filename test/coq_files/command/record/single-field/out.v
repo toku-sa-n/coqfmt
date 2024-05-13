@@ -1,0 +1,3 @@
+Record foo := {
+  bar : nat
+}.
