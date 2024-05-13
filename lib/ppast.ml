@@ -2121,6 +2121,10 @@ let pp_synpure_vernac_expr = function
       sequence [ write "Create HintDb "; write name; dot ]
   | Vernacexpr.VernacDeclareScope name ->
       sequence [ write "Declare Scope "; write name; dot ]
+  | Vernacexpr.VernacDefinition
+      ((NoDischarge, Definition), (name, None), ProveBody ([], expr))
+    when name.CAst.v = Anonymous ->
+      sequence [ write "Goal "; pp_constr_expr expr; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
       sequence
         [
