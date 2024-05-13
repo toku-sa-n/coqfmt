@@ -1842,7 +1842,7 @@ let pp_constructor_list_or_record_decl_expr = function
             {
               rfu_attrs = [];
               rfu_coercion = NoCoercion;
-              rfu_instance = _;
+              rfu_instance = NoInstance;
               rfu_priority = _;
               rfu_notation = _;
             } );
