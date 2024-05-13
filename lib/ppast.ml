@@ -2122,7 +2122,7 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacDeclareScope name ->
       sequence [ write "Declare Scope "; write name; dot ]
   | Vernacexpr.VernacDefinition
-      ((NoDischarge, _), (name, None), ProveBody ([], expr))
+      ((NoDischarge, Definition), (name, None), ProveBody ([], expr))
     when name.CAst.v = Names.Anonymous ->
       sequence [ write "Goal "; pp_constr_expr expr; dot ]
   | Vernacexpr.VernacDefinition ((NoDischarge, kind), (name, None), expr) ->
