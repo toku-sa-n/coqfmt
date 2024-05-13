@@ -1,3 +1,3 @@
 Record foo := {
   bar : nat;
-} as foo_bar.
+} as foo_name.
