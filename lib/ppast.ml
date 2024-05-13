@@ -1814,6 +1814,7 @@ let pp_table_value = function
 
 let pp_inductive_kind = function
   | Vernacexpr.Inductive_kw -> write "Inductive"
+  | Vernacexpr.Structure -> write "Structure"
   | Vernacexpr.Record -> write "Record"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
