@@ -1835,7 +1835,19 @@ let pp_local_decl_expr = function
 
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl (None, [ (field, _) ], None) ->
+  | Vernacexpr.RecordDecl
+      ( None,
+        [
+          ( field,
+            {
+              rfu_attrs = _;
+              rfu_coercion = _;
+              rfu_instance = _;
+              rfu_priority = _;
+              rfu_notation = _;
+            } );
+        ],
+        None ) ->
       sequence
         [
           write " {";
