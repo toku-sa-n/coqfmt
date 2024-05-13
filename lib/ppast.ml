@@ -1825,12 +1825,18 @@ let pp_coercion_class = function
   | Vernacexpr.RefClass { v = ByNotation _; loc = _ } ->
       fun printer -> raise (Not_implemented (contents printer))
 
+let pp_local_decl_expr _ = write "bar : nat"
+
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl (None, [ (_, _) ], None) ->
+  | Vernacexpr.RecordDecl (None, [ (field, _) ], None) ->
       sequence
         [
-          write " {"; newline; indented (write "bar : nat"); newline; write "}";
+          write " {";
+          newline;
+          indented (pp_local_decl_expr field);
+          newline;
+          write "}";
         ]
   | Vernacexpr.RecordDecl (_, _, _) ->
       fun printer -> raise (Not_implemented (contents printer))
