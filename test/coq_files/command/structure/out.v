@@ -1,0 +1,3 @@
+Structure foo := {
+  bar : nat;
+}.
