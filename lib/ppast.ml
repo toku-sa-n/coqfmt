@@ -1827,7 +1827,7 @@ let pp_coercion_class = function
 
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl (None, [ _ ], None) ->
+  | Vernacexpr.RecordDecl (None, [ (_, _) ], None) ->
       sequence
         [
           write " {"; newline; indented (write "bar : nat"); newline; write "}";
