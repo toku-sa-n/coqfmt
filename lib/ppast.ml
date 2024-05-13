@@ -1827,7 +1827,7 @@ let pp_coercion_class = function
 
 let pp_local_decl_expr = function
   | Vernacexpr.AssumExpr (name, [], ty) ->
-      spaced [ pp_lname name; write ":"; pp_constr_expr ty ]
+      sequence [ pp_lname name; write " : "; pp_constr_expr ty; write ";" ]
   | Vernacexpr.AssumExpr (_, _ :: _, _) ->
       fun printer -> raise (Not_implemented (contents printer))
   | Vernacexpr.DefExpr _ ->
@@ -1835,24 +1835,26 @@ let pp_local_decl_expr = function
 
 let pp_constructor_list_or_record_decl_expr = function
   | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
-  | Vernacexpr.RecordDecl
-      ( None,
-        [
-          ( field,
-            {
-              rfu_attrs = [];
-              rfu_coercion = NoCoercion;
-              rfu_instance = NoInstance;
-              rfu_priority = None;
-              rfu_notation = [];
-            } );
-        ],
-        None ) ->
+  | Vernacexpr.RecordDecl (None, fields, None) ->
+      let pp_field = function
+        | ( field,
+            Vernacexpr.
+              {
+                rfu_attrs = [];
+                rfu_coercion = NoCoercion;
+                rfu_instance = NoInstance;
+                rfu_priority = None;
+                rfu_notation = [];
+              } ) ->
+            pp_local_decl_expr field
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
+      in
+
       sequence
         [
           write " {";
           newline;
-          indented (pp_local_decl_expr field);
+          indented (map_lined pp_field fields);
           newline;
           write "}";
         ]
