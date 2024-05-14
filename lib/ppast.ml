@@ -1812,6 +1812,12 @@ let pp_table_value = function
       fun printer -> raise (Not_implemented (contents printer))
   | Goptions.QualidRefValue name -> pp_qualid name
 
+let pp_inductive_kind = function
+  | Vernacexpr.Inductive_kw -> write "Inductive"
+  | Vernacexpr.Structure -> write "Structure"
+  | Vernacexpr.Record -> write "Record"
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_coercion_class = function
   | Vernacexpr.FunClass ->
       fun printer -> raise (Not_implemented (contents printer))
@@ -1819,6 +1825,54 @@ let pp_coercion_class = function
   | Vernacexpr.RefClass { v = AN src; loc = _ } -> pp_qualid src
   | Vernacexpr.RefClass { v = ByNotation _; loc = _ } ->
       fun printer -> raise (Not_implemented (contents printer))
+
+let pp_local_decl_expr = function
+  | Vernacexpr.AssumExpr (name, [], ty) ->
+      sequence [ pp_lname name; write " : "; pp_constr_expr ty; write ";" ]
+  | Vernacexpr.AssumExpr (_, _ :: _, _) ->
+      fun printer -> raise (Not_implemented (contents printer))
+  | Vernacexpr.DefExpr _ ->
+      fun printer -> raise (Not_implemented (contents printer))
+
+let pp_constructor_list_or_record_decl_expr = function
+  | Vernacexpr.Constructors xs -> indented (map_sequence pp_constructor_expr xs)
+  | Vernacexpr.RecordDecl (name, fields, as_name) ->
+      let pp_constructor_name =
+        match name with
+        | None -> nop
+        | Some name -> sequence [ space; pp_lident name ]
+      in
+
+      let pp_field = function
+        | ( field,
+            Vernacexpr.
+              {
+                rfu_attrs = [];
+                rfu_coercion = NoCoercion;
+                rfu_instance = NoInstance;
+                rfu_priority = None;
+                rfu_notation = [];
+              } ) ->
+            pp_local_decl_expr field
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
+      in
+
+      let pp_as_clause =
+        match as_name with
+        | None -> nop
+        | Some name -> sequence [ write " as "; pp_lident name ]
+      in
+
+      sequence
+        [
+          pp_constructor_name;
+          write " {";
+          newline;
+          indented (map_lined pp_field fields);
+          newline;
+          write "}";
+          pp_as_clause;
+        ]
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
@@ -2198,12 +2252,12 @@ let pp_synpure_vernac_expr = function
       match Conversion.ltac_of_raw_generic_argument expr with
       | Some x -> sequence [ write "Proof with "; pp_raw_tactic_expr x; dot ]
       | None -> fun printer -> raise (Not_implemented (contents printer)))
-  | Vernacexpr.VernacInductive (Inductive_kw, inductives) ->
+  | Vernacexpr.VernacInductive (kind, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
               (type_params, None),
               return_type,
-              Vernacexpr.Constructors constructors ),
+              constructors ),
             where_clause ) ->
             let pp_type_params =
               match type_params with
@@ -2238,14 +2292,15 @@ let pp_synpure_vernac_expr = function
                 pp_type_params;
                 pp_return_type;
                 write " :=";
-                indented (map_sequence pp_constructor_expr constructors);
+                pp_constructor_list_or_record_decl_expr constructors;
                 pp_where_clause;
               ]
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
       sequence
         [
-          write "Inductive ";
+          pp_inductive_kind kind;
+          space;
           map_with_seps
             ~sep:(sequence [ blankline; write "with " ])
             pp_single_inductive inductives;
