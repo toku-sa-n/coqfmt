@@ -1879,6 +1879,8 @@ let pp_synterp_vernac_expr = function
       sequence [ write "Declare Custom Entry "; write name; dot ]
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
+  | Vernacexpr.VernacBeginSection name ->
+      sequence [ write "Section "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacEndSegment name ->
       sequence [ decrease_indent; write "End "; pp_lident name; dot ]
   | Vernacexpr.VernacImport ((flag, None), [ (name, ImportAll) ]) ->
@@ -2417,6 +2419,7 @@ let separator current next =
   | ( VernacSynterp (VernacReservedNotation _),
       VernacSynterp (VernacReservedNotation _) )
   | VernacSynterp (VernacDefineModule _), _
+  | VernacSynterp (VernacBeginSection _), _
   | _, VernacSynterp (VernacEndSegment _)
   | VernacSynPure (VernacSearch _), VernacSynPure (VernacSearch _)
   (* `From ... Require ...` *)
@@ -2600,6 +2603,7 @@ let separator current next =
             },
             _ )) )
   | _, VernacSynterp (VernacDefineModule _)
+  | _, VernacSynterp (VernacBeginSection _)
   | VernacSynterp (VernacEndSegment _), _
   | VernacSynPure (VernacEndProof _), _
   | VernacSynPure VernacAbort, _
