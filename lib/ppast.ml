@@ -147,33 +147,38 @@ let pp_sort_expr = function
 
 let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
 
-and pp_constr_expr_r = function
+and pp_constr_expr_r =
+  let pp_arg_with_explicitation (arg, expl_opt) =
+    match expl_opt with
+    | Some CAst.{ v = expl; _ } ->
+        let pp_expl =
+          match expl with
+          | Constrexpr.ExplByName name -> pp_id name
+          | Constrexpr.ExplByPos pos -> pp_int pos
+        in
+        parens (sequence [ pp_expl; write " := "; pp_constr_expr arg ])
+    | None -> pp_constr_expr_with_parens arg
+  in
+  let pp_args args =
+    let hor =
+      map_sequence
+        (fun arg_with_expl ->
+          sequence [ space; pp_arg_with_explicitation arg_with_expl ])
+        args
+    in
+    let ver =
+      map_sequence
+        (fun arg_with_expl ->
+          sequence
+            [ newline; indented (pp_arg_with_explicitation arg_with_expl) ])
+        args
+    in
+
+    hor <-|> ver
+  in
+  function
   | Constrexpr.CApp (fn, args) ->
-      let pp_args =
-        let hor =
-          map_sequence
-            (function
-              | inner, None ->
-                  sequence [ space; pp_constr_expr_with_parens inner ]
-              | _, Some _ ->
-                  fun printer -> raise (Not_implemented (contents printer)))
-            args
-        in
-        let ver =
-          map_sequence
-            (function
-              | inner, None ->
-                  sequence
-                    [ newline; indented (pp_constr_expr_with_parens inner) ]
-              | _, Some _ ->
-                  fun printer -> raise (Not_implemented (contents printer)))
-            args
-        in
-
-        hor <-|> ver
-      in
-
-      sequence [ pp_constr_expr_with_parens fn; pp_args ]
+      sequence [ pp_constr_expr_with_parens fn; pp_args args ]
   | Constrexpr.CAppExpl ((name, None), []) ->
       sequence [ write "@"; pp_qualid name ]
   | Constrexpr.CAppExpl ((dots, None), [ expr ])
@@ -246,6 +251,19 @@ and pp_constr_expr_r = function
           write " in";
           newline;
           pp_constr_expr expr;
+        ]
+  | Constrexpr.CProj (explicit_flag, (field_name, None), args, expr) ->
+      sequence
+        [
+          pp_constr_expr expr;
+          dot;
+          parens
+            (sequence
+               [
+                 write (if explicit_flag then "@" else "");
+                 pp_qualid field_name;
+                 pp_args args;
+               ]);
         ]
   | Constrexpr.CRef (id, None) -> pp_qualid id
   | Constrexpr.CNotation
