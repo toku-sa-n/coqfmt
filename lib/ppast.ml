@@ -2353,15 +2353,7 @@ let pp_control_flag = function
 
 let pp_vernac_flag = function
   | CAst.{ v = attr, Attributes.VernacFlagEmpty; loc = _ } ->
-      let capitalize_first str =
-        if String.length str > 0 then
-          let first_char = String.sub str 0 1 in
-          let capitalized_first_char = String.capitalize_ascii first_char in
-          capitalized_first_char ^ String.sub str 1 (String.length str - 1)
-        else str
-      in
-
-      sequence [ write (capitalize_first attr); space ]
+      sequence [ write (String.capitalize_ascii attr); space ]
   | CAst.{ v = _, Attributes.VernacFlagLeaf _; loc = _ } ->
       fun printer -> raise (Not_implemented (contents printer))
   | CAst.{ v = _, Attributes.VernacFlagList _; loc = _ } ->
