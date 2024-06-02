@@ -1630,6 +1630,18 @@ let pp_vernac_argument_status = function
       encloser (pp_name ty)
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_vernac_arguments_modifier = function
+  | `Assert -> write "assert"
+  | `ClearBidiHint -> write "clear bidirectionality hint"
+  | `ClearImplicits -> write "clear implicits"
+  | `ClearScopes -> write "clear scopes"
+  | `DefaultImplicits -> write "default implicits"
+  | `ExtraScopes -> write "extra scopes"
+  | `ReductionDontExposeCase -> write "simpl nomatch"
+  | `ReductionNeverUnfold -> write "simpl never"
+  | `Rename -> write "rename"
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_option_string = function
   | Vernacexpr.OptionSetString s -> doublequoted (write s)
   | _ -> fun printer -> raise (Not_implemented (contents printer))
@@ -2095,15 +2107,19 @@ let pp_synpure_vernac_expr = function
           map_spaced pp_table_value names;
           dot;
         ]
-  | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
-      sequence
-        [
-          write "Arguments ";
-          pp_qualid name;
-          space;
-          map_spaced pp_vernac_argument_status args;
-          dot;
-        ]
+  | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], mods)
+    ->
+      let pp_args =
+        if args <> [] then
+          sequence [ space; map_spaced pp_vernac_argument_status args ]
+        else fun _ -> ()
+      in
+      let pp_mods =
+        if mods <> [] then
+          sequence [ write " : "; map_commad pp_vernac_arguments_modifier mods ]
+        else fun _ -> ()
+      in
+      sequence [ write "Arguments "; pp_qualid name; pp_args; pp_mods; dot ]
   | Vernacexpr.VernacAssumption
       ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
       sequence
