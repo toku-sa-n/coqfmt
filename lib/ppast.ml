@@ -2230,6 +2230,20 @@ let pp_synpure_vernac_expr = function
             pp_fixpoint_expr exprs;
           dot;
         ]
+  | Vernacexpr.VernacGeneralizable None -> write "Generalizable No Variables."
+  | Vernacexpr.VernacGeneralizable (Some names) ->
+      let variable_kwd =
+        match names with
+        | [] -> "All Variables"
+        | [ _ ] -> "Variable "
+        | _ -> "Variables "
+      in
+      sequence
+        [
+          write ("Generalizable " ^ variable_kwd);
+          map_spaced pp_lident names;
+          dot;
+        ]
   | Vernacexpr.VernacLocate (LocateAny CAst.{ v = Constrexpr.AN name; loc = _ })
     ->
       sequence [ write "Locate "; pp_qualid name; dot ]
