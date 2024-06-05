@@ -1648,6 +1648,18 @@ let pp_vernac_argument_status = function
       encloser (pp_name ty)
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_vernac_arguments_modifier = function
+  | `Assert -> write "assert"
+  | `ClearBidiHint -> write "clear bidirectionality hint"
+  | `ClearImplicits -> write "clear implicits"
+  | `ClearScopes -> write "clear scopes"
+  | `DefaultImplicits -> write "default implicits"
+  | `ExtraScopes -> write "extra scopes"
+  | `ReductionDontExposeCase -> write "simpl nomatch"
+  | `ReductionNeverUnfold -> write "simpl never"
+  | `Rename -> write "rename"
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_option_string = function
   | Vernacexpr.OptionSetString s -> doublequoted (write s)
   | _ -> fun printer -> raise (Not_implemented (contents printer))
@@ -2113,15 +2125,19 @@ let pp_synpure_vernac_expr = function
           map_spaced pp_table_value names;
           dot;
         ]
-  | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], []) ->
-      sequence
-        [
-          write "Arguments ";
-          pp_qualid name;
-          space;
-          map_spaced pp_vernac_argument_status args;
-          dot;
-        ]
+  | Vernacexpr.VernacArguments (CAst.{ v = AN name; loc = _ }, args, [], mods)
+    ->
+      let pp_args =
+        if args <> [] then
+          sequence [ space; map_spaced pp_vernac_argument_status args ]
+        else fun _ -> ()
+      in
+      let pp_mods =
+        if mods <> [] then
+          sequence [ write " : "; map_commad pp_vernac_arguments_modifier mods ]
+        else fun _ -> ()
+      in
+      sequence [ write "Arguments "; pp_qualid name; pp_args; pp_mods; dot ]
   | Vernacexpr.VernacAssumption
       ((NoDischarge, kind), NoInline, [ (NoCoercion, ([ name ], expr)) ]) ->
       sequence
@@ -2230,6 +2246,20 @@ let pp_synpure_vernac_expr = function
           map_with_seps
             ~sep:(sequence [ blankline; write "with " ])
             pp_fixpoint_expr exprs;
+          dot;
+        ]
+  | Vernacexpr.VernacGeneralizable None -> write "Generalizable No Variables."
+  | Vernacexpr.VernacGeneralizable (Some names) ->
+      let variable_kwd =
+        match names with
+        | [] -> "All Variables"
+        | [ _ ] -> "Variable "
+        | _ -> "Variables "
+      in
+      sequence
+        [
+          write ("Generalizable " ^ variable_kwd);
+          map_spaced pp_lident names;
           dot;
         ]
   | Vernacexpr.VernacLocate (LocateAny CAst.{ v = Constrexpr.AN name; loc = _ })
@@ -2355,15 +2385,7 @@ let pp_control_flag = function
 
 let pp_vernac_flag = function
   | CAst.{ v = attr, Attributes.VernacFlagEmpty; loc = _ } ->
-      let capitalize_first str =
-        if String.length str > 0 then
-          let first_char = String.sub str 0 1 in
-          let capitalized_first_char = String.capitalize_ascii first_char in
-          capitalized_first_char ^ String.sub str 1 (String.length str - 1)
-        else str
-      in
-
-      sequence [ write (capitalize_first attr); space ]
+      sequence [ write (String.capitalize_ascii attr); space ]
   | CAst.{ v = _, Attributes.VernacFlagLeaf _; loc = _ } ->
       fun printer -> raise (Not_implemented (contents printer))
   | CAst.{ v = _, Attributes.VernacFlagList _; loc = _ } ->
