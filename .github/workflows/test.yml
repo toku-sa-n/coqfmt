@@ -15,8 +15,10 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
           - windows-latest
+          # Running on macOS is temporarily disabled due to a build failure of
+          # `coq-core`.
+          # - macos-latest
 
     runs-on: ${{ matrix.os }}
 
@@ -101,10 +103,11 @@ jobs:
       - name: Install Coq
         run: opam install coq
 
+        # `-vos` for fast compilation.
       - name: List Coq files which did not compile
         run: |
           shopt -s globstar
-          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vio {} > /dev/null && echo "OK" || exit 255'
+          find ./test/coq_files/**/*.v -print0|xargs -0 -I{} sh -c 'echo -n "{}: "; opam exec -- coqc -q -vos {} > /dev/null && echo "OK" || exit 255'
 
   opamlint:
     runs-on: ubuntu-latest
