@@ -1,3 +1,2 @@
-From MyProject Require Import Foo.
-
-Definition bar := foo.
+From    MyProject       Require     Import      Foo.
+Definition bar:=foo.
