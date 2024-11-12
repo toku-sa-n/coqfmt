@@ -138,11 +138,11 @@ let pp_sort_name_expr = function
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_sort_expr = function
-  | Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
-  | Glob_term.UAnonymous { rigid = _ } ->
+  | None, Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
+  | _, Glob_term.UAnonymous { rigid = _ } ->
       fun printer -> raise (Not_implemented (contents printer))
-  | Glob_term.UNamed (None, [ (sort, 0) ]) -> pp_sort_name_expr sort
-  | Glob_term.UNamed _ ->
+  | None, Glob_term.UNamed [ (sort, 0) ] -> pp_sort_name_expr sort
+  | _, Glob_term.UNamed _ ->
       fun printer -> raise (Not_implemented (contents printer))
 
 let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
@@ -498,10 +498,11 @@ and pp_case_expr = function
 and pp_local_binder_expr = function
   | Constrexpr.CLocalAssum
       ( [ name ],
+        None,
         Constrexpr.Default Explicit,
         CAst.{ v = Constrexpr.CHole _; loc = _ } ) ->
       pp_lname name
-  | Constrexpr.CLocalAssum (names, Constrexpr.Default kind, ty) ->
+  | Constrexpr.CLocalAssum (names, None, Constrexpr.Default kind, ty) ->
       let wrapper =
         match kind with
         | Explicit -> parens
@@ -533,7 +534,7 @@ and pp_branch_expr_r (patterns, expr) =
     ]
 
 and pp_fix_expr = function
-  | [ (name, None, bindings, return_type, body) ] ->
+  | [ (name, None, None, bindings, return_type, body) ] ->
       let open CAst in
       let pp_return_type =
         match return_type.v with

@@ -220,7 +220,7 @@ let lang_of_raw_generic_argument arg =
         List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "language" ] ];
         rems;
       ] ->
-      Some (Serlib_extraction.Ser_g_extraction.WitL.raw_of_sexp rems)
+      Some (Serlib_extraction.Ser_g_extraction.WitL.t_of_sexp rems)
   | _ -> None
 
 let string_of_raw_generic_argument arg =
