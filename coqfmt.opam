@@ -10,9 +10,9 @@ homepage: "https://github.com/toku-sa-n/coqfmt"
 bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
 depends: [
   "alcotest" {with-test}
-  "coq" {= "8.19.0"}
+  "coq" {= "8.20.0"}
   "coq-core"
-  "coq-serapi"
+  "coq-lsp"
   "dune" {>= "3.9"}
   "dune-build-info"
   "ocaml"
