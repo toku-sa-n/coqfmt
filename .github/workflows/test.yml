@@ -54,6 +54,10 @@ jobs:
         run: ./test.sh
         working-directory: ./test/require-test
 
+      - name: Run `_CoqProject` test
+        run: ./test.sh
+        working-directory: ./test/coq_project_test
+
   prettier:
     runs-on: ubuntu-latest
 

@@ -33,4 +33,10 @@ _opam/
 *.vo
 *.vok
 *.vos
+
+Makefile
+Makefile.conf
+.Makefile.d
+
 test/require-test/Bar.output.v
+test/coq_project_test/Bar.output.v
