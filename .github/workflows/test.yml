@@ -15,7 +15,9 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          # Running on Windows is temporarily disabled because `dune test` hangs.
+          # - windows-latest
+          #
           # Running on macOS is temporarily disabled due to a build failure of
           # `coq-core`.
           # - macos-latest
