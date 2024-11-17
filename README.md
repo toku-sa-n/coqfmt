@@ -18,6 +18,9 @@ opam install .
 Just input your Coq code from stdin. Coqfmt will print the formatted code to
 stdout.
 
+Coqfmt is aware of commandline arguments in `_CoqProject` file. If you have a
+`_CoqProject` file in your project, Coqfmt will use the arguments in the file.
+
 See `coqfmt --help` for more detail.
 
 ## Don't like the formatted code?
