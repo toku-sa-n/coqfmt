@@ -128,18 +128,6 @@ jobs:
 
       - uses: ocaml/setup-ocaml/lint-opam@151423d713c4ee68019b8b472b34e8ed708735ec # v3.2.2
 
-  docker:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Build Docker image
-        run: docker build -t coqfmt .
-
-      - name: Run Docker image
-        run: docker run --rm coqfmt --version
-
   ensure_trailing_newline:
     runs-on: ubuntu-latest
 
@@ -148,14 +136,6 @@ jobs:
 
       - name: List all non-empty files tracked by git that do not end with a newline
         run: git ls-files | xargs -I {} sh -c '[ -s "{}" ] && echo "{}"' | xargs -I {} sh -c 'tail -c 1 {} | read -r _ || (echo "{}"; false)'
-
-  hadolint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
 
   markdown-lint:
     runs-on: ubuntu-latest
