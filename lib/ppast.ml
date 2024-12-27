@@ -1031,11 +1031,7 @@ let rec pp_raw_atomic_tactic_expr = function
       in
 
       sequence [ pp_raw_red_expr expr; pp_in ]
-  | Tacexpr.TacRewrite
-      ( false,
-        [ (is_left_to_right, Precisely 1, (None, (expr, with_bindings))) ],
-        in_bindings,
-        None ) ->
+  | Tacexpr.TacRewrite (false, rewriters, in_bindings, None) ->
       let pp_in_bindings =
         let open Locus in
         match in_bindings with
@@ -1046,14 +1042,20 @@ let rec pp_raw_atomic_tactic_expr = function
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
-      sequence
-        [
-          write "rewrite ";
-          (if is_left_to_right then write "-> " else write "<- ");
-          pp_constr_expr_with_parens expr;
-          pp_in_bindings;
-          pp_bindings with_bindings;
-        ]
+      let pp_rewriter = function
+        | is_left_to_right, Equality.Precisely 1, (None, (expr, with_bindings))
+          ->
+            sequence
+              [
+                (if is_left_to_right then write "-> " else write "<- ");
+                pp_constr_expr_with_parens expr;
+                pp_in_bindings;
+                pp_bindings with_bindings;
+              ]
+        | _ -> fun printer -> raise (Not_implemented (contents printer))
+      in
+
+      spaced [ write "rewrite"; map_commad pp_rewriter rewriters ]
   | Tacexpr.TacInversion (intros, name) ->
       sequence
         [
