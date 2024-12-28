@@ -1703,6 +1703,25 @@ let pp_reference_or_constr = function
 let pp_hints_expr = function
   | Vernacexpr.HintsConstructors names ->
       sequence [ write "Hint Constructors "; map_spaced pp_qualid names ]
+  | Vernacexpr.HintsExtern (cost, pattern, tactic) -> (
+      match Conversion.ltac_of_raw_generic_argument tactic with
+      | Some tactic ->
+          let pp_pattern =
+            match pattern with
+            | Some pattern ->
+                sequence [ space; pp_constr_expr_with_parens pattern ]
+            | None -> nop
+          in
+
+          sequence
+            [
+              write "Hint Extern ";
+              write (string_of_int cost);
+              pp_pattern;
+              write " => ";
+              pp_raw_tactic_expr tactic;
+            ]
+      | None -> fun printer -> raise (Not_implemented (contents printer)))
   | Vernacexpr.HintsResolve names ->
       let pp :
           Vernacexpr.hint_info_expr * bool * Vernacexpr.reference_or_constr ->
