@@ -890,18 +890,16 @@ let pp_induction_clause = function
       sequence [ pp_destruction_arg arg; pp_as_list as_list; pp_eqn eqn ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-let pp_induction_clause_list = function
-  | [ clause ], using ->
-      let pp_using =
-        match using with
-        | None -> nop
-        | Some (expr, Tactypes.NoBindings) ->
-            sequence [ write " using "; pp_constr_expr expr ]
-        | _ -> fun printer -> raise (Not_implemented (contents printer))
-      in
+let pp_induction_clause_list (clauses, using) =
+  let pp_using =
+    match using with
+    | None -> nop
+    | Some (expr, Tactypes.NoBindings) ->
+        sequence [ write " using "; pp_constr_expr expr ]
+    | _ -> fun printer -> raise (Not_implemented (contents printer))
+  in
 
-      sequence [ pp_induction_clause clause; pp_using ]
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
+  sequence [ map_commad pp_induction_clause clauses; pp_using ]
 
 let pp_hyp_location_expr = function
   | (Locus.AllOccurrences, name), Locus.InHyp -> pp_id name.CAst.v
