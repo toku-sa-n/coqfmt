@@ -13,8 +13,8 @@ exception Not_implemented of string
     needed even if this function returns a `false`, but do not modify this
     function to return a `true` in such cases. *)
 let exprs_generally_parens_needed = function
-  | Constrexpr.CApp _ | Constrexpr.CIf _ | Constrexpr.CLambdaN _
-  | Constrexpr.CProdN _ ->
+  | Constrexpr.CApp _ | Constrexpr.CFix _ | Constrexpr.CIf _
+  | Constrexpr.CLambdaN _ | Constrexpr.CLetIn _ | Constrexpr.CProdN _ ->
       true
   | Constrexpr.CNotation (_, (_, notation), _) ->
       let parts = String.split_on_char ' ' notation in
@@ -549,8 +549,7 @@ and pp_fix_expr = function
             (fun x -> sequence [ space; pp_local_binder_expr x ])
             bindings;
           pp_return_type;
-          write " := ";
-          pp_constr_expr body;
+          write " := " |=> pp_constr_expr body;
         ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
