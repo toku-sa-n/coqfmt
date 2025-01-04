@@ -1367,6 +1367,8 @@ and pp_raw_tactic_expr_r = function
         [
           write "match goal with"; map_lined pp_goal_pattern rules; write "end";
         ]
+  | Tacexpr.TacOr (left, right) ->
+      spaced [ pp_raw_tactic_expr left; write "+"; pp_raw_tactic_expr right ]
   | Tacexpr.TacOrelse (first, second) ->
       let hor =
         spaced
