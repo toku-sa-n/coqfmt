@@ -381,7 +381,7 @@ let ltac_production_item_of_raw_generic_argument arg =
       Some
         (List.map
            (Serlib_ltac.Ser_tacentries.grammar_tactic_prod_item_expr_of_sexp
-              Serlib.Ser_names.Id.t_of_sexp)
+              (fun _ -> (* TODO *) ()))
            rems)
   | _ -> None
 
