@@ -1738,6 +1738,8 @@ let pp_hints_expr = function
 
 let pp_grammar_tactic_prod_item_expr = function
   | Tacentries.TacTerm name -> doublequoted (write name)
+  | Tacentries.TacNonTerm (Some _, ((), Some id)) ->
+      sequence [ write "ident"; parens (pp_id id) ]
   | Tacentries.TacNonTerm _ ->
       fun printer -> raise (Not_implemented (contents printer))
 
