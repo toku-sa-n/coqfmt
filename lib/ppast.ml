@@ -1166,9 +1166,13 @@ and pp_raw_tactic_expr_r = function
               try_pp_always Conversion.id_of_raw_generic_argument pp_id
             in
 
-            let try_pp_hyp =
-              try_pp_always Conversion.hyp_of_raw_generic_argument
+            let try_pp_hyp_list =
+              try_pp_always Conversion.hyp_list_of_raw_generic_argument
                 (map_spaced pp_lident)
+            in
+
+            let try_pp_hyp =
+              try_pp_always Conversion.hyp_of_raw_generic_argument pp_lident
             in
 
             let try_pp_nat_or_var =
@@ -1292,6 +1296,7 @@ and pp_raw_tactic_expr_r = function
                 try_pp_clause_expr;
                 try_pp_bindings;
                 try_pp_id;
+                try_pp_hyp_list;
                 try_pp_hyp;
                 try_pp_nat_or_var;
                 try_pp_constr_with_bindings;
