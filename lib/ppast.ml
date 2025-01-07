@@ -1187,11 +1187,9 @@ and pp_raw_tactic_expr_r = function
             let try_pp_auto_using =
               let pp = function
                 | [] -> None
-                | [ x ] -> Some (sequence [ write "using "; pp_constr_expr x ])
-                | _ ->
+                | xs ->
                     Some
-                      (fun printer ->
-                        raise (Not_implemented (contents printer)))
+                      (spaced [ write "using"; map_commad pp_constr_expr xs ])
               in
 
               try_pp Conversion.auto_using_of_raw_generic_argument pp
