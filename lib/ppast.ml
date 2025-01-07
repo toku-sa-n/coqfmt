@@ -1040,11 +1040,18 @@ let rec pp_raw_atomic_tactic_expr = function
       in
 
       let pp_rewriter = function
-        | is_left_to_right, Equality.Precisely 1, (None, (expr, with_bindings))
-          ->
+        | is_left_to_right, count, (None, (expr, with_bindings)) ->
+            let pp_rewrite_count =
+              match count with
+              | Equality.Precisely 1 -> nop
+              | Equality.RepeatPlus -> write "!"
+              | _ -> fun printer -> raise (Not_implemented (contents printer))
+            in
+
             sequence
               [
                 (if is_left_to_right then write "-> " else write "<- ");
+                pp_rewrite_count;
                 pp_constr_expr_with_parens expr;
                 pp_in_bindings;
                 pp_bindings with_bindings;
