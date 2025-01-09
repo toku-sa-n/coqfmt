@@ -992,6 +992,15 @@ let rec pp_raw_atomic_tactic_expr = function
 
       sequence
         [ write "assert ("; pp_name; pp_constr_expr expr; write ")"; pp_by ]
+  | Tacexpr.TacAssert (false, true, None, Some name, expr) ->
+      sequence
+        [
+          write "assert (";
+          pp_intro_pattern_expr name.v;
+          write " := ";
+          pp_constr_expr expr;
+          write ")";
+        ]
   | Tacexpr.TacChange
       (true, Some src, dst, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
