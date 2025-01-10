@@ -2204,6 +2204,19 @@ let pp_synpure_vernac_expr = function
       let pp_name =
         match check_or_compute with
         | Some
+            (Cbn
+              {
+                rStrength = Norm;
+                rBeta = true;
+                rMatch = true;
+                rFix = true;
+                rCofix = true;
+                rZeta = true;
+                rDelta = true;
+                rConst = [];
+              }) ->
+            write "Eval cbn in"
+        | Some
             (Cbv
               {
                 rStrength = Norm;
