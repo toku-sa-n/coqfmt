@@ -69,6 +69,20 @@ let intro_pattern_list_of_raw_generic_argument arg =
       Some (List.map Serlib_ltac.Ser_tacexpr.intro_pattern_of_sexp rems)
   | _ -> None
 
+let intro_pattern_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "simple_intropattern" ];
+          ];
+        rems;
+      ] ->
+      Some (Serlib_ltac.Ser_tacexpr.intro_pattern_of_sexp rems)
+  | _ -> None
+
 let destruction_arg_of_raw_generic_argument arg =
   let open Sexplib.Sexp in
   match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with

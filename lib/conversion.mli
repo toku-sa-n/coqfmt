@@ -18,6 +18,11 @@ val intro_pattern_list_of_raw_generic_argument :
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
     [Ltac_plugin.Tacexpr.intro_pattern list]. *)
 
+val intro_pattern_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Ltac_plugin.Tacexpr.intro_pattern option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+    [Ltac_plugin.Tacexpr.intro_pattern]. *)
+
 val destruction_arg_of_raw_generic_argument :
   Genarg.raw_generic_argument ->
   Constrexpr.constr_expr Tactypes.with_bindings Tactics.destruction_arg option
