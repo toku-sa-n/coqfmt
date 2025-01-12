@@ -2233,6 +2233,7 @@ let pp_synpure_vernac_expr = function
                  rConst = [];
                }) ->
             write "Eval compute in"
+        | Some (CbvNative None) -> write "Eval native_compute in"
         | Some (CbvVm None) -> write "Compute"
         | Some
             (Simpl
