@@ -1003,6 +1003,8 @@ let rec pp_raw_atomic_tactic_expr = function
           pp_constr_expr expr;
           write ")";
         ]
+  | Tacexpr.TacAssert (false, true, None, None, expr) ->
+      spaced [ write "pose proof"; parens (pp_constr_expr expr) ]
   | Tacexpr.TacChange
       (true, Some src, dst, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
