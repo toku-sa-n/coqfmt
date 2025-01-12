@@ -790,6 +790,8 @@ let pp_raw_red_expr = function
           rConst = [];
         } ->
       write "cbv"
+  | Genredexpr.Fold xs ->
+      sequence [ write "fold "; map_commad pp_constr_expr xs ]
   | Genredexpr.Simpl
       ( Genredexpr.
           {
