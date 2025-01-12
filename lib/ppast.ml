@@ -7,7 +7,7 @@ open Ltac_plugin
 exception Not_implemented of string
 
 (** Returns a `true` if printing the given [Constrexpr.constr_expr_r] needs
-      parentheses IN ANY TIMES.
+    parentheses IN ANY TIMES.
 
     In some cases (e.g., printing a notation), printing parentheses may be
     needed even if this function returns a `false`, but do not modify this
@@ -2209,44 +2209,44 @@ let pp_synpure_vernac_expr = function
         match check_or_compute with
         | Some
             (Cbn
-              {
-                rStrength = Norm;
-                rBeta = true;
-                rMatch = true;
-                rFix = true;
-                rCofix = true;
-                rZeta = true;
-                rDelta = true;
-                rConst = [];
-              }) ->
+               {
+                 rStrength = Norm;
+                 rBeta = true;
+                 rMatch = true;
+                 rFix = true;
+                 rCofix = true;
+                 rZeta = true;
+                 rDelta = true;
+                 rConst = [];
+               }) ->
             write "Eval cbn in"
         | Some
             (Cbv
-              {
-                rStrength = Norm;
-                rBeta = true;
-                rMatch = true;
-                rFix = true;
-                rCofix = true;
-                rZeta = true;
-                rDelta = true;
-                rConst = [];
-              }) ->
+               {
+                 rStrength = Norm;
+                 rBeta = true;
+                 rMatch = true;
+                 rFix = true;
+                 rCofix = true;
+                 rZeta = true;
+                 rDelta = true;
+                 rConst = [];
+               }) ->
             write "Eval compute in"
         | Some (CbvVm None) -> write "Compute"
         | Some
             (Simpl
-              ( {
-                  rStrength = Norm;
-                  rBeta = true;
-                  rMatch = true;
-                  rFix = true;
-                  rCofix = true;
-                  rZeta = true;
-                  rDelta = true;
-                  rConst = [];
-                },
-                None )) ->
+               ( {
+                   rStrength = Norm;
+                   rBeta = true;
+                   rMatch = true;
+                   rFix = true;
+                   rCofix = true;
+                   rZeta = true;
+                   rDelta = true;
+                   rConst = [];
+                 },
+                 None )) ->
             write "Eval simpl in"
         | None -> write "Check"
         | _ -> fun printer -> raise (Not_implemented (contents printer))
@@ -2478,36 +2478,36 @@ let separator current next =
   (* `Eval compute in` *)
   | ( VernacSynPure
         (VernacCheckMayEval
-          ( Some
-              (Cbv
-                {
-                  rStrength = Norm;
-                  rBeta = true;
-                  rMatch = true;
-                  rFix = true;
-                  rCofix = true;
-                  rZeta = true;
-                  rDelta = true;
-                  rConst = [];
-                }),
-            _,
-            _ )),
+           ( Some
+               (Cbv
+                  {
+                    rStrength = Norm;
+                    rBeta = true;
+                    rMatch = true;
+                    rFix = true;
+                    rCofix = true;
+                    rZeta = true;
+                    rDelta = true;
+                    rConst = [];
+                  }),
+             _,
+             _ )),
       VernacSynPure
         (VernacCheckMayEval
-          ( Some
-              (Cbv
-                {
-                  rStrength = Norm;
-                  rBeta = true;
-                  rMatch = true;
-                  rFix = true;
-                  rCofix = true;
-                  rZeta = true;
-                  rDelta = true;
-                  rConst = [];
-                }),
-            _,
-            _ )) )
+           ( Some
+               (Cbv
+                  {
+                    rStrength = Norm;
+                    rBeta = true;
+                    rMatch = true;
+                    rFix = true;
+                    rCofix = true;
+                    rZeta = true;
+                    rDelta = true;
+                    rConst = [];
+                  }),
+             _,
+             _ )) )
   (* `Compute` *)
   | ( VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)),
       VernacSynPure (VernacCheckMayEval (Some (CbvVm None), _, _)) )
@@ -2534,68 +2534,68 @@ let separator current next =
   | VernacSynPure (VernacComments _), VernacSynPure (VernacComments _)
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "Extraction";
-              ext_index = 2;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "Extraction";
+               ext_index = 2;
+             },
+             _ )),
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "Extraction";
-              ext_index = 2;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "Extraction";
+               ext_index = 2;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionConstant";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionConstant";
+               ext_index = 0;
+             },
+             _ )),
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionConstant";
-              ext_index = 0;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionConstant";
+               ext_index = 0;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionLanguage";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionLanguage";
+               ext_index = 0;
+             },
+             _ )),
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionLanguage";
-              ext_index = 0;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionLanguage";
+               ext_index = 0;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionInductive";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionInductive";
+               ext_index = 0;
+             },
+             _ )),
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionInductive";
-              ext_index = 0;
-            },
-            _ )) ) ->
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionInductive";
+               ext_index = 0;
+             },
+             _ )) ) ->
       newline
   | VernacSynPure (VernacDefinition (_, _, ProveBody _)), _
   | VernacSynPure (VernacProof _), _
@@ -2631,76 +2631,76 @@ let separator current next =
   | _, VernacSynterp (VernacImport _)
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "Extraction";
-              ext_index = 2;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "Extraction";
+               ext_index = 2;
+             },
+             _ )),
       _ )
   | ( _,
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "Extraction";
-              ext_index = 2;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "Extraction";
+               ext_index = 2;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionConstant";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionConstant";
+               ext_index = 0;
+             },
+             _ )),
       _ )
   | ( _,
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionConstant";
-              ext_index = 0;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionConstant";
+               ext_index = 0;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionLanguage";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionLanguage";
+               ext_index = 0;
+             },
+             _ )),
       _ )
   | ( _,
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionLanguage";
-              ext_index = 0;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionLanguage";
+               ext_index = 0;
+             },
+             _ )) )
   | ( VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionInductive";
-              ext_index = 0;
-            },
-            _ )),
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionInductive";
+               ext_index = 0;
+             },
+             _ )),
       _ )
   | ( _,
       VernacSynterp
         (VernacExtend
-          ( {
-              ext_plugin = "coq-core.plugins.extraction";
-              ext_entry = "ExtractionInductive";
-              ext_index = 0;
-            },
-            _ )) )
+           ( {
+               ext_plugin = "coq-core.plugins.extraction";
+               ext_entry = "ExtractionInductive";
+               ext_index = 0;
+             },
+             _ )) )
   | _, VernacSynterp (VernacDefineModule _)
   | _, VernacSynterp (VernacBeginSection _)
   | VernacSynterp (VernacEndSegment _), _
