@@ -1150,10 +1150,15 @@ and pp_raw_tactic_expr_r = function
                 pp_destruction_arg
             in
 
-            let try_pp_intro_pattern_expr =
+            let try_pp_intro_pattern_list_expr =
               try_pp_always
                 Conversion.intro_pattern_list_of_raw_generic_argument
                 (map_spaced (pp_c_ast pp_intro_pattern_expr))
+            in
+
+            let try_pp_intro_pattern_expr =
+              try_pp_always Conversion.intro_pattern_of_raw_generic_argument
+                (pp_c_ast pp_intro_pattern_expr)
             in
 
             let try_pp_clause_expr =
@@ -1305,6 +1310,7 @@ and pp_raw_tactic_expr_r = function
               [
                 try_pp_constr_expr;
                 try_pp_destruction_arg;
+                try_pp_intro_pattern_list_expr;
                 try_pp_intro_pattern_expr;
                 try_pp_clause_expr;
                 try_pp_bindings;
