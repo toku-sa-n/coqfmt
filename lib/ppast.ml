@@ -1066,8 +1066,8 @@ let rec pp_raw_atomic_tactic_expr = function
                 (if is_left_to_right then write "-> " else write "<- ");
                 pp_rewrite_count;
                 pp_constr_expr_with_parens expr;
-                pp_in_bindings;
                 pp_bindings with_bindings;
+                pp_in_bindings;
               ]
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
