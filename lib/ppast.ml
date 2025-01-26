@@ -1047,8 +1047,8 @@ let rec pp_raw_atomic_tactic_expr = function
         match in_bindings with
         | { onhyps = Some []; concl_occs = AllOccurrences } -> nop
         | { onhyps = None; concl_occs = AllOccurrences } -> write " in *"
-        | { onhyps = Some [ name ]; concl_occs = NoOccurrences } ->
-            sequence [ write " in "; pp_hyp_location_expr name ]
+        | { onhyps = Some names; concl_occs = NoOccurrences } ->
+            sequence [ write " in "; map_commad pp_hyp_location_expr names ]
         | _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
