@@ -252,6 +252,17 @@ and pp_constr_expr_r =
           newline;
           pp_constr_expr expr;
         ]
+  | Constrexpr.CLetTuple (names, (None, None), binding, expr) ->
+      sequence
+        [
+          write "let ";
+          parens (map_commad pp_lname names);
+          write " := ";
+          pp_constr_expr binding;
+          write " in";
+          newline;
+          pp_constr_expr expr;
+        ]
   | Constrexpr.CProj (explicit_flag, (field_name, None), args, expr) ->
       sequence
         [
