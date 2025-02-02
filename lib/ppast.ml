@@ -356,7 +356,9 @@ and pp_constr_expr_r =
                thus lhs' `forall` needs parentheses.*)
             let parens_needed =
               match (h.v, assoc, notation_position, h_keys) with
-              | Constrexpr.CLambdaN _, _, _, _ | Constrexpr.CIf _, _, _, _ ->
+              | Constrexpr.CLambdaN _, _, _, _
+              | Constrexpr.CIf _, _, _, _
+              | Constrexpr.CLetTuple _, _, _, _ ->
                   true
               | Constrexpr.CNotation (_, (_, "( _ )"), _), _, _, _ -> false
               | Constrexpr.CNotation (_, (_, "_ -> _"), _), _, Some Left, _
