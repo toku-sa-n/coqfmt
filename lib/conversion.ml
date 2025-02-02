@@ -443,3 +443,22 @@ let lconstr_of_raw_generic_argument arg =
       ] ->
       Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
   | _ -> None
+
+let function_fix_definition_of_raw_generic_argument arg =
+  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
+  | List
+      [
+        Atom "GenArg";
+        List
+          [
+            Atom "Rawwit";
+            List
+              [
+                Atom "ListArg";
+                List [ Atom "ExtraArg"; Atom "function_fix_definition" ];
+              ];
+          ];
+        List rems;
+      ] ->
+      Some (List.map Serlib_funind.Ser_g_indfun.WFFD.t_of_sexp rems)
+  | _ -> None
