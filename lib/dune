@@ -5,6 +5,7 @@
   coq-core.plugins.ltac
   coq-core.stm
   coq-core.sysinit
+  coq-lsp.serlib.funind
   coq-lsp.serlib.ltac
   coq-lsp.serlib.extraction)
  (private_modules astparser conversion ppast printer))

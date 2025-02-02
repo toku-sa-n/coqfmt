@@ -529,6 +529,8 @@ and pp_recursion_order_expr expr = pp_c_ast pp_recursion_order_expr_r expr
 
 and pp_recursion_order_expr_r = function
   | Constrexpr.CStructRec name -> sequence [ write "struct "; pp_lident name ]
+  | Constrexpr.CMeasureRec (Some base, expr, None) ->
+      spaced [ write "measure"; pp_constr_expr expr; pp_lident base ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_branch_expr expr = pp_c_ast pp_branch_expr_r expr
@@ -1836,6 +1838,14 @@ let pp_extraction_language = function
       | _ -> fun printer -> raise (Not_implemented (contents printer)))
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_function = function
+  | [ x ] -> (
+      match Conversion.function_fix_definition_of_raw_generic_argument x with
+      | Some [ (_, expr) ] ->
+          sequence [ write "Function "; pp_fixpoint_expr expr; dot ]
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_extraction_inductive = function
   | [ identifier; name; branches; matcher ] -> (
       match
@@ -2010,6 +2020,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_extraction_inductive args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.funind";
+          ext_entry = "Function";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_function args
   | Vernacexpr.VernacExtend
       ( {
           ext_plugin = "coq-core.plugins.ltac";

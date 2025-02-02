@@ -52,7 +52,16 @@ let rec next t =
         match (prev_ast.v.expr, next_ast.v.expr) with
         | ( VernacSynPure (VernacStartTheoremProof _),
             VernacSynPure (VernacProof _) )
-        | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _) ->
+        | VernacSynPure (VernacDefinition _), VernacSynPure (VernacProof _)
+        | ( VernacSynterp
+              (VernacExtend
+                 ( {
+                     ext_plugin = "coq-core.plugins.funind";
+                     ext_entry = "Function";
+                     ext_index = 0;
+                   },
+                   _ )),
+            VernacSynPure (VernacProof _) ) ->
             false
         | _, VernacSynPure (VernacProof _) -> true
         | _, _ -> false
