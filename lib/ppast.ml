@@ -206,18 +206,34 @@ and pp_constr_expr_r =
   | Constrexpr.CEvar (term, []) -> sequence [ write "?"; pp_id term.v ]
   | Constrexpr.CFix (_, body) -> sequence [ write "fix "; pp_fix_expr body ]
   | Constrexpr.CIf (cond, (None, None), t, f) ->
-      sequence
-        [
-          write "if ";
-          pp_constr_expr cond;
-          newline;
-          indented
-            (lined
-               [
-                 write "then " |=> pp_constr_expr t;
-                 write "else " |=> pp_constr_expr f;
-               ]);
-        ]
+      let hor =
+        spaced
+          [
+            write "if";
+            pp_constr_expr cond;
+            write "then";
+            pp_constr_expr t;
+            write "else";
+            pp_constr_expr f;
+          ]
+      in
+
+      let ver =
+        sequence
+          [
+            write "if ";
+            pp_constr_expr cond;
+            newline;
+            indented
+              (lined
+                 [
+                   write "then " |=> pp_constr_expr t;
+                   write "else " |=> pp_constr_expr f;
+                 ]);
+          ]
+      in
+
+      hor <-|> ver
   | Constrexpr.CLambdaN (args, body) ->
       let pp_fun_and_parameters =
         let hor =

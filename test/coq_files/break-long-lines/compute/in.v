@@ -1,1 +1,1 @@
-Compute (if true then 0 else 1).
+Compute (let foo:=1 in foo).
