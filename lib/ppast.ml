@@ -541,6 +541,8 @@ and pp_local_binder_expr = function
 
       wrapper
         (sequence [ map_spaced pp_lname names; write " : "; pp_constr_expr ty ])
+  | Constrexpr.CLocalPattern expr ->
+      sequence [ write "'"; pp_cases_pattern_expr expr ]
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_recursion_order_expr expr = pp_c_ast pp_recursion_order_expr_r expr
