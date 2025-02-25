@@ -977,7 +977,10 @@ let pp_bindings = function
 
 let pp_match_pattern = function
   | Tacexpr.Term expr -> pp_constr_expr expr
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
+  | Tacexpr.Subterm (None, expr) ->
+      spaced [ write "context"; brackets (pp_constr_expr expr) ]
+  | Tacexpr.Subterm (Some _, _) ->
+      fun printer -> raise (Not_implemented (contents printer))
 
 let pp_match_context_hyps = function
   | Tacexpr.Hyp (name, pattern) ->
