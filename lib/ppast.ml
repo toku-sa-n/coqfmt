@@ -997,11 +997,15 @@ let rec pp_raw_atomic_tactic_expr = function
     ->
       let pp_tactic = if is_eapply then write "eapply" else write "apply" in
 
+      let pp_target = function
+        | name, None -> pp_c_ast pp_id name
+        | _, Some _ -> fun printer -> raise (Not_implemented (contents printer))
+      in
+
       let pp_in_clause =
         match in_clause with
         | [] -> nop
-        | [ (name, None) ] -> sequence [ write " in "; pp_id name.CAst.v ]
-        | _ -> fun printer -> raise (Not_implemented (contents printer))
+        | xs -> sequence [ write " in "; map_commad pp_target xs ]
       in
 
       sequence
