@@ -1034,17 +1034,15 @@ let rec pp_raw_atomic_tactic_expr = function
 
       sequence
         [ write "assert ("; pp_name; pp_constr_expr expr; write ")"; pp_by ]
-  | Tacexpr.TacAssert (false, true, None, Some name, expr) ->
+  | Tacexpr.TacAssert (false, true, None, as_name, expr) ->
+      let pp_as_clause =
+        match as_name with
+        | None -> nop
+        | Some name -> sequence [ write " as "; pp_intro_pattern_expr name.v ]
+      in
+
       sequence
-        [
-          write "assert (";
-          pp_intro_pattern_expr name.v;
-          write " := ";
-          pp_constr_expr expr;
-          write ")";
-        ]
-  | Tacexpr.TacAssert (false, true, None, None, expr) ->
-      spaced [ write "pose proof"; parens (pp_constr_expr expr) ]
+        [ write "pose proof "; pp_constr_expr_with_parens expr; pp_as_clause ]
   | Tacexpr.TacChange
       (true, Some src, dst, { onhyps = Some []; concl_occs = AllOccurrences })
     ->
