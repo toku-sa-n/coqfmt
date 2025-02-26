@@ -1075,9 +1075,9 @@ let rec pp_raw_atomic_tactic_expr = function
       let pp_in =
         match onhyps with
         | Some [] -> nop
-        | Some [ name ] -> sequence [ write " in "; pp_hyp_location_expr name ]
+        | Some names ->
+            sequence [ write " in "; map_commad pp_hyp_location_expr names ]
         | None -> write " in *"
-        | Some _ -> fun printer -> raise (Not_implemented (contents printer))
       in
 
       sequence [ pp_raw_red_expr expr; pp_in ]
