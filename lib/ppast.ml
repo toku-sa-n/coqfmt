@@ -2006,6 +2006,8 @@ let pp_constructor_list_or_record_decl_expr = function
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
+  | Vernacexpr.VernacDeclareModuleType (name, _, _, _) ->
+      sequence [ write "Module Type "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacBeginSection name ->
@@ -2579,6 +2581,7 @@ let separator current next =
   | VernacSynterp (VernacNotation _), VernacSynterp (VernacNotation _)
   | ( VernacSynterp (VernacReservedNotation _),
       VernacSynterp (VernacReservedNotation _) )
+  | VernacSynterp (VernacDeclareModuleType _), _
   | VernacSynterp (VernacDefineModule _), _
   | VernacSynterp (VernacBeginSection _), _
   | _, VernacSynterp (VernacEndSegment _)
