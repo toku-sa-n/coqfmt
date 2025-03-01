@@ -858,6 +858,8 @@ let pp_intro_pattern_naming_expr = function
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let rec pp_or_and_intro_pattern_expr = function
+  | Tactypes.IntroAndPattern expr ->
+      parens (map_commad (pp_c_ast pp_intro_pattern_expr) expr)
   | Tactypes.IntroOrPattern patterns ->
       let open CAst in
       let hor =
@@ -880,7 +882,6 @@ let rec pp_or_and_intro_pattern_expr = function
           [ write "["; sequence (List.mapi pp_patterns patterns); write "]" ]
       in
       hor <-|> ver
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_intro_pattern_action_expr = function
   | Tactypes.IntroOrAndPattern expr -> pp_or_and_intro_pattern_expr expr
