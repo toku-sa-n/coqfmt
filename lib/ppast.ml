@@ -2003,11 +2003,13 @@ let pp_constructor_list_or_record_decl_expr = function
           pp_as_clause;
         ]
 
-let pp_module_ast_r = function
-  | Constrexpr.CMident name -> pp_qualid name
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
+let rec pp_module_ast ast = pp_c_ast pp_module_ast_r ast
 
-let pp_module_ast = pp_c_ast pp_module_ast_r
+and pp_module_ast_r = function
+  | Constrexpr.CMident name -> pp_qualid name
+  | Constrexpr.CMapply (name, param) ->
+      spaced [ pp_module_ast name; pp_qualid param ]
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_module_ast_inl = function
   | ast, Declaremods.DefaultInline -> pp_module_ast ast
@@ -2032,11 +2034,26 @@ let pp_synterp_vernac_expr = function
       sequence [ write "Declare Custom Entry "; write name; dot ]
   | Vernacexpr.VernacDeclareModuleType (name, _, _, _) ->
       sequence [ write "Module Type "; pp_lident name; dot; increase_indent ]
-  | Vernacexpr.VernacDefineModule (None, name, binders, signature, []) ->
+  | Vernacexpr.VernacDefineModule (None, name, binders, signature, bodies) ->
       let pp_binders =
         map_sequence
           (fun binder -> sequence [ space; parens (pp_module_binder binder) ])
           binders
+      in
+
+      let pp_body =
+        match bodies with
+        | [] -> nop
+        | _ ->
+            let pp_each_body =
+              map_with_seps ~sep:(write " <+ ") pp_module_ast_inl bodies
+            in
+
+            sequence [ write " := "; indented pp_each_body ]
+      in
+
+      let increase_indent_conditionally =
+        match bodies with [] -> increase_indent | _ -> nop
       in
 
       let hor =
@@ -2046,8 +2063,9 @@ let pp_synterp_vernac_expr = function
             pp_lident name;
             pp_binders;
             pp_module_signature signature;
+            pp_body;
             dot;
-            increase_indent;
+            increase_indent_conditionally;
           ]
       in
 
@@ -2059,6 +2077,7 @@ let pp_synterp_vernac_expr = function
             pp_binders;
             newline;
             indented (pp_module_signature signature);
+            pp_body;
             dot;
             increase_indent;
           ]
