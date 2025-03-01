@@ -2002,6 +2002,21 @@ let pp_constructor_list_or_record_decl_expr = function
           pp_as_clause;
         ]
 
+let pp_module_ast_r = function
+  | Constrexpr.CMident name -> pp_qualid name
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
+let pp_module_ast = pp_c_ast pp_module_ast_r
+
+let pp_module_ast_inl = function
+  | ast, Declaremods.DefaultInline -> pp_module_ast ast
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
+let pp_module_binder = function
+  | None, names, inl ->
+      spaced [ map_spaced pp_lident names; write ":"; pp_module_ast_inl inl ]
+  | _, _, _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
@@ -2009,6 +2024,15 @@ let pp_synterp_vernac_expr = function
       sequence [ write "Module Type "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
       sequence [ write "Module "; pp_lident name; dot; increase_indent ]
+  | Vernacexpr.VernacDefineModule (None, name, binders, Check [], []) ->
+      let pp_binders =
+        map_sequence
+          (fun binder -> sequence [ space; parens (pp_module_binder binder) ])
+          binders
+      in
+
+      sequence
+        [ write "Module "; pp_lident name; pp_binders; dot; increase_indent ]
   | Vernacexpr.VernacBeginSection name ->
       sequence [ write "Section "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacEndSegment name ->
