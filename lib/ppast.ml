@@ -2018,22 +2018,53 @@ let pp_module_binder = function
       spaced [ map_spaced pp_lident names; write ":"; pp_module_ast_inl inl ]
   | _, _, _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_module_signature = function
+  | Declaremods.Check [] -> nop
+  | Declaremods.Check [ signature ] ->
+      sequence [ write " <: "; pp_module_ast_inl signature ]
+  | Declaremods.Check xs ->
+      map_lined (fun x -> sequence [ write "<: "; pp_module_ast_inl x ]) xs
+  | Declaremods.Enforce signature ->
+      sequence [ write " : "; pp_module_ast_inl signature ]
+
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
   | Vernacexpr.VernacDeclareModuleType (name, _, _, _) ->
       sequence [ write "Module Type "; pp_lident name; dot; increase_indent ]
-  | Vernacexpr.VernacDefineModule (None, name, [], Check [], []) ->
-      sequence [ write "Module "; pp_lident name; dot; increase_indent ]
-  | Vernacexpr.VernacDefineModule (None, name, binders, Check [], []) ->
+  | Vernacexpr.VernacDefineModule (None, name, binders, signature, []) ->
       let pp_binders =
         map_sequence
           (fun binder -> sequence [ space; parens (pp_module_binder binder) ])
           binders
       in
 
-      sequence
-        [ write "Module "; pp_lident name; pp_binders; dot; increase_indent ]
+      let hor =
+        sequence
+          [
+            write "Module ";
+            pp_lident name;
+            pp_binders;
+            pp_module_signature signature;
+            dot;
+            increase_indent;
+          ]
+      in
+
+      let ver =
+        sequence
+          [
+            write "Module ";
+            pp_lident name;
+            pp_binders;
+            newline;
+            indented (pp_module_signature signature);
+            dot;
+            increase_indent;
+          ]
+      in
+
+      hor <-|> ver
   | Vernacexpr.VernacBeginSection name ->
       sequence [ write "Section "; pp_lident name; dot; increase_indent ]
   | Vernacexpr.VernacEndSegment name ->
