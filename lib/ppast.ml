@@ -2057,8 +2057,30 @@ let pp_module_signature = function
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
       sequence [ write "Declare Custom Entry "; write name; dot ]
-  | Vernacexpr.VernacDeclareModuleType (name, _, _, _) ->
-      sequence [ write "Module Type "; pp_lident name; dot; increase_indent ]
+  | Vernacexpr.VernacDeclareModuleType (name, [], [], body) ->
+      let pp_body =
+        match body with
+        | [] -> nop
+        | _ ->
+            let pp_each_body =
+              map_with_seps ~sep:(write " <+ ") pp_module_ast_inl body
+            in
+
+            sequence [ write " := "; indented pp_each_body ]
+      in
+
+      let increase_indent_conditionally =
+        match body with [] -> increase_indent | _ -> nop
+      in
+
+      sequence
+        [
+          write "Module Type ";
+          pp_lident name;
+          pp_body;
+          dot;
+          increase_indent_conditionally;
+        ]
   | Vernacexpr.VernacDefineModule (None, name, binders, signature, bodies) ->
       let pp_binders =
         map_sequence
