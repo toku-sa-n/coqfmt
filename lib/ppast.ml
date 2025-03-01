@@ -1748,8 +1748,9 @@ let pp_printable = function
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_assumption_object_kind = function
-  | Decls.Logical -> write "Axiom"
   | Decls.Conjectural -> write "Conjecture"
+  | Decls.Definitional -> write "Parameter"
+  | Decls.Logical -> write "Axiom"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_comment = function
