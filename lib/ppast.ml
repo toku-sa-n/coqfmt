@@ -2154,6 +2154,13 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_vernac_tactic_notation args
+  | Vernacexpr.VernacInclude names ->
+      sequence
+        [
+          write "Include ";
+          map_with_seps ~sep:(write " <+ ") pp_module_ast_inl names;
+          dot;
+        ]
   | Vernacexpr.VernacNotation
       ( is_infix,
         {
