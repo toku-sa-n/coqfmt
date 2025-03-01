@@ -70,6 +70,10 @@ let rec pp_cases_pattern_expr expr = pp_c_ast pp_cases_pattern_expr_r expr
 and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatAtom (Some id) -> pp_qualid id
   | Constrexpr.CPatAtom None -> write "_"
+  | Constrexpr.CPatCast (pattern, expr) ->
+      parens
+        (sequence
+           [ pp_cases_pattern_expr pattern; write " : "; pp_constr_expr expr ])
   (* Cstr seems to mean 'Constructor'. (e.g., `S (S O)`, `Foo 0 1`) *)
   | Constrexpr.CPatCstr (outer, None, values) ->
       let open CAst in
@@ -132,20 +136,7 @@ and pp_cases_pattern_expr_r = function
   | Constrexpr.CPatOr xs -> parens (map_bard pp_cases_pattern_expr xs)
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-let pp_sort_name_expr = function
-  | Constrexpr.CProp -> write "Prop"
-  | Constrexpr.CSet -> write "Set"
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
-
-let pp_sort_expr = function
-  | None, Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
-  | _, Glob_term.UAnonymous { rigid = _ } ->
-      fun printer -> raise (Not_implemented (contents printer))
-  | None, Glob_term.UNamed [ (sort, 0) ] -> pp_sort_name_expr sort
-  | _, Glob_term.UNamed _ ->
-      fun printer -> raise (Not_implemented (contents printer))
-
-let rec pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
+and pp_constr_expr expr = pp_c_ast pp_constr_expr_r expr
 
 and pp_constr_expr_r =
   let pp_arg_with_explicitation (arg, expl_opt) =
@@ -519,6 +510,19 @@ and pp_constr_expr_with_parens expr =
   pp_constr_expr_with_parens_conditionally
     (exprs_generally_parens_needed expr.CAst.v)
     expr
+
+and pp_sort_expr = function
+  | None, Glob_term.UAnonymous { rigid = UnivRigid } -> write "Type"
+  | _, Glob_term.UAnonymous { rigid = _ } ->
+      fun printer -> raise (Not_implemented (contents printer))
+  | None, Glob_term.UNamed [ (sort, 0) ] -> pp_sort_name_expr sort
+  | _, Glob_term.UNamed _ ->
+      fun printer -> raise (Not_implemented (contents printer))
+
+and pp_sort_name_expr = function
+  | Constrexpr.CProp -> write "Prop"
+  | Constrexpr.CSet -> write "Set"
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 and pp_case_expr = function
   | expr, None, None -> pp_constr_expr expr
