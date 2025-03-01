@@ -2003,13 +2003,33 @@ let pp_constructor_list_or_record_decl_expr = function
           pp_as_clause;
         ]
 
+let pp_with_declaration_ast = function
+  | Constrexpr.CWith_Definition (name, None, expr) ->
+      let () =
+        match name.CAst.v with
+        | [ _ ] -> ()
+        | _ ->
+            failwith
+              "Multiple or no names are contradictory against the specification"
+      in
+
+      spaced
+        [
+          write "with Definition";
+          pp_c_ast (map_spaced pp_id) name;
+          write ":=";
+          pp_constr_expr expr;
+        ]
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let rec pp_module_ast ast = pp_c_ast pp_module_ast_r ast
 
 and pp_module_ast_r = function
   | Constrexpr.CMident name -> pp_qualid name
   | Constrexpr.CMapply (name, param) ->
       spaced [ pp_module_ast name; pp_qualid param ]
-  | _ -> fun printer -> raise (Not_implemented (contents printer))
+  | Constrexpr.CMwith (name, clause) ->
+      spaced [ pp_module_ast name; pp_with_declaration_ast clause ]
 
 let pp_module_ast_inl = function
   | ast, Declaremods.DefaultInline -> pp_module_ast ast
