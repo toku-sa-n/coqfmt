@@ -2699,6 +2699,12 @@ let separator current next =
   | ( VernacSynterp (VernacRequire (None, _, _)),
       VernacSynterp (VernacRequire (None, _, _)) )
   | VernacSynterp (VernacSetOption _), VernacSynterp (VernacSetOption _)
+  | ( VernacSynPure (VernacAssumption ((_, Decls.Conjectural), _, _)),
+      VernacSynPure (VernacAssumption ((_, Decls.Conjectural), _, _)) )
+  | ( VernacSynPure (VernacAssumption ((_, Decls.Definitional), _, _)),
+      VernacSynPure (VernacAssumption ((_, Decls.Definitional), _, _)) )
+  | ( VernacSynPure (VernacAssumption ((_, Decls.Logical), _, _)),
+      VernacSynPure (VernacAssumption ((_, Decls.Logical), _, _)) )
   | VernacSynPure (VernacLocate _), VernacSynPure (VernacLocate _)
   | VernacSynPure (VernacPrint _), VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), VernacSynPure (VernacCoercion _)
@@ -2792,6 +2798,8 @@ let separator current next =
   | _, VernacSynPure (VernacLocate _)
   | VernacSynterp (VernacSetOption _), _
   | _, VernacSynterp (VernacSetOption _)
+  | VernacSynPure (VernacAssumption _), _
+  | _, VernacSynPure (VernacAssumption _)
   | VernacSynPure (VernacPrint _), _
   | _, VernacSynPure (VernacPrint _)
   | VernacSynPure (VernacCoercion _), _
