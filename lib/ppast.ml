@@ -1872,6 +1872,24 @@ let pp_extraction_constant = function
       | _ -> fun printer -> raise (Not_implemented (contents printer)))
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_extraction_inlined_constant = function
+  | [ identifier; constant ] -> (
+      match
+        ( Conversion.ref_of_raw_generic_argument identifier,
+          Conversion.mlname_of_raw_generic_argument constant )
+      with
+      | Some identifier, Some constant ->
+          sequence
+            [
+              write "Extract Inlined Constant ";
+              pp_qualid identifier;
+              write " => ";
+              doublequoted (write constant);
+              dot;
+            ]
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_vernac_declare_tactic_definition = function
   | [ args ] -> (
       match Conversion.tacdef_body_of_raw_generic_argument args with
@@ -2202,6 +2220,14 @@ let pp_synterp_vernac_expr = function
         },
         args ) ->
       pp_extraction_inductive args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "ExtractionInlinedConstant";
+          ext_index = 0;
+        },
+        args ) ->
+      pp_extraction_inlined_constant args
   | Vernacexpr.VernacExtend
       ( {
           ext_plugin = "coq-core.plugins.funind";
