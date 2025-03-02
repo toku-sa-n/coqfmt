@@ -1819,6 +1819,11 @@ let pp_grammar_tactic_prod_item_expr = function
       fun printer -> raise (Not_implemented (contents printer))
 
 let pp_extraction = function
+  | [ identifier ] -> (
+      match Conversion.ref_of_raw_generic_argument identifier with
+      | Some identifier ->
+          sequence [ write "Extraction "; pp_qualid identifier; dot ]
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
   | [ filename; identifiens ] -> (
       match
         ( Conversion.string_of_raw_generic_argument filename,
@@ -2141,7 +2146,7 @@ let pp_synterp_vernac_expr = function
       ( {
           ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
-          ext_index = 2;
+          ext_index = _;
         },
         args ) ->
       pp_extraction args
