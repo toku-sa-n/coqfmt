@@ -1841,6 +1841,19 @@ let pp_extraction = function
       | _ -> fun printer -> raise (Not_implemented (contents printer)))
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_recursive_extraction = function
+  | [ identifiers ] -> (
+      match Conversion.ref_list_of_raw_generic_argument identifiers with
+      | Some identifiers ->
+          sequence
+            [
+              write "Recursive Extraction ";
+              map_spaced pp_qualid identifiers;
+              dot;
+            ]
+      | _ -> fun printer -> raise (Not_implemented (contents printer)))
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_extraction_constant = function
   | [ identifier; _; constant ] -> (
       match
@@ -2146,10 +2159,25 @@ let pp_synterp_vernac_expr = function
       ( {
           ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
-          ext_index = _;
+          ext_index = 0;
+        },
+        args )
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "Extraction";
+          ext_index = 2;
         },
         args ) ->
       pp_extraction args
+  | Vernacexpr.VernacExtend
+      ( {
+          ext_plugin = "coq-core.plugins.extraction";
+          ext_entry = "Extraction";
+          ext_index = 1;
+        },
+        args ) ->
+      pp_recursive_extraction args
   | Vernacexpr.VernacExtend
       ( {
           ext_plugin = "coq-core.plugins.extraction";
