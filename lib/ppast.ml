@@ -1609,6 +1609,10 @@ let pp_lang = function
   | Extraction_plugin.Table.Scheme -> write "Scheme"
   | Extraction_plugin.Table.JSON -> write "JSON"
 
+let pp_goal_select = function
+  | Goal_select.SelectAll -> write "all: "
+  | _ -> fun printer -> raise (Not_implemented (contents printer))
+
 let pp_vernac_solve =
   let try_pp conversion pp expr =
     match conversion expr with Some x -> Some (pp x) | None -> None
@@ -1635,8 +1639,19 @@ let pp_vernac_solve =
     try_pp Conversion.ltac_use_default_of_raw_generic_argument pp
   in
 
+  let try_pp_ltac_selector =
+    let pp = function None -> nop | Some x -> pp_goal_select x in
+
+    try_pp Conversion.ltac_selector_of_raw_generic_argument pp
+  in
+
   let pp_funcs =
-    [ try_pp_raw_tactic_expr; try_pp_tacdef_body; try_pp_ltac_use_default ]
+    [
+      try_pp_raw_tactic_expr;
+      try_pp_tacdef_body;
+      try_pp_ltac_use_default;
+      try_pp_ltac_selector;
+    ]
   in
 
   let rec pp fs expr =
