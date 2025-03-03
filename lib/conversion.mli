@@ -162,3 +162,8 @@ val function_fix_definition_of_raw_generic_argument :
   Vernacexpr.fixpoint_expr Loc.located list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
     [Vernacexpr.fixpoint_expr Loc.located list]. *)
+
+val ltac_selector_of_raw_generic_argument :
+  Genarg.raw_generic_argument -> Goal_select.t option option
+(** Convert the given value of [Genarg.raw_generic_argument] to a value of
+    [Goal_select.t option]. *)
