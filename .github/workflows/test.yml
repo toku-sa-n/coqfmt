@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       # See https://github.com/ocaml-opam/opam-repository-mingw#updates for `opam-repositories`.
-      - uses: ocaml/setup-ocaml@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
         with:
           ocaml-compiler: "4.14.1"
           opam-repositories: |
@@ -75,12 +75,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: ocaml/setup-ocaml@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-fmt@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml/lint-fmt@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
 
   lint_docs:
     runs-on: ubuntu-latest
@@ -88,12 +88,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: ocaml/setup-ocaml@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-doc@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml/lint-doc@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
 
   test_coq_files:
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: ocaml/setup-ocaml@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
@@ -121,12 +121,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: ocaml/setup-ocaml@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
         with:
           ocaml-compiler: "4.14.1"
           dune-cache: true
 
-      - uses: ocaml/setup-ocaml/lint-opam@0b8b8c6f352bfdd12fa56b6727eed5990aa22859 # v3.2.10
+      - uses: ocaml/setup-ocaml/lint-opam@3a2408012d2d345438ffdef9875d902a6ec41eae # v3.2.11
 
   ensure_trailing_newline:
     runs-on: ubuntu-latest
