@@ -722,10 +722,9 @@ let pp_notation_declaration = function
           pp_modifiers;
         ]
 
-let pp_fixpoint_expr (rec_order, expr) = 
+let pp_fixpoint_expr (rec_order, expr) =
   match expr with
-  | Vernacexpr.
-      { fname; univs = None; binders; rtype; body_def; notations } ->
+  | Vernacexpr.{ fname; univs = None; binders; rtype; body_def; notations } ->
       let pp_binders =
         let hor =
           map_sequence
@@ -2566,7 +2565,7 @@ let pp_synpure_vernac_expr = function
           dot;
         ]
   | Vernacexpr.VernacFixpoint (NoDischarge, (rec_order_list, expr_list)) ->
-      let combined = 
+      let combined =
         match rec_order_list with
         | [] -> List.map (fun e -> (None, e)) expr_list
         | orders -> List.combine orders expr_list

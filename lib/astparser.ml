@@ -13,7 +13,12 @@ let make code =
         injections =
           [
             Coqargs.RequireInjection
-              { lib = "Prelude"; prefix = Some "Coq"; export = Some Import; allow_failure = false };
+              {
+                lib = "Prelude";
+                prefix = Some "Coq";
+                export = Some Import;
+                allow_failure = false;
+              };
           ];
       }
   in

@@ -16,9 +16,11 @@ let init () =
   let _ =
     Coqinit.init_ocaml ();
     (Coqinit.parse_arguments
-      ~parse_extra:(fun _ args -> ((), args))
-      ~initial_args) []
-    |> fst |> Coqinit.init_runtime ~usage
+       ~parse_extra:(fun _ args -> ((), args))
+       ~initial_args)
+      []
+    |> fst
+    |> Coqinit.init_runtime ~usage
   in
   Stm.init_core ();
   Stm.init_process (Stm.AsyncOpts.default_opts ~spawn_args:[])
