@@ -2,9 +2,9 @@
  (name coqfmt)
  (public_name coqfmt)
  (libraries
-  coq-core.plugins.ltac
-  coq-core.stm
-  coq-core.sysinit
+  rocq-runtime.plugins.ltac
+  rocq-runtime.stm
+  rocq-runtime.sysinit
   coq-lsp.serlib.funind
   coq-lsp.serlib.ltac
   coq-lsp.serlib.extraction)
