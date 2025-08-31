@@ -722,9 +722,10 @@ let pp_notation_declaration = function
           pp_modifiers;
         ]
 
-let pp_fixpoint_expr = function
+let pp_fixpoint_expr (rec_order, expr) = 
+  match expr with
   | Vernacexpr.
-      { fname; univs = None; rec_order; binders; rtype; body_def; notations } ->
+      { fname; univs = None; binders; rtype; body_def; notations } ->
       let pp_binders =
         let hor =
           map_sequence
@@ -1744,8 +1745,8 @@ let pp_vernac_arguments_modifier = function
   | `ClearScopes -> write "clear scopes"
   | `DefaultImplicits -> write "default implicits"
   | `ExtraScopes -> write "extra scopes"
-  | `ReductionDontExposeCase -> write "simpl nomatch"
-  | `ReductionNeverUnfold -> write "simpl never"
+  | `SimplDontExposeCase -> write "simpl nomatch"
+  | `SimplNeverUnfold -> write "simpl never"
   | `Rename -> write "rename"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
@@ -2564,13 +2565,18 @@ let pp_synpure_vernac_expr = function
           pp_coercion_class dst;
           dot;
         ]
-  | Vernacexpr.VernacFixpoint (NoDischarge, exprs) ->
+  | Vernacexpr.VernacFixpoint (NoDischarge, (rec_order_list, expr_list)) ->
+      let combined = 
+        match rec_order_list with
+        | [] -> List.map (fun e -> (None, e)) expr_list
+        | orders -> List.combine orders expr_list
+      in
       sequence
         [
           write "Fixpoint ";
           map_with_seps
             ~sep:(sequence [ blankline; write "with " ])
-            pp_fixpoint_expr exprs;
+            pp_fixpoint_expr combined;
           dot;
         ]
   | Vernacexpr.VernacGeneralizable None -> write "Generalizable No Variables."
