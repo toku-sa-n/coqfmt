@@ -2191,14 +2191,14 @@ let pp_synterp_vernac_expr = function
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 0;
         },
         args )
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 2;
         },
@@ -2206,7 +2206,7 @@ let pp_synterp_vernac_expr = function
       pp_extraction args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 1;
         },
@@ -2214,7 +2214,7 @@ let pp_synterp_vernac_expr = function
       pp_recursive_extraction args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "ExtractionConstant";
           ext_index = 0;
         },
@@ -2222,7 +2222,7 @@ let pp_synterp_vernac_expr = function
       pp_extraction_constant args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "ExtractionLanguage";
           ext_index = 0;
         },
@@ -2230,7 +2230,7 @@ let pp_synterp_vernac_expr = function
       pp_extraction_language args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "ExtractionInductive";
           ext_index = 0;
         },
@@ -2238,7 +2238,7 @@ let pp_synterp_vernac_expr = function
       pp_extraction_inductive args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
+          ext_plugin = "rocq-runtime.plugins.extraction";
           ext_entry = "ExtractionInlinedConstant";
           ext_index = 0;
         },
@@ -2246,7 +2246,7 @@ let pp_synterp_vernac_expr = function
       pp_extraction_inlined_constant args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.funind";
+          ext_plugin = "rocq-runtime.plugins.funind";
           ext_entry = "Function";
           ext_index = 0;
         },
@@ -2254,7 +2254,7 @@ let pp_synterp_vernac_expr = function
       pp_function args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
+          ext_plugin = "rocq-runtime.plugins.ltac";
           ext_entry = "VernacSolve";
           ext_index = 0;
         },
@@ -2262,7 +2262,7 @@ let pp_synterp_vernac_expr = function
       pp_vernac_solve args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
+          ext_plugin = "rocq-runtime.plugins.ltac";
           ext_entry = "VernacDeclareTacticDefinition";
           ext_index = 0;
         },
@@ -2270,7 +2270,7 @@ let pp_synterp_vernac_expr = function
       pp_vernac_declare_tactic_definition args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
+          ext_plugin = "rocq-runtime.plugins.ltac";
           ext_entry = "VernacTacticNotation";
           ext_index = 0;
         },
@@ -2814,7 +2814,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2822,7 +2822,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2830,7 +2830,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2838,7 +2838,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2846,7 +2846,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2854,7 +2854,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2862,7 +2862,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2870,7 +2870,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2913,7 +2913,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2923,7 +2923,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2931,7 +2931,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2941,7 +2941,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2949,7 +2949,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2959,7 +2959,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2967,7 +2967,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2977,7 +2977,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = "rocq-runtime.plugins.extraction";
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },

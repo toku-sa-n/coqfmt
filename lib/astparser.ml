@@ -56,7 +56,7 @@ let rec next t =
         | ( VernacSynterp
               (VernacExtend
                  ( {
-                     ext_plugin = "coq-core.plugins.funind";
+                     ext_plugin = "rocq-runtime.plugins.funind";
                      ext_entry = "Function";
                      ext_index = 0;
                    },
