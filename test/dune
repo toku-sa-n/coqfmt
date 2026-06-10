@@ -1,5 +1,5 @@
 (test
- (name coqfmt)
- (libraries alcotest coqfmt)
+ (name rocqfmt)
+ (libraries alcotest rocqfmt)
  (deps
   (glob_files_rec coq_files/*.v)))

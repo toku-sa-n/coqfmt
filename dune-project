@@ -1,11 +1,11 @@
 (lang dune 3.9)
 
-(name coqfmt)
+(name rocqfmt)
 
 (generate_opam_files true)
 
 (source
- (github toku-sa-n/coqfmt))
+ (github toku-sa-n/rocqfmt))
 
 (authors "Hiroki Tokunaga <tokusan441@gmail.com>")
 
@@ -16,9 +16,9 @@
 (version 0.1.0)
 
 (package
- (name coqfmt)
+ (name rocqfmt)
  (synopsis "Coq code formatter")
- (description "Coqfmt formats the given Coq source code in a uniform style.")
+ (description "Rocqfmt formats the given Coq source code in a uniform style.")
  (depends
   (alcotest :with-test)
   ; FIXME: We should remove the `coq` dependency, and specify only `coq-core` as

@@ -1,6 +1,6 @@
 (library
- (name coqfmt)
- (public_name coqfmt)
+ (name rocqfmt)
+ (public_name rocqfmt)
  (libraries
   coq-core.plugins.ltac
   coq-core.stm

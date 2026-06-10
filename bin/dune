@@ -1,4 +1,4 @@
 (executable
- (public_name coqfmt)
+ (public_name rocqfmt)
  (name main)
- (libraries coqfmt dune-build-info))
+ (libraries rocqfmt dune-build-info))
