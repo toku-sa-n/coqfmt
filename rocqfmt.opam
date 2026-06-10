@@ -2,12 +2,12 @@
 opam-version: "2.0"
 version: "0.1.0"
 synopsis: "Coq code formatter"
-description: "Coqfmt formats the given Coq source code in a uniform style."
+description: "Rocqfmt formats the given Coq source code in a uniform style."
 maintainer: ["Hiroki Tokunaga <tokusan441@gmail.com>"]
 authors: ["Hiroki Tokunaga <tokusan441@gmail.com>"]
 license: "AGPL-3.0-or-later"
-homepage: "https://github.com/toku-sa-n/coqfmt"
-bug-reports: "https://github.com/toku-sa-n/coqfmt/issues"
+homepage: "https://github.com/toku-sa-n/rocqfmt"
+bug-reports: "https://github.com/toku-sa-n/rocqfmt/issues"
 depends: [
   "alcotest" {with-test}
   "coq" {= "8.20.0"}
@@ -32,4 +32,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/toku-sa-n/coqfmt.git"
+dev-repo: "git+https://github.com/toku-sa-n/rocqfmt.git"

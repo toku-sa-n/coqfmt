@@ -1,4 +1,4 @@
-# Coqfmt
+# Rocqfmt
 
 A command line tool to format your Coq source code.
 
@@ -8,20 +8,20 @@ Clone this repository and build using `opam`. You need `dune`. This package is
 not available in the OPAM repository (yet).
 
 ```sh
-git clone https://github.com/toku-sa-n/coqfmt
-cd coqfmt
+git clone https://github.com/toku-sa-n/rocqfmt
+cd rocqfmt
 opam install .
 ```
 
 ## Usage
 
-Just input your Coq code from stdin. Coqfmt will print the formatted code to
+Just input your Coq code from stdin. Rocqfmt will print the formatted code to
 stdout.
 
-Coqfmt is aware of commandline arguments in `_CoqProject` file. If you have a
-`_CoqProject` file in your project, Coqfmt will use the arguments in the file.
+Rocqfmt is aware of commandline arguments in `_CoqProject` file. If you have a
+`_CoqProject` file in your project, Rocqfmt will use the arguments in the file.
 
-See `coqfmt --help` for more detail.
+See `rocqfmt --help` for more detail.
 
 ## Don't like the formatted code?
 

@@ -12,7 +12,8 @@ let dir_to_testcase name =
   let in_content, out_content = read_in_out_files name in
   Alcotest.test_case name `Quick (fun () ->
       Alcotest.(check string)
-        "same string" out_content (Coqfmt.format in_content))
+        "same string" out_content
+        (Rocqfmt.format in_content))
 
 let test_cases =
   let rec scan_dir_recursively dir =
@@ -25,5 +26,5 @@ let test_cases =
   in
   scan_dir_recursively "coq_files" |> List.map dir_to_testcase
 
-let () = Coqfmt.init ()
-let () = Alcotest.run "Coqfmt" [ ("format", test_cases) ]
+let () = Rocqfmt.init ()
+let () = Alcotest.run "Rocqfmt" [ ("format", test_cases) ]

@@ -25,7 +25,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Without this, tests will fail on Windows because Coqfmt uses LF as a
+      # Without this, tests will fail on Windows because Rocqfmt uses LF as a
       # newline while the cloned source code contains CRLF.
       - name: Modify the git setting not to convert LF to CRLF
         run: git config --global core.autocrlf input

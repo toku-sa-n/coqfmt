@@ -4,7 +4,7 @@
 let init () =
   let usage =
     Boot.Usage.
-      { executable_name = "coqfmt"; extra_args = ""; extra_options = "" }
+      { executable_name = "rocqfmt"; extra_args = ""; extra_options = "" }
   in
 
   let initial_args =

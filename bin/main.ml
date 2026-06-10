@@ -7,5 +7,5 @@ let input () =
   loop []
 ;;
 
-Coqfmt.init ();
-input () |> Coqfmt.format |> print_string
+Rocqfmt.init ();
+input () |> Rocqfmt.format |> print_string
