@@ -662,10 +662,10 @@ let pp_theorem_kind = function
   | Decls.Theorem -> write "Theorem"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
-let pp_notation_entry = function
+let pp_notation_entry pp_name = function
   | Constrexpr.InConstrEntry -> write "constr"
   | Constrexpr.InCustomEntry scope ->
-      sequence [ write "custom"; space; write scope ]
+      sequence [ write "custom"; space; pp_name scope ]
 
 let pp_production_level = function
   | Extend.NextLevel -> write "at next level"
@@ -683,11 +683,12 @@ let pp_syntax_modifier = function
         | Some level -> sequence [ write " at level "; pp_int level ]
       in
 
-      sequence [ write "in custom "; write name; pp_level ]
+      sequence [ write "in custom "; pp_qualid name; pp_level ]
   | Vernacexpr.SetEntryType (name, ETConstr (entry, None, DefaultLevel)) ->
-      spaced [ write name; pp_notation_entry entry ]
+      spaced [ write name; pp_notation_entry pp_qualid entry ]
   | Vernacexpr.SetEntryType (name, ETConstr (entry, None, level)) ->
-      spaced [ write name; pp_notation_entry entry; pp_production_level level ]
+      spaced
+        [ write name; pp_notation_entry pp_qualid entry; pp_production_level level ]
   | Vernacexpr.SetEntryType (name, ETPattern (false, None)) ->
       sequence [ write name; write " pattern" ]
   | Vernacexpr.SetItemLevel ([ name ], None, level) ->
@@ -723,8 +724,9 @@ let pp_notation_declaration = function
         ]
 
 let pp_fixpoint_expr = function
-  | Vernacexpr.
-      { fname; univs = None; rec_order; binders; rtype; body_def; notations } ->
+  | ( rec_order,
+      Vernacexpr.
+        { fname; univs = None; binders; rtype; body_def; notations } ) ->
       let pp_binders =
         let hor =
           map_sequence
@@ -1613,6 +1615,11 @@ let pp_goal_select = function
   | Goal_select.SelectAll -> write "all: "
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
+let pp_raw_generic_tactic tactic =
+  let env = Global.env () in
+  let sigma = Evd.from_env env in
+  write (Pp.string_of_ppcmds (Gentactic.print_raw env sigma tactic))
+
 let pp_vernac_solve =
   let try_pp conversion pp expr =
     match conversion expr with Some x -> Some (pp x) | None -> None
@@ -1744,8 +1751,8 @@ let pp_vernac_arguments_modifier = function
   | `ClearScopes -> write "clear scopes"
   | `DefaultImplicits -> write "default implicits"
   | `ExtraScopes -> write "extra scopes"
-  | `ReductionDontExposeCase -> write "simpl nomatch"
-  | `ReductionNeverUnfold -> write "simpl never"
+  | `SimplDontExposeCase -> write "simpl nomatch"
+  | `SimplNeverUnfold -> write "simpl never"
   | `Rename -> write "rename"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
@@ -1758,7 +1765,7 @@ let pp_ident_decl = function
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_printable = function
-  | Vernacexpr.PrintAssumptions (false, false, { v = AN name; loc = _ }) ->
+  | Vernacexpr.PrintAssumptions (false, false, [ { v = AN name; loc = _ } ]) ->
       sequence [ write "Print Assumptions "; pp_qualid name; dot ]
   | Vernacexpr.PrintName (CAst.{ v = AN name; loc = _ }, None) ->
       sequence [ write "Print "; pp_qualid name; dot ]
@@ -1790,25 +1797,21 @@ let pp_reference_or_constr = function
 let pp_hints_expr = function
   | Vernacexpr.HintsConstructors names ->
       sequence [ write "Hint Constructors "; map_spaced pp_qualid names ]
-  | Vernacexpr.HintsExtern (cost, pattern, tactic) -> (
-      match Conversion.ltac_of_raw_generic_argument tactic with
-      | Some tactic ->
-          let pp_pattern =
-            match pattern with
-            | Some pattern ->
-                sequence [ space; pp_constr_expr_with_parens pattern ]
-            | None -> nop
-          in
+  | Vernacexpr.HintsExtern (cost, pattern, tactic) ->
+      let pp_pattern =
+        match pattern with
+        | Some pattern -> sequence [ space; pp_constr_expr_with_parens pattern ]
+        | None -> nop
+      in
 
-          sequence
-            [
-              write "Hint Extern ";
-              write (string_of_int cost);
-              pp_pattern;
-              write " => ";
-              pp_raw_tactic_expr tactic;
-            ]
-      | None -> fun printer -> raise (Not_implemented (contents printer)))
+      sequence
+        [
+          write "Hint Extern ";
+          write (string_of_int cost);
+          pp_pattern;
+          write " => ";
+          pp_raw_generic_tactic tactic;
+        ]
   | Vernacexpr.HintsResolve names ->
       let pp :
           Vernacexpr.hint_info_expr * bool * Vernacexpr.reference_or_constr ->
@@ -1828,8 +1831,14 @@ let pp_hints_expr = function
 
 let pp_grammar_tactic_prod_item_expr = function
   | Tacentries.TacTerm name -> doublequoted (write name)
-  | Tacentries.TacNonTerm (Some _, ((), Some id)) ->
-      sequence [ write "ident"; parens (pp_id id) ]
+  | Tacentries.TacNonTerm (Some _, ((arg, None), None)) -> write arg
+  | Tacentries.TacNonTerm (Some _, ((arg, sep), Some id)) ->
+      let pp_sep =
+        match sep with
+        | None -> nop
+        | Some sep -> sequence [ write ", "; doublequoted (write sep) ]
+      in
+      sequence [ write arg; parens (sequence [ pp_id id; pp_sep ]) ]
   | Tacentries.TacNonTerm _ ->
       fun printer -> raise (Not_implemented (contents printer))
 
@@ -1973,7 +1982,7 @@ let pp_vernac_tactic_notation = function
           Conversion.ltac_production_item_of_raw_generic_argument name,
           Conversion.raw_tactic_expr_of_raw_generic_argument tactic )
       with
-      | None, Some names, Some tactic ->
+      | Some None, Some names, Some tactic ->
           let header =
             sequence
               [
@@ -2107,7 +2116,7 @@ let pp_module_signature = function
 
 let pp_synterp_vernac_expr = function
   | Vernacexpr.VernacDeclareCustomEntry name ->
-      sequence [ write "Declare Custom Entry "; write name; dot ]
+      sequence [ write "Declare Custom Entry "; pp_id name; dot ]
   | Vernacexpr.VernacDeclareModuleType (name, [], [], body) ->
       let pp_body =
         match body with
@@ -2190,88 +2199,88 @@ let pp_synterp_vernac_expr = function
       sequence [ pp_export_flag flag; space; pp_qualid name; dot ]
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 0;
+          _;
         },
         args )
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 2;
+          _;
         },
         args ) ->
       pp_extraction args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "Extraction";
           ext_index = 1;
+          _;
         },
         args ) ->
       pp_recursive_extraction args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "ExtractionConstant";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_extraction_constant args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "ExtractionLanguage";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_extraction_language args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "ExtractionInductive";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_extraction_inductive args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.extraction";
           ext_entry = "ExtractionInlinedConstant";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_extraction_inlined_constant args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.funind";
           ext_entry = "Function";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_function args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
           ext_entry = "VernacSolve";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_vernac_solve args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
           ext_entry = "VernacDeclareTacticDefinition";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_vernac_declare_tactic_definition args
   | Vernacexpr.VernacExtend
       ( {
-          ext_plugin = "coq-core.plugins.ltac";
           ext_entry = "VernacTacticNotation";
           ext_index = 0;
+          _;
         },
         args ) ->
       pp_vernac_tactic_notation args
@@ -2564,13 +2573,13 @@ let pp_synpure_vernac_expr = function
           pp_coercion_class dst;
           dot;
         ]
-  | Vernacexpr.VernacFixpoint (NoDischarge, exprs) ->
+  | Vernacexpr.VernacFixpoint (NoDischarge, (rec_orders, exprs)) ->
       sequence
         [
           write "Fixpoint ";
           map_with_seps
             ~sep:(sequence [ blankline; write "with " ])
-            pp_fixpoint_expr exprs;
+            pp_fixpoint_expr (List.combine rec_orders exprs);
           dot;
         ]
   | Vernacexpr.VernacGeneralizable None -> write "Generalizable No Variables."
@@ -2604,7 +2613,7 @@ let pp_synpure_vernac_expr = function
           pp_search_restriction search_restriction;
           dot;
         ]
-  | Vernacexpr.VernacStartTheoremProof (kind, [ ((ident, None), (args, expr)) ])
+  | Vernacexpr.VernacStartTheoremProof (kind, [ ((ident, _), (args, expr)) ])
     ->
       let hor = sequence [ space; pp_constr_expr expr; dot ] in
       let ver =
@@ -2623,10 +2632,8 @@ let pp_synpure_vernac_expr = function
         ]
   | Vernacexpr.VernacShow x -> sequence [ write "Show "; pp_showable x; dot ]
   | Vernacexpr.VernacProof (None, None) -> write "Proof."
-  | Vernacexpr.VernacProof (Some expr, None) -> (
-      match Conversion.ltac_of_raw_generic_argument expr with
-      | Some x -> sequence [ write "Proof with "; pp_raw_tactic_expr x; dot ]
-      | None -> fun printer -> raise (Not_implemented (contents printer)))
+  | Vernacexpr.VernacProof (Some expr, None) ->
+      sequence [ write "Proof with "; pp_raw_generic_tactic expr; dot ]
   | Vernacexpr.VernacInductive (kind, inductives) ->
       let pp_single_inductive = function
         | ( ( (Vernacexpr.NoCoercion, (name, None)),
@@ -2688,7 +2695,7 @@ let pp_synpure_vernac_expr = function
   | Vernacexpr.VernacEndSubproof -> sequence [ end_subproof; write "}" ]
   | Vernacexpr.VernacHints ([ database ], expr) ->
       sequence [ pp_hints_expr expr; write " : "; write database; dot ]
-  | Vernacexpr.VernacSyntacticDefinition (name, (params, expr), []) ->
+  | Vernacexpr.VernacAbbreviation (name, (params, expr), [], _) ->
       sequence
         [
           write "Notation ";
@@ -2705,7 +2712,7 @@ let pp_vernac_expr = function
   | Vernacexpr.VernacSynPure x -> pp_synpure_vernac_expr x
 
 let pp_control_flag = function
-  | Vernacexpr.ControlFail -> write "Fail"
+  | CAst.{ v = Vernacexpr.ControlFail; loc = _ } -> write "Fail"
   | _ -> fun printer -> raise (Not_implemented (contents printer))
 
 let pp_vernac_flag = function
@@ -2808,7 +2815,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2816,7 +2823,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2824,7 +2831,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2832,7 +2839,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2840,7 +2847,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2848,7 +2855,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2856,7 +2863,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2864,7 +2871,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2907,7 +2914,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2917,7 +2924,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "Extraction";
                ext_index = 2;
              },
@@ -2925,7 +2932,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2935,7 +2942,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionConstant";
                ext_index = 0;
              },
@@ -2943,7 +2950,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2953,7 +2960,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionLanguage";
                ext_index = 0;
              },
@@ -2961,7 +2968,7 @@ let separator current next =
   | ( VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },
@@ -2971,7 +2978,7 @@ let separator current next =
       VernacSynterp
         (VernacExtend
            ( {
-               ext_plugin = "coq-core.plugins.extraction";
+               ext_plugin = _;
                ext_entry = "ExtractionInductive";
                ext_index = 0;
              },

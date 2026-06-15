@@ -1,480 +1,113 @@
-(* XXX: I'm not sure if these ways are correct. See
-   https://coq.zulipchat.com/#narrow/stream/256331-SerAPI/topic/Parsing.20a.20value.20in.20a.20.60GenArg.60. *)
-
-open Sexplib.Sexp
+let raw_arg wit arg =
+  let wit = Genarg.rawwit wit in
+  if Genarg.has_type arg wit then Some (Genarg.out_gen wit arg) else None
 
 let raw_tactic_expr_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "tactic" ] ];
-        rems;
-      ] ->
-      Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Tacarg.wit_tactic arg
 
 let tacdef_body_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List
-              [
-                Atom "ListArg";
-                List [ Atom "ExtraArg"; Atom "ltac_tacdef_body" ];
-              ];
-          ];
-        List rems;
-      ] ->
-      Some (List.map Serlib_ltac.Ser_tacexpr.tacdef_body_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Ltac_plugin.G_ltac.wit_ltac_tacdef_body) arg
 
 let constr_expr_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "constr" ] ];
-        rems;
-      ]
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "uconstr" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
-  | _ -> None
+  match raw_arg Stdarg.wit_constr arg with
+  | Some _ as expr -> expr
+  | None -> raw_arg Stdarg.wit_uconstr arg
 
 let intro_pattern_list_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List
-              [
-                Atom "ListArg";
-                List [ Atom "ExtraArg"; Atom "simple_intropattern" ];
-              ];
-          ];
-        List rems;
-      ] ->
-      Some (List.map Serlib_ltac.Ser_tacexpr.intro_pattern_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Ltac_plugin.Tacarg.wit_simple_intropattern) arg
 
 let intro_pattern_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "simple_intropattern" ];
-          ];
-        rems;
-      ] ->
-      Some (Serlib_ltac.Ser_tacexpr.intro_pattern_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Tacarg.wit_simple_intropattern arg
 
 let destruction_arg_of_raw_generic_argument arg =
-  let open Sexplib.Sexp in
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "destruction_arg" ] ];
-        rems;
-      ] ->
-      let arg_parser = function
-        | List [ _; expr ] ->
-            (Serlib.Ser_constrexpr.constr_expr_of_sexp expr, Tactypes.NoBindings)
-        | _ -> failwith "TODO"
-      in
-      Some (Serlib.Ser_tactics.destruction_arg_of_sexp arg_parser rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Tacarg.wit_destruction_arg arg
 
 let clause_expr_of_raw_generic_argument arg =
-  let open Sexplib.Sexp in
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "in_clause" ] ];
-        rems;
-      ] ->
-      Some
-        (Serlib.Ser_locus.clause_expr_of_sexp
-           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
-           rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Extraargs.wit_in_clause arg
 
 let bindings_list_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "bindings" ] ];
-          ];
-        List rems;
-      ] ->
-      Some
-        (List.map
-           (Serlib.Ser_tactypes.bindings_of_sexp
-              Serlib.Ser_constrexpr.constr_expr_of_sexp)
-           rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Ltac_plugin.Tacarg.wit_bindings) arg
 
-let id_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ident" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_names.Id.t_of_sexp rems)
-  | _ -> None
+let id_of_raw_generic_argument arg = raw_arg Stdarg.wit_ident arg
 
 let hyp_list_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "hyp" ] ];
-          ];
-        List rems;
-      ] ->
-      Some
-        (List.map
-           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
-           rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Stdarg.wit_hyp) arg
 
-let hyp_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "hyp" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp rems)
-  | _ -> None
+let hyp_of_raw_generic_argument arg = raw_arg Stdarg.wit_hyp arg
 
 let nat_or_var_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "OptArg"; List [ Atom "ExtraArg"; Atom "nat_or_var" ] ];
-          ];
-        List rems;
-      ] ->
-      Some
-        (List.map
-           (Serlib.Ser_locus.or_var_of_sexp Sexplib.Std.int_of_sexp)
-           rems)
-  | _ -> None
+  match raw_arg (Genarg.wit_opt Stdarg.wit_nat_or_var) arg with
+  | Some None -> Some []
+  | Some (Some var) -> Some [ var ]
+  | None -> (
+      match raw_arg (Genarg.wit_list Stdarg.wit_nat_or_var) arg with
+      | Some _ as vars -> vars
+      | None -> Option.map (fun var -> [ var ]) (raw_arg Stdarg.wit_nat_or_var arg))
 
 let auto_using_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "auto_using" ] ];
-        List rems;
-      ] ->
-      Some (List.map Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.G_auto.wit_auto_using arg
 
 let ltac_use_default_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ltac_use_default" ] ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.bool_of_sexp rems)
-  | _ -> None
+  Option.map (fun value -> value.CAst.v) (raw_arg Ltac_plugin.G_ltac.wit_ltac_use_default arg)
 
-let ltac_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ltac" ] ];
-        rems;
-      ] ->
-      Some (Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
-  | _ -> None
+let ltac_of_raw_generic_argument arg = raw_arg Ltac_plugin.Tacarg.wit_ltac arg
 
 let hintbases_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "hintbases" ] ];
-        List [ List rems ];
-      ] ->
-      Some (List.map Sexplib.Std.string_of_sexp rems)
-  | _ -> None
+  Option.map
+    (function None -> [] | Some hintbases -> hintbases)
+    (raw_arg Ltac_plugin.G_auto.wit_hintbases arg)
 
 let lang_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "language" ] ];
-        rems;
-      ] ->
-      Some (Serlib_extraction.Ser_g_extraction.WitL.t_of_sexp rems)
-  | _ -> None
+  raw_arg Extraction_plugin.G_extraction.wit_language arg
 
-let string_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "string" ] ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.string_of_sexp rems)
-  | _ -> None
+let string_of_raw_generic_argument arg = raw_arg Stdarg.wit_string arg
 
-let ref_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "ref" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_libnames.qualid_of_sexp rems)
-  | _ -> None
+let ref_of_raw_generic_argument arg = raw_arg Stdarg.wit_ref arg
 
 let ref_list_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "ref" ] ];
-          ];
-        List rems;
-      ] ->
-      Some (List.map Serlib.Ser_libnames.qualid_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Stdarg.wit_ref) arg
 
 let mlname_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "mlname" ] ];
-        rems;
-      ] ->
-      Some (Serlib_extraction.Ser_g_extraction.WitMN.t_of_sexp rems)
-  | _ -> None
+  raw_arg Extraction_plugin.G_extraction.wit_mlname arg
 
 let mlname_list_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "mlname" ] ];
-          ];
-        List rems;
-      ] ->
-      Some (List.map Serlib_extraction.Ser_g_extraction.WitMN.t_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Extraction_plugin.G_extraction.wit_mlname) arg
 
 let opt_string_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "OptArg"; List [ Atom "ExtraArg"; Atom "string" ] ];
-          ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.option_of_sexp Sexplib.Std.string_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_opt Stdarg.wit_string) arg
 
 let by_arg_tac_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "by_arg_tac" ] ];
-        List rems;
-      ] ->
-      Some (List.map Serlib_ltac.Ser_tacexpr.raw_tactic_expr_of_sexp rems)
-  | _ -> None
+  Option.map
+    (function None -> [] | Some tactic -> [ tactic ])
+    (raw_arg Ltac_plugin.Extraargs.wit_by_arg_tac arg)
 
 let clause_dft_concl_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "clause_dft_concl" ] ];
-        rems;
-      ] ->
-      Some
-        (Serlib.Ser_locus.clause_expr_of_sexp
-           (Serlib.Ser_cAst.t_of_sexp Serlib.Ser_names.Id.t_of_sexp)
-           rems)
-  | _ -> None
+  raw_arg Stdarg.wit_clause_dft_concl arg
 
 let constr_with_bindings_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "constr_with_bindings" ];
-          ];
-        rems;
-      ] ->
-      Some
-        (Serlib.Ser_tactypes.with_bindings_of_sexp
-           Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Tacarg.wit_constr_with_bindings arg
 
 let rename_idents_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List [ Atom "ListArg"; List [ Atom "ExtraArg"; Atom "rename" ] ];
-          ];
-        List rems;
-      ] ->
-      Some
-        (List.map
-           (Sexplib.Conv.pair_of_sexp Serlib.Ser_names.Id.t_of_sexp
-              Serlib.Ser_names.Id.t_of_sexp)
-           rems)
-  | _ -> None
+  raw_arg (Genarg.wit_list Ltac_plugin.Extraargs.wit_rename) arg
 
 let ltac_production_item_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List
-              [
-                Atom "ListArg";
-                List [ Atom "ExtraArg"; Atom "ltac_production_item" ];
-              ];
-          ];
-        List rems;
-      ] ->
-      Some
-        (List.map
-           (Serlib_ltac.Ser_tacentries.grammar_tactic_prod_item_expr_of_sexp
-              (fun _ -> (* TODO *) ()))
-           rems)
-  | _ -> None
+  raw_arg
+    (Genarg.wit_list Ltac_plugin.G_ltac.wit_ltac_production_item)
+    arg
 
 let ltac_tactic_level_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "OptArg"; Atom "ltac_tactic_level" ] ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.option_of_sexp Sexplib.Std.int_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_opt Ltac_plugin.G_ltac.wit_ltac_tactic_level) arg
 
 let test_lpar_id_colon_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "test_lpar_id_colon" ] ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.unit_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Extraargs.wit_test_lpar_id_colon arg
 
 let lconstr_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List [ Atom "Rawwit"; List [ Atom "ExtraArg"; Atom "lconstr" ] ];
-        rems;
-      ] ->
-      Some (Serlib.Ser_constrexpr.constr_expr_of_sexp rems)
-  | _ -> None
+  raw_arg Ltac_plugin.Extraargs.wit_lconstr arg
 
 let function_fix_definition_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List
-              [
-                Atom "ListArg";
-                List [ Atom "ExtraArg"; Atom "function_fix_definition" ];
-              ];
-          ];
-        List rems;
-      ] ->
-      Some (List.map Serlib_funind.Ser_g_indfun.WFFD.t_of_sexp rems)
-  | _ -> None
+  raw_arg
+    (Genarg.wit_list Funind_plugin.G_indfun.wit_function_fix_definition)
+    arg
 
 let ltac_selector_of_raw_generic_argument arg =
-  match Serlib.Ser_genarg.sexp_of_raw_generic_argument arg with
-  | List
-      [
-        Atom "GenArg";
-        List
-          [
-            Atom "Rawwit";
-            List
-              [ Atom "OptArg"; List [ Atom "ExtraArg"; Atom "ltac_selector" ] ];
-          ];
-        rems;
-      ] ->
-      Some (Sexplib.Std.option_of_sexp Serlib.Ser_goal_select.t_of_sexp rems)
-  | _ -> None
+  raw_arg (Genarg.wit_opt Ltac_plugin.G_ltac.wit_ltac_selector) arg
