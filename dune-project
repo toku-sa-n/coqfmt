@@ -21,13 +21,12 @@
  (description "Rocqfmt formats the given Coq source code in a uniform style.")
  (depends
   (alcotest :with-test)
-  ; FIXME: We should remove the `coq` dependency, and specify only `coq-core` as
-  ; users may have already installed it. However, removing it and installing Coq
-  ; via opam causes a build error on CI.
-  (coq
-   (= 8.20.0))
-  coq-core
-  coq-lsp
+  (coq-core
+   (= 9.2.0))
+  (rocq-core
+   (= 9.2.0))
+  (rocq-stdlib
+   (= 9.1.0))
   dune
   dune-build-info
   ocaml))

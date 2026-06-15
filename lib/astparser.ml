@@ -1,7 +1,7 @@
 type t = {
   mutable doc : Stm.doc;
   mutable state : Stateid.t;
-  code : Pcoq.Parsable.t;
+  code : Procq.Parsable.t;
 }
 
 let make code =
@@ -9,18 +9,23 @@ let make code =
   let stm_init_options =
     Stm.
       {
-        doc_type = Interactive (TopLogical Coqargs.default_toplevel);
+        doc_type = Interactive (TopLogical "Top");
         injections =
           [
             Coqargs.RequireInjection
-              { lib = "Prelude"; prefix = Some "Coq"; export = Some Import };
+              {
+                lib = "Prelude";
+                prefix = Some "Coq";
+                export = Some Import;
+                allow_failure = false;
+              };
           ];
       }
   in
 
   let doc, state = Stm.new_doc stm_init_options in
 
-  let code = Gramlib.Stream.of_string code |> Pcoq.Parsable.make in
+  let code = Gramlib.Stream.of_string code |> Procq.Parsable.make in
 
   { doc; state; code }
 
@@ -56,9 +61,9 @@ let rec next t =
         | ( VernacSynterp
               (VernacExtend
                  ( {
-                     ext_plugin = "coq-core.plugins.funind";
                      ext_entry = "Function";
                      ext_index = 0;
+                     _;
                    },
                    _ )),
             VernacSynPure (VernacProof _) ) ->

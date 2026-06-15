@@ -14,12 +14,14 @@ val constr_expr_of_raw_generic_argument :
     [Constrexpr.constr_expr]. *)
 
 val intro_pattern_list_of_raw_generic_argument :
-  Genarg.raw_generic_argument -> Ltac_plugin.Tacexpr.intro_pattern list option
+  Genarg.raw_generic_argument ->
+  Constrexpr.constr_expr Tactypes.intro_pattern_expr CAst.t list option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
     [Ltac_plugin.Tacexpr.intro_pattern list]. *)
 
 val intro_pattern_of_raw_generic_argument :
-  Genarg.raw_generic_argument -> Ltac_plugin.Tacexpr.intro_pattern option
+  Genarg.raw_generic_argument ->
+  Constrexpr.constr_expr Tactypes.intro_pattern_expr CAst.t option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
     [Ltac_plugin.Tacexpr.intro_pattern]. *)
 
@@ -138,7 +140,9 @@ val rename_idents_of_raw_generic_argument :
 
 val ltac_production_item_of_raw_generic_argument :
   Genarg.raw_generic_argument ->
-  unit Ltac_plugin.Tacentries.grammar_tactic_prod_item_expr list option
+  (string * string option) Ltac_plugin.Tacentries.grammar_tactic_prod_item_expr
+  list
+  option
 (** Convert the given value of [Genarg.raw_generic_argument] to a value of
     [Ltac_plugin.Tacexpr.production_item]. *)
 

@@ -10,9 +10,9 @@ homepage: "https://github.com/toku-sa-n/rocqfmt"
 bug-reports: "https://github.com/toku-sa-n/rocqfmt/issues"
 depends: [
   "alcotest" {with-test}
-  "coq" {= "8.20.0"}
-  "coq-core"
-  "coq-lsp"
+  "coq-core" {= "9.2.0"}
+  "rocq-core" {= "9.2.0"}
+  "rocq-stdlib" {= "9.1.0"}
   "dune" {>= "3.9"}
   "dune-build-info"
   "ocaml"
